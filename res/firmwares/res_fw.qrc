@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/res/firmwares">
+        <file>CHANGELOG.md</file>
+    </qresource>
+</RCC>
