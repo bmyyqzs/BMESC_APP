@@ -28,6 +28,31 @@ This Git-tracked file is the chronological memory for project conversations and 
 **Sensitive information**
 - None.
 
+### 2026-06-18 - Complete merge of codex/speed into main
+
+**User request**
+- Merge the current branch into `main` and delete the current branch.
+
+**Key context**
+- The source branch was `codex/speed`.
+- The branch work first had to be committed because the repository contained uncommitted product, UI, branding, documentation, and test changes.
+
+**Confirmed decisions and preferences**
+- Use a local integration commit rather than leaving uncommitted changes behind.
+- Delete the local source branch after `main` contains the work.
+
+**Actions and results**
+- Created commit `693c450` (`Integrate BM product app updates`) on `codex/speed`.
+- Switched to `main`, fast-forward merged `codex/speed`, and deleted the local `codex/speed` branch.
+- `main` is now ahead of `origin/main`; no push was requested in this turn.
+
+**Unresolved items**
+- This turn did not push `main` to the remote.
+- No build or test run was requested or performed as part of the Git branch operation.
+
+**Sensitive information**
+- None.
+
 ### 2026-06-18 - Merge current branch into main and remove branch
 
 **User request**
