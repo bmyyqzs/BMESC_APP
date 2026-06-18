@@ -24,6 +24,8 @@
 #include <QQuickWindow>
 #include <QQmlContext>
 
+#include "product/productdevicemodel.h"
+
 VescInterface *QmlUi::mVesc = nullptr;
 
 QmlUi::QmlUi(QObject *parent) : QObject(parent)
@@ -42,6 +44,7 @@ bool QmlUi::startQmlUi()
 
     qmlRegisterSingletonType<VescInterface>("Vedder.vesc.vescinterface", 1, 0, "VescIf", vescinterface_singletontype_provider);
     qmlRegisterSingletonType<Utility>("Vedder.vesc.utility", 1, 0, "Utility", utility_singletontype_provider);
+    qmlRegisterType<ProductDeviceModel>("BM.Product", 1, 0, "ProductDeviceModel");
 
     mEngine->load(QUrl(QLatin1String("qrc:/mobile/main.qml")));
     return !mEngine->rootObjects().isEmpty();
@@ -76,10 +79,9 @@ bool QmlUi::eventFilter(QObject *object, QEvent *e)
 void QmlUi::setVisible(bool visible)
 {
     if (mEngine) {
-        QObject *rootObject = mEngine->rootObjects().first();
-        QQuickWindow *window = qobject_cast<QQuickWindow *>(rootObject);
-        if (window) {
-            window->setVisible(visible);
+        const auto roots = mEngine->rootObjects();
+        if (!roots.isEmpty()) {
+            roots.first()->setProperty("visible", visible);
         }
     }
 }

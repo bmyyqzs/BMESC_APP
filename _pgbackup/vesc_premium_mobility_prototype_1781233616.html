@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8"/>
+        <title>VESC Premium Mobility App Prototype</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+        <style>:root { --bg: #050609; --panel: #10131a; --panel-2: #171b24; --line: rgba(255,255,255,.10); --text: #f4f1ea; --muted: #9aa3b2; --gold: #d9b46a; --gold-2: #f2d58a; --blue: #4db4ff; --blue-2: #1b76ff; --danger: #ff4d6d; --shadow: 0 24px 60px rgba(0,0,0,.58); } * { box-sizing: border-box; margin: 0; padding: 0; } body { font-family: -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Microsoft YaHei",sans-serif; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 20% 0%,rgba(217,180,106,.22),transparent 34%),
+    radial-gradient(circle at 85% 16%,rgba(77,180,255,.18),transparent 32%),
+    linear-gradient(145deg,#020204,#0a0d13 48%,#030406); color: var(--text); } .app { width: 390px; height: 844px; border-radius: 34px; overflow: hidden; position: relative; background: linear-gradient(180deg,#0a0c11,#050609 58%,#030406); border: 1px solid rgba(255,255,255,.14); box-shadow: 0 0 0 8px rgba(255,255,255,.025),0 40px 100px rgba(0,0,0,.72); display: flex; flex-direction: column; } .status { height: 28px; padding: 8px 18px 2px; display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); } .header { padding: 8px 22px 12px; display: flex; justify-content: space-between; align-items: center; } .brand small { display: block; color: var(--gold); letter-spacing: .18em; font-size: 10px; text-transform: uppercase; } .brand h1 { font-size: 22px; font-weight: 650; letter-spacing: .02em; } .pill { font-size: 10px; color: var(--gold-2); border: 1px solid rgba(217,180,106,.42); padding: 5px 9px; border-radius: 999px; background: rgba(217,180,106,.08); } .main { flex: 1; position: relative; overflow: hidden; } .page { position: absolute; inset: 0; padding: 0 18px 76px; overflow-y: auto; opacity: 0; pointer-events: none; transform: translateY(8px); transition: .24s; } .page.active { opacity: 1; pointer-events: auto; transform: none; } .page::-webkit-scrollbar { width: 0; } .card { border-radius: 24px; padding: 16px; margin-bottom: 14px; position: relative; overflow: hidden; background: linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.035)); border: 1px solid var(--line); box-shadow: 0 18px 46px rgba(0,0,0,.38); backdrop-filter: blur(18px); } .card-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; } .title { font-size: 15px; font-weight: 650; } .sub { font-size: 11px; color: var(--muted); margin-top: 3px; } .btn { border: 0; border-radius: 999px; padding: 10px 16px; background: linear-gradient(135deg,var(--gold-2),var(--gold)); color: #17120a; font-weight: 700; font-size: 12px; box-shadow: 0 12px 25px rgba(217,180,106,.25); cursor: pointer; } .btn.dark { background: rgba(255,255,255,.06); color: var(--text); border: 1px solid var(--line); box-shadow: none; } .bt-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; } .bt-copy { font-size: 12px; color: #c1cad6; line-height: 1.45; } .bt-state { font-size: 11px; color: var(--blue); margin-top: 4px; } .spinner { width: 32px; height: 32px; border-radius: 50%; border: 2px solid rgba(255,255,255,.12); border-top-color: var(--gold); animation: spin .9s linear infinite; box-shadow: 0 0 18px rgba(217,180,106,.35); } @keyframes spin{ to {  transform: rotate(360deg); } } .gauge-wrap { height: 250px; display: flex; justify-content: center; align-items: center; position: relative; } #speedCanvas { width: 230px; height: 230px; border-radius: 50%; background: radial-gradient(circle at 50% 35%,rgba(77,180,255,.22),rgba(0,0,0,.12) 36%,rgba(0,0,0,.6) 72%); } .readout { position: absolute; text-align: center; } .speed { font-size: 46px; font-weight: 750; letter-spacing: -.04em; } .unit { font-size: 11px; color: var(--muted); letter-spacing: .22em; } .kpis { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; } .kpi { padding: 12px 8px; border-radius: 18px; background: #0b0e14; border: 1px solid var(--line); text-align: center; } .kpi b { display: block; font-size: 15px; margin-top: 4px; } .kpi span { font-size: 10px; color: var(--muted); } .store-banner { height: 140px; border-radius: 24px; padding: 18px; background: linear-gradient(135deg,#1e2632,#090b10); border: 1px solid var(--line); position: relative; overflow: hidden; } .store-banner:after { content: ""; position: absolute; right: -40px; top: -35px; width: 150px; height: 150px; border-radius: 50%; background: radial-gradient(circle,rgba(217,180,106,.28),transparent 70%); } .timeline { display: flex; flex-direction: column; gap: 12px; font-size: 12px; color: #c7d0dd; } .timeline div { padding: 14px; border-radius: 18px; background: #0b0e14; border: 1px solid var(--line); } .user { display: flex; gap: 13px; align-items: center; } .avatar { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg,var(--gold-2),var(--gold)); color: #16120b; display: flex; align-items: center; justify-content: center; font-size: 23px; font-weight: 800; } .list { border-radius: 22px; overflow: hidden; border: 1px solid var(--line); background: #0b0e14; } .item { padding: 15px 16px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; font-size: 13px; } .item:last-child { border-bottom: 0; } .item small { display: block; color: var(--muted); margin-top: 3px; } .tab { height: 70px; display: flex; background: rgba(5,6,9,.9); border-top: 1px solid var(--line); backdrop-filter: blur(18px); } .tab button { flex: 1; border: 0; background: transparent; color: #6f7886; font-size: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; } .tab button.active { color: var(--gold-2); } .tab i { font-style: normal; font-size: 19px; } .modal { position: absolute; inset: 0; background: rgba(0,0,0,.72); display: none; align-items: center; justify-content: center; z-index: 9; } .modal.active { display: flex; } .dialog { width: 82%; border-radius: 26px; padding: 20px; background: #111620; border: 1px solid rgba(217,180,106,.34); box-shadow: var(--shadow); } .dialog h3 { font-size: 17px; margin-bottom: 8px; } .dialog p, .dialog li { font-size: 12px; color: #c7d0dd; line-height: 1.6; } .actions { text-align: right; margin-top: 14px; } .qr { margin: 14px auto; width: 145px; height: 145px; border-radius: 16px; background: repeating-linear-gradient(45deg,#050609 0 5px,var(--gold) 5px 7px); border: 8px solid #f3ead7; } .toast { position: absolute; left: 50%; bottom: 82px; transform: translateX(-50%); background: #111620; border: 1px solid rgba(217,180,106,.35); border-radius: 999px; padding: 8px 14px; font-size: 12px; opacity: 0; transition: .2s; z-index: 10; } .toast.show { opacity: 1; } @media (max-width:420px){ .app {  width: 100vw;  height: 100vh;  border-radius: 0; } }</style>
+    </head>
+    <body>
+        <div class="app">
+            <div class="status">
+                <span id="time">21:09</span>
+            </div>
+            <div class="header">
+                <div class="brand">
+                    <small>Premium Mobility</small>
+                    <h1 id="pageTitle">主页</h1>
+                </div>
+                <div class="pill" id="langTop">ZH / EN</div>
+            </div>
+            <main class="main">
+                <section class="page active" id="home">
+                    <div class="card">
+                        <div class="card-head">
+                            <div>
+                                <div class="title">连接设备</div>
+                                <div class="sub">Bluetooth Scan & Pair</div>
+                            </div>
+                            <div class="pill" id="btLabel">未连接</div>
+                        </div>
+                        <div class="bt-row">
+                            <div>
+                                <div class="bt-copy" id="btText">点击按钮开始扫描附近 VESC 设备。</div>
+                                <div class="bt-state" id="btState">Standby</div>
+                            </div>
+                            <div id="spinBox"></div>
+                            <button class="btn" id="btBtn">连接</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-head">
+                            <div>
+                                <div class="title">实时速度</div>
+                                <div class="sub">Signature Particle Gauge</div>
+                            </div>
+                            <div class="pill">KM/H</div>
+                        </div>
+                        <div class="gauge-wrap">
+                            <canvas id="speedCanvas"></canvas>
+                            <div class="readout">
+                                <div class="speed" id="speed">0.0</div>
+                                <div class="unit">KM/H</div>
+                            </div>
+                        </div>
+                        <div class="kpis">
+                            <div class="kpi">
+                                <span>当前电量</span>
+                                <b id="battery">72%</b>
+                            </div>
+                            <div class="kpi">
+                                <span>累计里程</span>
+                                <b>128.4</b>
+                            </div>
+                            <div class="kpi">
+                                <span>最高速度</span>
+                                <b>35.0</b>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section class="page" id="discover">
+                    <div class="card">
+                        <div class="title">发现 · 精品商城</div>
+                        <div class="sub">Curated Mobility Accessories</div>
+                        <br>
+                        <div class="store-banner">
+                            <div class="title">VESC Premium Mall</div>
+                            <div class="sub">控制器、电池包、防水外壳、灯光与骑行装备。</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="title">用户动态</div>
+                        <div class="sub">Second Phase Community</div>
+                        <br>
+                        <div class="timeline">
+                            <div>骑行轨迹、速度曲线、视频动态与评论点赞。</div>
+                            <div>挑战活动：7 日 100km、稳定巡航速度榜。</div>
+                        </div>
+                    </div>
+                </section>
+                <section class="page" id="mine">
+                    <div class="card user">
+                        <div class="avatar" id="avatar">+</div>
+                        <div>
+                            <div class="title" id="userName">未登录</div>
+                            <div class="sub" id="userSub">点击登录，同步车辆数据</div>
+                            <button class="btn dark" id="login" style="margin-top:10px">点击登录</button>
+                        </div>
+                    </div>
+                    <div class="list">
+                        <div class="item" id="lang">
+                            <div>语言切换<small id="langNow">简体中文</small>
+                            </div>
+                            <b>中 / EN</b>
+                        </div>
+                        <div class="item" id="support">
+                            <div>联系客服<small>微信扫码获取售后支持</small>
+                            </div>
+                            <b>二维码</b>
+                        </div>
+                        <div class="item" id="logout">
+                            <div>退出登录<small>清除当前账号信息</small>
+                            </div>
+                            <b style="color:#ff8b8b">退出</b>
+                        </div>
+                    </div>
+                </section>
+            </main>
+            <nav class="tab">
+                <button class="active" data-page="home">
+                    <i>⌂</i>主页
+                </button>
+                <button data-page="discover">
+                    <i>✦</i>发现
+                </button>
+                <button data-page="mine">
+                    <i>◉</i>我的
+                </button>
+            </nav>
+            <div class="modal" id="upgrade">
+                <div class="dialog">
+                    <h3>发现新版本 v1.1.0</h3>
+                    <p>优化加速曲线、提升蓝牙连接稳定性，并为 VIP 调参功能预留接口。</p>
+                    <ul>
+                        <li>新增柔和启动模式</li>
+                        <li>改进速度仪表动画</li>
+                        <li>兼容未来云端参数模板</li>
+                    </ul>
+                    <div class="actions">
+                        <button class="btn" data-close>立即升级</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal" id="qrModal">
+                <div class="dialog">
+                    <h3>联系客服</h3>
+                    <p>微信扫码添加售后服务账号，备注「VESC 调参」。</p>
+                    <div class="qr"></div>
+                    <div class="actions">
+                        <button class="btn" data-close>完成</button>
+                    </div>
+                </div>
+            </div>
+            <div class="toast" id="toast"></div>
+        </div>
+        <script>
+const $=id=>document.getElementById(id);
+function tick(){let d=new Date();$('time').textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}tick();setInterval(tick,30000);
+const titles={home:'主页',discover:'发现',mine:'我的'};
+document.querySelectorAll('.tab button').forEach(btn=>btn.onclick=()=>{
+  document.querySelectorAll('.tab button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));$(btn.dataset.page).classList.add('active');$('pageTitle').textContent=titles[btn.dataset.page];
+});
+function toast(t){$('toast').textContent=t;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1500)}
+let bt='off',timer;
+function renderBt(){
+ if(bt==='off'){ $('btLabel').textContent='未连接';$('btText').textContent='点击按钮开始扫描附近 VESC 设备。';$('btState').textContent='Standby';$('spinBox').innerHTML='';$('btBtn').textContent='连接'}
+ if(bt==='scan'){ $('btLabel').textContent='扫描中';$('btText').textContent='正在搜索附近设备，请保持车辆电源开启。';$('btState').textContent='Scanning...';$('spinBox').innerHTML='<div class="spinner"></div>';$('btBtn').textContent='停止'}
+ if(bt==='on'){ $('btLabel').textContent='已连接';$('btText').textContent='已连接到 VESC-PRO-MINI。';$('btState').textContent='Connected';$('spinBox').innerHTML='';$('btBtn').textContent='断开'}
+}
+renderBt();
+$('btBtn').onclick=()=>{ if(bt==='off'){bt='scan';renderBt();toast('开始扫描设备');timer=setTimeout(()=>{bt='on';renderBt();toast('连接成功')},1800)} else {clearTimeout(timer);bt='off';renderBt();toast('已断开/停止')} };
+$('support').onclick=()=>$('qrModal').classList.add('active');
+document.querySelectorAll('[data-close],.modal').forEach(el=>el.onclick=e=>{if(e.target===el||e.target.dataset.close!==undefined)el.closest('.modal').classList.remove('active')});
+let logged=false;$('login').onclick=()=>{logged=!logged;$('userName').textContent=logged?'Premium Rider · Demo':'未登录';$('userSub').textContent=logged?'已登录，可同步云端数据':'点击登录，同步车辆数据';$('avatar').textContent=logged?'V':'+';toast(logged?'已登录':'已退出')};
+$('logout').onclick=()=>{logged=false;$('userName').textContent='未登录';$('userSub').textContent='点击登录，同步车辆数据';$('avatar').textContent='+';toast('已退出登录')};
+let en=false;$('lang').onclick=()=>{en=!en;$('langNow').textContent=en?'English':'简体中文';$('langTop').textContent=en?'EN / ZH':'ZH / EN';toast('语言切换演示')};
+
+const c=$('speedCanvas'),ctx=c.getContext('2d');function resize(){let r=c.getBoundingClientRect(),d=devicePixelRatio||1;c.width=r.width*d;c.height=r.height*d;ctx.setTransform(d,0,0,d,0,0)}resize();addEventListener('resize',resize);
+let t=0,max=35;
+function draw(){
+ let r=c.getBoundingClientRect(),w=r.width,h=r.height,cx=w/2,cy=h/2,rad=Math.min(w,h)/2-16;ctx.clearRect(0,0,w,h);t+=.02;
+ let speed=(Math.sin(t)+1)/2*max,n=speed/max,start=-Math.PI*.78,end=Math.PI*.28,ang=start+(end-start)*n;
+ ctx.lineCap='round';ctx.lineWidth=11;ctx.beginPath();ctx.arc(cx,cy,rad,start,end);ctx.strokeStyle='rgba(255,255,255,.10)';ctx.stroke();
+ let g=ctx.createLinearGradient(cx-rad,cy,cx+rad,cy);g.addColorStop(0,'rgba(217,180,106,.45)');g.addColorStop(.55,'rgba(77,180,255,.85)');g.addColorStop(1,'rgba(242,213,138,1)');
+ ctx.beginPath();ctx.arc(cx,cy,rad,start,ang);ctx.strokeStyle=g;ctx.stroke();
+ for(let i=0;i<70;i++){let p=(i/70*n+t*.05)%(Math.max(n,.01)),a=start+(end-start)*p,rr=rad+Math.sin(t*2+i)*2;ctx.beginPath();ctx.arc(cx+rr*Math.cos(a),cy+rr*Math.sin(a),1.2+n*1.4,0,Math.PI*2);ctx.fillStyle=i%5===0?'rgba(242,213,138,.85)':'rgba(77,180,255,.75)';ctx.fill()}
+ ctx.beginPath();ctx.arc(cx,cy,31+Math.sin(t*2)*2,0,Math.PI*2);let rg=ctx.createRadialGradient(cx,cy,0,cx,cy,36);rg.addColorStop(0,'rgba(217,180,106,.28)');rg.addColorStop(1,'rgba(77,180,255,0)');ctx.fillStyle=rg;ctx.fill();
+ $('speed').textContent=speed.toFixed(1);$('battery').textContent=Math.round(68+Math.sin(t*.3)*8)+'%';requestAnimationFrame(draw)
+}draw();
+</script>
+    </body>
+</html>

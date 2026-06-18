@@ -4,7 +4,6 @@
 #include <QApplication>
 #ifdef Q_OS_IOS
 class SetIosParams : public QObject{
-  Q_OBJECT
 public:
   SetIosParams();
   void NoSleep();

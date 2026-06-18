@@ -165,8 +165,9 @@ public:
     Q_INVOKABLE bool askQmlLoad() const;
     Q_INVOKABLE void setAskQmlLoad(bool newAskQmlLoad);
 
+    Q_INVOKABLE QObject *bleDeviceObject();
 #ifdef HAS_BLUETOOTH
-    Q_INVOKABLE BleUart* bleDevice();
+    BleUart* bleDevice();
     Q_INVOKABLE void storeBleName(QString address, QString name);
     Q_INVOKABLE QString getBleName(QString address);
     Q_INVOKABLE QString getLastBleAddr() const;
@@ -174,7 +175,7 @@ public:
     Q_INVOKABLE bool getBlePreferred(QString address);
     Q_INVOKABLE bool hasBluetooth() {return true;}
 #else
-    Q_INVOKABLE BleUartDummy* bleDevice() {return mBleUart;}
+    BleUartDummy* bleDevice() {return mBleUart;}
     Q_INVOKABLE bool hasBluetooth() {return false;}
 #endif
 
@@ -324,10 +325,8 @@ private slots:
     void udpInputError(QAbstractSocket::SocketError socketError);
     void udpInputDataAvailable();
 
-#ifdef HAS_BLUETOOTH
     void bleDataRx(QByteArray data);
     void bleUnintentionalDisconnect();
-#endif
 
     void timerSlot();
     void packetDataToSend(QByteArray &data);

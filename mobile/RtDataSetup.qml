@@ -41,22 +41,225 @@ Item {
     property int odometerValue: 0
     property double efficiency_lpf: 0
     property bool isHorizontal: rtData.width > rtData.height
+    property int dashboardChrome: isHorizontal ? 12 : 66
+    property string speedDisplay: "0"
+    property string batteryDisplay: "0%"
+    property string rangeDisplay: "∞"
+    property string faultDisplay: "Ready"
 
-    property int gaugeSize: (isHorizontal ? Math.min((height)/1.25, width / 2.5 - 20) :
-                                            Math.min(width / 1.37, (height) / 2.4 - 10 ))
+    // Stable SI data model for product-facing pages. Display units are derived below.
+    readonly property bool dataValid: lastSampleTimestampMs > 0
+    property double lastSampleTimestampMs: 0
+    property double speedMetersPerSecond: 0
+    readonly property double speedKph: speedMetersPerSecond * 3.6
+    readonly property double speedMph: speedKph * 0.621371192
+    property double batteryPercent: 0
+    property double batteryVoltage: 0
+    property double motorCurrentAmps: 0
+    property double batteryCurrentAmps: 0
+    property double powerWatts: 0
+    property double controllerTemperatureCelsius: 0
+    property double motorTemperatureCelsius: 0
+    property double efficiencyWhPerKm: 0
+    readonly property double efficiencyWhPerMile: efficiencyWhPerKm / 0.621371192
+    property double estimatedRangeKm: -1
+    readonly property double estimatedRangeMiles: estimatedRangeKm < 0 ? -1 :
+                                                  estimatedRangeKm * 0.621371192
+    property double odometerKm: 0
+    property double tripKm: 0
+    property double uptimeSeconds: 0
+    property string faultCode: "FAULT_CODE_NONE"
+    readonly property bool hasFault: faultCode !== "" && faultCode !== "FAULT_CODE_NONE"
+
+    property int gaugeSize: (isHorizontal ? Math.min((height - dashboardChrome)/1.25, width / 2.5 - 20) :
+                                            Math.min(width / 1.37, (height - dashboardChrome) / 2.4 - 10 ))
     property int gaugeSize2: gaugeSize * 0.55
+
+    function finiteNumber(value, fallback) {
+        return typeof value === "number" && isFinite(value) ? value : fallback
+    }
+
+    function clamp(value, minimum, maximum) {
+        return Math.max(minimum, Math.min(maximum, value))
+    }
+
+    function formatDuration(totalSeconds) {
+        var seconds = Math.max(0, Math.floor(totalSeconds))
+        var hours = Math.floor(seconds / 3600)
+        var minutes = Math.floor((seconds % 3600) / 60)
+        var remainder = seconds % 60
+        return (hours < 10 ? "0" : "") + hours + ":" +
+                (minutes < 10 ? "0" : "") + minutes + ":" +
+                (remainder < 10 ? "0" : "") + remainder
+    }
+
+    function friendlyFault(rawFault) {
+        if (!rawFault || rawFault === "FAULT_CODE_NONE") {
+            return "Ready"
+        }
+
+        return rawFault.replace(/^FAULT_CODE_/, "").replace(/_/g, " ")
+    }
+
     Component.onCompleted: {
         mCommands.emitEmptySetupValues()
     }
 
-    // Make background slightly darker
     Rectangle {
         anchors.fill: parent
-        color: {color = Utility.getAppHexColor("darkBackground")}
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: "#071114" }
+            GradientStop { position: 0.55; color: "#101923" }
+            GradientStop { position: 1.0; color: "#151018" }
+        }
+    }
+
+    Rectangle {
+        anchors.fill: parent
+        opacity: 0.34
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: "#003e45" }
+            GradientStop { position: 0.42; color: "transparent" }
+            GradientStop { position: 1.0; color: "#3b1f08" }
+        }
+    }
+
+    Rectangle {
+        id: dashboardHeader
+        visible: !isHorizontal
+        z: 10
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.margins: 10
+        height: 52
+        radius: 8
+        color: "#6610171c"
+        border.width: 1
+        border.color: "#33ffffff"
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: 14
+            anchors.rightMargin: 14
+            spacing: 8
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 0
+
+                Text {
+                    Layout.fillWidth: true
+                    text: "BM"
+                    color: "#f3fbff"
+                    font.pixelSize: 15
+                    font.bold: true
+                    elide: Text.ElideRight
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    text: VescIf.isPortConnected() ? faultDisplay : "Not connected"
+                    color: faultDisplay === "Ready" ? "#b7c6cc" : "#ff9f73"
+                    font.pixelSize: 10
+                    elide: Text.ElideRight
+                }
+            }
+
+            Rectangle {
+                Layout.preferredWidth: 58
+                Layout.preferredHeight: 34
+                radius: 6
+                color: "#2a7ff7d4"
+                border.width: 1
+                border.color: "#557ff7d4"
+
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 0
+
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: speedDisplay
+                        color: "#dffff5"
+                        font.pixelSize: 14
+                        font.bold: true
+                    }
+
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: VescIf.useImperialUnits() ? "mph" : "km/h"
+                        color: "#a7d8cf"
+                        font.pixelSize: 8
+                    }
+                }
+            }
+
+            Rectangle {
+                Layout.preferredWidth: 52
+                Layout.preferredHeight: 34
+                radius: 6
+                color: batteryGauge.value > 20 ? "#2affd36e" : "#2aff6b6b"
+                border.width: 1
+                border.color: batteryGauge.value > 20 ? "#55ffd36e" : "#55ff6b6b"
+
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 0
+
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: batteryDisplay
+                        color: batteryGauge.value > 20 ? "#fff1bd" : "#ffd0d0"
+                        font.pixelSize: 13
+                        font.bold: true
+                    }
+
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: "battery"
+                        color: "#b7c6cc"
+                        font.pixelSize: 8
+                    }
+                }
+            }
+
+            Rectangle {
+                Layout.preferredWidth: 52
+                Layout.preferredHeight: 34
+                radius: 6
+                color: "#22ffffff"
+                border.width: 1
+                border.color: "#33ffffff"
+
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 0
+
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: rangeDisplay
+                        color: "#f3fbff"
+                        font.pixelSize: rangeDisplay === "∞" ? 14 : 12
+                        font.bold: true
+                    }
+
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: VescIf.useImperialUnits() ? "mi" : "km"
+                        color: "#b7c6cc"
+                        font.pixelSize: 8
+                    }
+                }
+            }
+        }
     }
 
     GridLayout {
         anchors.fill: parent
+        anchors.topMargin: dashboardChrome
+        anchors.leftMargin: isHorizontal ? 4 : 0
+        anchors.rightMargin: isHorizontal ? 4 : 0
         columns: isHorizontal ? 2 : 1
         columnSpacing: 0
         rowSpacing: 0
@@ -144,10 +347,10 @@ Item {
                 Image {
                     anchors.centerIn: parent
                     antialiasing: true
-                    opacity: 0.4
-                    height: parent.height*0.05
+                    opacity: 0.28
+                    height: parent.height*0.06
                     fillMode: Image.PreserveAspectFit
-                    source: {source = "qrc" + Utility.getThemePath() + "icons/vesc-96.png"}
+                    source: {source = "qrc" + Utility.getThemePath() + "icons/Speed-96.png"}
                     anchors.horizontalCenterOffset: (gaugeSize)/3.25 + gaugeSize2/2
                     anchors.verticalCenterOffset: -0.8*(gaugeSize)/2
                 }
@@ -585,9 +788,9 @@ Item {
                 width:2*gaugeSize2
                 height: rideTime.implicitHeight + gaugeSize2*0.025
                 anchors.centerIn: parent
-                color: {color = Utility.getAppHexColor("darkBackground")}
+                color: "#6610171c"
                 anchors.verticalCenterOffset: gaugeSize2*0.005
-                border.color: {border.color = Utility.getAppHexColor("lightestBackground")}
+                border.color: "#33ffffff"
                 border.width: 1
                 radius: gaugeSize2*0.03
                 Text{
@@ -662,43 +865,69 @@ Item {
         }
 
         function onValuesSetupReceived(values, mask) {
-            var currentMaxRound = Math.ceil(mMcConf.getParamDouble("l_current_max") / 5) * 5 * values.num_vescs
-            var currentMinRound = Math.floor(mMcConf.getParamDouble("l_current_min") / 5) * 5 * values.num_vescs
+            var controllerCount = Math.max(1, finiteNumber(values.num_vescs, 1))
+            var currentMaxRound = Math.max(5, Math.ceil(mMcConf.getParamDouble("l_current_max") / 5) * 5 *
+                                           controllerCount)
+            var currentMinRound = Math.min(-5, Math.floor(mMcConf.getParamDouble("l_current_min") / 5) * 5 *
+                                           controllerCount)
 
             if (currentMaxRound > currentGauge.maximumValue || currentMaxRound < (currentGauge.maximumValue * 0.7)) {
                 currentGauge.maximumValue = currentMaxRound
                 currentGauge.minimumValue = currentMinRound
             }
 
-            currentGauge.labelStep = Math.ceil((currentMaxRound - currentMinRound) / 40) * 5
-            currentGauge.value = values.current_motor
-            dutyGauge.value = values.duty_now * 100.0
-            batteryGauge.value = values.battery_level * 100.0
+            currentGauge.labelStep = Math.max(5, Math.ceil((currentMaxRound - currentMinRound) / 40) * 5)
+
+            if (VescIf.isPortConnected()) {
+                lastSampleTimestampMs = Date.now()
+            }
+            speedMetersPerSecond = finiteNumber(values.speed, 0)
+            batteryPercent = clamp(finiteNumber(values.battery_level, 0) * 100.0, 0, 100)
+            batteryVoltage = finiteNumber(values.v_in, 0)
+            motorCurrentAmps = finiteNumber(values.current_motor, 0)
+            batteryCurrentAmps = finiteNumber(values.current_in, 0)
+            powerWatts = batteryCurrentAmps * batteryVoltage
+            controllerTemperatureCelsius = finiteNumber(values.temp_mos, 0)
+            motorTemperatureCelsius = finiteNumber(values.temp_motor, 0)
+            odometerKm = Math.max(0, finiteNumber(values.odometer, 0) / 1000.0)
+            tripKm = Math.max(0, finiteNumber(values.tachometer_abs, 0) / 1000.0)
+            uptimeSeconds = Math.max(0, finiteNumber(values.uptime_ms, 0) / 1000.0)
+            faultCode = values.fault_str || "FAULT_CODE_NONE"
+
+            currentGauge.value = motorCurrentAmps
+            dutyGauge.value = clamp(finiteNumber(values.duty_now, 0) * 100.0, -100, 100)
+            batteryGauge.value = batteryPercent
 
             var useImperial = VescIf.useImperialUnits()
             var useNegativeSpeedValues = VescIf.speedGaugeUseNegativeValues()
 
             var fl = mMcConf.getParamDouble("foc_motor_flux_linkage")
-            var rpmMax = (values.v_in * 60.0) / (Math.sqrt(3.0) * 2.0 * Math.PI * fl)
+            var rpmMax = fl > 1e-9 ?
+                        (batteryVoltage * 60.0) / (Math.sqrt(3.0) * 2.0 * Math.PI * fl) : 0
             var speedFact = ((mMcConf.getParamInt("si_motor_poles") / 2.0) * 60.0 *
                              mMcConf.getParamDouble("si_gear_ratio")) /
                     (mMcConf.getParamDouble("si_wheel_diameter") * Math.PI)
 
-            if (speedFact < 1e-3) {
+            if (!isFinite(speedFact) || speedFact < 1e-3) {
                 speedFact = 1e-3
             }
 
             var speedMax = 3.6 * rpmMax / speedFact
             var impFact = useImperial ? 0.621371192 : 1.0
-            var speedMaxRound = Math.ceil((speedMax * impFact) / 10.0) * 10.0
+            var speedMaxRound = Math.max(10, Math.ceil((speedMax * impFact) / 10.0) * 10.0)
 
-            var dist = values.tachometer_abs / 1000.0
-            var wh_consume = values.watt_hours - values.watt_hours_charged
-            var wh_km_total = wh_consume / Math.max(dist , 1e-10)
+            var netEnergyWh = finiteNumber(values.watt_hours, 0) -
+                    finiteNumber(values.watt_hours_charged, 0)
+            efficiencyWhPerKm = tripKm > 0.01 && netEnergyWh > 0 ?
+                        netEnergyWh / tripKm : 0
+
+            var remainingBatteryWh = Math.max(0, finiteNumber(values.battery_wh, 0))
+            estimatedRangeKm = efficiencyWhPerKm > 0.1 && remainingBatteryWh > 0 ?
+                        remainingBatteryWh / efficiencyWhPerKm : -1
 
             if (speedMaxRound > speedGauge.maximumValue || speedMaxRound < (speedGauge.maximumValue * 0.6) ||
-                    useNegativeSpeedValues !== speedGauge.minimumValue < 0) {
-                var labelStep = Math.ceil(speedMaxRound / 100) * 10
+                    useNegativeSpeedValues !== (speedGauge.minimumValue < 0)) {
+                var labelStep = Math.max(10, Math.ceil(speedMaxRound / 100) * 10)
 
                 if ((speedMaxRound / labelStep) > 30) {
                     labelStep = speedMaxRound / 30
@@ -709,64 +938,67 @@ Item {
                 speedGauge.minimumValue = useNegativeSpeedValues ? -speedMaxRound : 0
             }
 
-            var speedNow = values.speed * 3.6 * impFact
+            var speedNow = (useImperial ? speedMph : speedKph)
             speedGauge.value = useNegativeSpeedValues ? speedNow : Math.abs(speedNow)
+            speedDisplay = parseFloat(speedGauge.value).toFixed(0)
 
             speedGauge.unitText = useImperial ? "mph" : "km/h"
 
-            var powerMax = Math.min(values.v_in * Math.min(mMcConf.getParamDouble("l_in_current_max"),
-                                                           mMcConf.getParamDouble("l_current_max")),
-                                    mMcConf.getParamDouble("l_watt_max")) * values.num_vescs
-            var powerMin = Math.max(values.v_in * Math.max(mMcConf.getParamDouble("l_in_current_min"),
-                                                           mMcConf.getParamDouble("l_current_min")),
-                                    mMcConf.getParamDouble("l_watt_min")) * values.num_vescs
-            var powerMaxRound = (Math.ceil(powerMax / 1000.0) * 1000.0)
-            var powerMinRound = (Math.floor(powerMin / 1000.0) * 1000.0)
+            var powerMax = Math.min(batteryVoltage * Math.min(mMcConf.getParamDouble("l_in_current_max"),
+                                                               mMcConf.getParamDouble("l_current_max")),
+                                    mMcConf.getParamDouble("l_watt_max")) * controllerCount
+            var powerMin = Math.max(batteryVoltage * Math.max(mMcConf.getParamDouble("l_in_current_min"),
+                                                               mMcConf.getParamDouble("l_current_min")),
+                                    mMcConf.getParamDouble("l_watt_min")) * controllerCount
+            var powerMaxRound = Math.max(1000, Math.ceil(powerMax / 1000.0) * 1000.0)
+            var powerMinRound = Math.min(-1000, Math.floor(powerMin / 1000.0) * 1000.0)
 
             if (powerMaxRound > powerGauge.maximumValue || powerMaxRound < (powerGauge.maximumValue * 0.6)) {
                 powerGauge.maximumValue = powerMaxRound
                 powerGauge.minimumValue = powerMinRound
             }
 
-            powerGauge.value = (values.current_in * values.v_in)
-            powerGauge.labelStep = Math.ceil((powerMaxRound - powerMinRound)/5000.0) * 1000.0
+            powerGauge.value = powerWatts
+            powerGauge.labelStep = Math.max(1000,
+                                            Math.ceil((powerMaxRound - powerMinRound) / 5000.0) * 1000.0)
             var alpha = 0.05
-            var efficiencyNow = Math.max( Math.min(values.current_in * values.v_in/Math.max(Math.abs(values.speed * 3.6 * impFact), 1e-6) , 60) , -60)
-            efficiency_lpf = (1.0 - alpha) * efficiency_lpf + alpha *  efficiencyNow
+            var displaySpeedAbs = Math.abs(useImperial ? speedMph : speedKph)
+            var efficiencyNow = displaySpeedAbs > 1.0 ? clamp(powerWatts / displaySpeedAbs, -60, 60) : 0
+            efficiency_lpf = (1.0 - alpha) * efficiency_lpf + alpha * efficiencyNow
             efficiencyGauge.value = efficiency_lpf
-            efficiencyGauge.unitText = useImperial ? "WH/MI" : "WH/KM"
-            if( (wh_km_total / impFact) < 999.0) {
-                consumValLabel.text = parseFloat(wh_km_total / impFact).toFixed(1)
-            } else {
-                consumValLabel.text = "∞"
-            }
+            efficiencyGauge.unitText = useImperial ? "Wh/mi" : "Wh/km"
+
+            var displayedEfficiency = useImperial ? efficiencyWhPerMile : efficiencyWhPerKm
+            consumValLabel.text = displayedEfficiency > 0 && displayedEfficiency < 999 ?
+                        displayedEfficiency.toFixed(1) : "--"
 
             odometerValue = values.odometer
-            batteryGauge.unitText = parseFloat(wh_km_total / impFact).toFixed(1) + "%"
+            batteryGauge.unitText = "%"
             rangeLabel.text = useImperial ? "MI\nRANGE" : "KM\nRANGE"
-            if( values.battery_wh / (wh_km_total / impFact) < 999.0) {
-                rangeValLabel.text = parseFloat(values.battery_wh / (wh_km_total / impFact)).toFixed(1)
-            } else {
-                rangeValLabel.text = "∞"
-            }
-            rideTime.text = new Date(values.uptime_ms).toISOString().substr(11, 8)
-            odometer.text = parseFloat((values.odometer * impFact) / 1000.0).toFixed(1)
-            trip.text = parseFloat((values.tachometer_abs * impFact) / 1000.0).toFixed(1)
+            var displayedRange = useImperial ? estimatedRangeMiles : estimatedRangeKm
+            rangeValLabel.text = displayedRange >= 0 && displayedRange < 999 ?
+                        displayedRange.toFixed(1) : "--"
+            batteryDisplay = parseFloat(batteryGauge.value).toFixed(0) + "%"
+            rangeDisplay = rangeValLabel.text
+            rideTime.text = formatDuration(uptimeSeconds)
+            odometer.text = (odometerKm * impFact).toFixed(1)
+            trip.text = (tripKm * impFact).toFixed(1)
 
-            escTempGauge.value = values.temp_mos
+            escTempGauge.value = controllerTemperatureCelsius
             escTempGauge.maximumValue = Math.ceil(mMcConf.getParamDouble("l_temp_fet_end") / 5) * 5
             escTempGauge.throttleStartValue = Math.ceil(mMcConf.getParamDouble("l_temp_fet_start") / 5) * 5
-            escTempGauge.labelStep = Math.ceil(escTempGauge.maximumValue/ 50) * 5
-            motTempGauge.value = values.temp_motor
-            motTempGauge.labelStep = Math.ceil(motTempGauge.maximumValue/ 50) * 5
+            escTempGauge.labelStep = Math.max(5, Math.ceil(escTempGauge.maximumValue / 50) * 5)
+            motTempGauge.value = motorTemperatureCelsius
             motTempGauge.maximumValue = Math.ceil(mMcConf.getParamDouble("l_temp_motor_end") / 5) * 5
             motTempGauge.throttleStartValue = Math.ceil(mMcConf.getParamDouble("l_temp_motor_start") / 5) * 5
+            motTempGauge.labelStep = Math.max(5, Math.ceil(motTempGauge.maximumValue / 50) * 5)
 
-            if (lastFault !== values.fault_str && values.fault_str !== "FAULT_CODE_NONE") {
-                VescIf.emitStatusMessage(values.fault_str, false)
+            if (lastFault !== faultCode && hasFault) {
+                VescIf.emitStatusMessage(friendlyFault(faultCode), false)
             }
 
-            lastFault = values.fault_str
+            lastFault = faultCode
+            faultDisplay = friendlyFault(faultCode)
         }
     }
 }

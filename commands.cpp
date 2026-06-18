@@ -2835,6 +2835,30 @@ void Commands::checkMcConfig()
     emitData(vb);
 }
 
+void Commands::resetCommunicationTimeouts()
+{
+    mTimeoutFwVer = 0;
+    mTimeoutMcconf = 0;
+    mTimeoutAppconf = 0;
+    mTimeoutValues = 0;
+    mTimeoutValuesSetup = 0;
+    mTimeoutImuData = 0;
+    mTimeoutDecPpm = 0;
+    mTimeoutDecAdc = 0;
+    mTimeoutDecChuk = 0;
+    mTimeoutPingCan = 0;
+    mTimeoutBmsVal = 0;
+    mTimeoutStats = 0;
+    mTimeoutLbmStats = 0;
+    mTimeoutCustomConf.clear();
+    mCheckNextMcConfig = false;
+}
+
+bool Commands::isFwVersionRequestPending() const
+{
+    return mTimeoutFwVer > 0;
+}
+
 void Commands::emitEmptyValues()
 {
     MC_VALUES values;

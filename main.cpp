@@ -38,6 +38,7 @@
 #include <QDesktopWidget>
 #include <QFontDatabase>
 #include <QPixmapCache>
+#include <QTimer>
 
 #include "tcphub.h"
 
@@ -1021,6 +1022,11 @@ int main(int argc, char *argv[])
     QmlUi *qml = new QmlUi;
     qml->startQmlUi();
 
+#ifdef Q_OS_IOS
+    QTimer::singleShot(250, qml, [qml]() {
+        qml->setVisible(true);
+    });
+#else
     // As background running is allowed, make sure to not update the GUI when
     // running in the background.
     QObject::connect(a, &QApplication::applicationStateChanged, [&qml](Qt::ApplicationState state) {
@@ -1030,6 +1036,7 @@ int main(int argc, char *argv[])
             qml->setVisible(true);
         }
     });
+#endif
 #else
     VescInterface *vesc = nullptr;
     TcpHub *tcpHub = nullptr;

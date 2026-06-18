@@ -317,8 +317,8 @@ Item {
                                     spacing: 10
 
                                     Item {
-                                        Layout.preferredWidth: 80
-                                        Layout.preferredHeight: 80
+                                        Layout.preferredWidth: 40
+                                        Layout.preferredHeight: 40
                                         Layout.leftMargin: 5
                                         opacity: imgRect.ListView.isCurrentItem ? 1.0 : 0.5
 
@@ -326,8 +326,8 @@ Item {
                                             id: image
                                             fillMode: Image.PreserveAspectFit
                                             source: motorImg
-                                            width: 80
-                                            height: 80
+                                            width: 40
+                                            height: 40
                                             smooth: true
                                             mipmap: false
                                             visible: false
@@ -335,9 +335,9 @@ Item {
 
                                         Rectangle {
                                             id: mask
-                                            width: 80
-                                            height: 80
-                                            radius: 40
+                                            width: 40
+                                            height: 40
+                                            radius: 20
                                             visible: false
                                         }
 

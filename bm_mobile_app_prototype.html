@@ -1,0 +1,1315 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>BM Mobile App Prototype</title>
+  <style>
+    :root {
+      --bg: #050609;
+      --page: #090b0d;
+      --surface: #10131a;
+      --surface-2: #151923;
+      --line: #262c30;
+      --line-soft: rgba(255, 255, 255, .08);
+      --text: #f4f1ea;
+      --muted: #9aa3b2;
+      --muted-2: #6f7884;
+      --gold: #c69c6e;
+      --gold-2: #dfbd91;
+      --success: #64d6b0;
+      --danger: #ff5c6f;
+      --warn: #c69c6e;
+      --radius: 22px;
+      --top-control-height: 31px;
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      background:
+        radial-gradient(circle at 18% 0%, rgba(198, 156, 110, .12), transparent 32%),
+        radial-gradient(circle at 90% 8%, rgba(100, 214, 176, .08), transparent 28%),
+        #020304;
+      color: var(--text);
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .phone {
+      width: 390px;
+      height: 844px;
+      max-width: 100vw;
+      max-height: 100vh;
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, .025), transparent 20%),
+        var(--bg);
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: 34px;
+      box-shadow: 0 36px 90px rgba(0, 0, 0, .64);
+    }
+
+    .top {
+      padding: 18px 24px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 78px;
+    }
+
+    .brand {
+      width: auto;
+      height: var(--top-control-height);
+      display: flex;
+      align-items: center;
+    }
+
+    .brand img {
+      display: block;
+      width: auto;
+      height: var(--top-control-height);
+      object-fit: contain;
+      background: transparent;
+    }
+
+    .top-title {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 21px;
+      font-weight: 760;
+      letter-spacing: .01em;
+    }
+
+    .status-pill,
+    .soft-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      height: var(--top-control-height);
+      padding: 0 12px;
+      border: 1px solid rgba(255, 255, 255, .16);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, .035);
+      font-size: 13px;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .status-pill.good,
+    .soft-pill.good {
+      color: var(--success);
+      border-color: rgba(100, 214, 176, .42);
+      background: rgba(100, 214, 176, .075);
+    }
+
+    .status-pill.gold,
+    .soft-pill.gold {
+      color: var(--gold-2);
+      border-color: rgba(198, 156, 110, .46);
+      background: rgba(198, 156, 110, .08);
+    }
+
+    .status-pill.bad,
+    .soft-pill.bad {
+      color: var(--danger);
+      border-color: rgba(255, 92, 111, .42);
+      background: rgba(255, 92, 111, .075);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      box-shadow: 0 0 16px rgba(255, 255, 255, .12);
+    }
+
+    .good .dot,
+    .dot.good {
+      background: var(--success);
+      box-shadow: 0 0 16px rgba(100, 214, 176, .36);
+    }
+
+    .gold .dot,
+    .dot.gold {
+      background: var(--gold);
+      box-shadow: 0 0 16px rgba(198, 156, 110, .32);
+    }
+
+    .bad .dot,
+    .dot.bad {
+      background: var(--danger);
+      box-shadow: 0 0 16px rgba(255, 92, 111, .32);
+    }
+
+    .viewport {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .page {
+      position: absolute;
+      inset: 0;
+      padding: 6px 24px 92px;
+      overflow-y: auto;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(18px);
+      transition: opacity .22s ease, transform .22s ease;
+      scrollbar-width: none;
+    }
+
+    .page::-webkit-scrollbar {
+      display: none;
+    }
+
+    .page.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(0);
+    }
+
+    .page-lead {
+      margin: 4px 0 22px;
+    }
+
+    .eyebrow {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    h1,
+    h2,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 31px;
+      line-height: 1.18;
+      letter-spacing: -.04em;
+    }
+
+    h2 {
+      font-size: 17px;
+      line-height: 1.3;
+    }
+
+    .section-title {
+      margin: 24px 0 10px;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 760;
+    }
+
+    .surface {
+      overflow: hidden;
+      border: 1px solid var(--line-soft);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, .055), rgba(255, 255, 255, .022)),
+        var(--surface);
+    }
+
+    .surface.pad {
+      padding: 18px;
+    }
+
+    .row {
+      min-height: 62px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 15px 18px;
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .row:last-child {
+      border-bottom: 0;
+    }
+
+    .row.clickable {
+      width: 100%;
+      border-top: 0;
+      border-right: 0;
+      border-left: 0;
+      color: inherit;
+      background: transparent;
+      cursor: pointer;
+      font: inherit;
+      text-align: left;
+      transition: background .18s ease, color .18s ease;
+    }
+
+    .row.clickable:active {
+      background: rgba(255, 255, 255, .055);
+    }
+
+    .row.clickable:focus-visible,
+    .node-row:focus-visible,
+    .primary-btn:focus-visible,
+    .ghost-btn:focus-visible,
+    .danger-btn:focus-visible {
+      outline: 2px solid rgba(223, 189, 145, .78);
+      outline-offset: -2px;
+    }
+
+    .row-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--gold-2);
+    }
+
+    .chevron {
+      margin-left: 4px;
+      color: var(--muted-2);
+      font-size: 17px;
+      line-height: 1;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .value {
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 720;
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .value.good {
+      color: var(--success);
+    }
+
+    .value.gold {
+      color: var(--gold-2);
+    }
+
+    .value.bad {
+      color: var(--danger);
+    }
+
+    .home-metrics {
+      border-radius: 18px;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .metric-cell {
+      min-height: 78px;
+      padding: 15px 12px;
+      border-right: 1px solid var(--line-soft);
+    }
+
+    .metric-cell:last-child {
+      border-right: 0;
+    }
+
+    .metric-cell .value {
+      margin-top: 9px;
+      text-align: left;
+    }
+
+    .small {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .primary-btn,
+    .ghost-btn,
+    .danger-btn {
+      width: 100%;
+      min-height: 52px;
+      border-radius: 16px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 780;
+      transition: transform .14s ease, opacity .14s ease, background .14s ease;
+    }
+
+    .primary-btn:active,
+    .ghost-btn:active,
+    .danger-btn:active {
+      transform: scale(.985);
+    }
+
+    .primary-btn {
+      color: #17120a;
+      background: linear-gradient(180deg, var(--gold-2), var(--gold));
+      box-shadow: 0 14px 30px rgba(198, 156, 110, .18);
+    }
+
+    .ghost-btn {
+      color: var(--gold-2);
+      border-color: rgba(198, 156, 110, .28);
+      background: rgba(198, 156, 110, .045);
+    }
+
+    .danger-btn {
+      color: var(--danger);
+      border-color: rgba(255, 92, 111, .32);
+      background: rgba(255, 92, 111, .045);
+    }
+
+    .text-btn {
+      border: 0;
+      padding: 0;
+      color: var(--gold-2);
+      background: transparent;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 760;
+    }
+
+    .muted-btn {
+      border: 0;
+      padding: 0;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 720;
+    }
+
+    .home-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin: 10px 0 10px;
+    }
+
+    .home-actions.connected {
+      grid-template-columns: 1fr 94px;
+    }
+
+    .home-subline {
+      margin: 0 0 18px;
+    }
+
+    .gauge {
+      position: relative;
+      min-height: 270px;
+      display: grid;
+      place-items: center;
+      margin: 6px 0 12px;
+    }
+
+    .readout {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      transform: translateY(18px);
+    }
+
+    .speed {
+      font-size: 66px;
+      line-height: .92;
+      font-weight: 820;
+      letter-spacing: -.07em;
+    }
+
+    .unit {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 720;
+      letter-spacing: .12em;
+    }
+
+    .caption {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .safety {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 56px;
+      margin-top: 14px;
+      padding: 0 16px;
+      border: 1px solid rgba(100, 214, 176, .22);
+      border-radius: 18px;
+      background: rgba(100, 214, 176, .055);
+      color: var(--success);
+      font-size: 14px;
+      font-weight: 720;
+    }
+
+    .safety.stale {
+      color: var(--warn);
+      border-color: rgba(198, 156, 110, .24);
+      background: rgba(198, 156, 110, .06);
+    }
+
+    .scan-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 8px 0 14px;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, .16);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin .9s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .device-name {
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 760;
+    }
+
+    .device-meta {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .node-row {
+      position: relative;
+      display: grid;
+      grid-template-columns: 68px 1fr auto;
+      gap: 14px;
+      width: 100%;
+      min-height: 110px;
+      padding: 18px;
+      border-top: 0;
+      border-right: 0;
+      border-left: 0;
+      border-bottom: 1px solid var(--line-soft);
+      color: inherit;
+      background: transparent;
+      cursor: pointer;
+      font: inherit;
+      text-align: left;
+    }
+
+    .node-row:last-child {
+      border-bottom: 0;
+    }
+
+    .node-row.selected::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 14px;
+      bottom: 14px;
+      width: 3px;
+      border-radius: 99px;
+      background: var(--gold);
+    }
+
+    .node-id {
+      color: var(--text);
+      font-size: 38px;
+      line-height: 1;
+      font-weight: 820;
+      letter-spacing: -.06em;
+    }
+
+    .node-tag {
+      display: inline-flex;
+      margin-top: 10px;
+      padding: 4px 7px;
+      border: 1px solid rgba(198, 156, 110, .42);
+      border-radius: 9px;
+      color: var(--gold-2);
+      font-size: 11px;
+      font-weight: 760;
+    }
+
+    .helper {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin: 14px 0 18px;
+      padding: 14px;
+      border: 1px solid var(--line-soft);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .028);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .mine-note {
+      margin: 18px 4px 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+      text-align: center;
+    }
+
+    .tabbar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 5;
+      height: 78px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid var(--line-soft);
+      background: rgba(5, 6, 9, .92);
+      backdrop-filter: blur(18px);
+    }
+
+    .tabbar button {
+      position: relative;
+      border: 0;
+      color: var(--muted-2);
+      background: transparent;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 720;
+    }
+
+    .tabbar button.active {
+      color: var(--gold-2);
+    }
+
+    .tabbar button.active::after {
+      content: "";
+      position: absolute;
+      left: 32%;
+      right: 32%;
+      bottom: 10px;
+      height: 3px;
+      border-radius: 99px;
+      background: var(--gold-2);
+    }
+
+    .modal {
+      position: absolute;
+      inset: 0;
+      z-index: 12;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(0, 0, 0, .62);
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .sheet {
+      width: 100%;
+      max-height: 76%;
+      overflow-y: auto;
+      padding: 20px;
+      border: 1px solid var(--line-soft);
+      border-radius: 26px;
+      background: #10131a;
+      box-shadow: 0 28px 70px rgba(0, 0, 0, .52);
+    }
+
+    .sheet h2 {
+      margin-bottom: 10px;
+    }
+
+    .sheet p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .sheet .primary-btn {
+      margin-top: 18px;
+    }
+
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: 92px;
+      z-index: 20;
+      max-width: 310px;
+      padding: 10px 15px;
+      border: 1px solid rgba(198, 156, 110, .26);
+      border-radius: 999px;
+      background: #111620;
+      color: var(--text);
+      font-size: 13px;
+      opacity: 0;
+      transform: translate(-50%, 12px);
+      transition: opacity .18s ease, transform .18s ease;
+      pointer-events: none;
+      text-align: center;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, .35);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .disabled {
+      opacity: .42;
+    }
+
+    @media (max-width: 430px) {
+      body {
+        padding: 0;
+      }
+
+      .phone {
+        width: 100vw;
+        height: 100vh;
+        border: 0;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone" role="application" aria-label="BM mobile app prototype">
+    <header class="top">
+      <div class="brand"><img src="bm_logo_210_transparent.png" alt="BM"></div>
+      <div class="top-title" id="topTitle">首页</div>
+      <div class="status-pill" id="globalStatus"><span class="dot"></span><span>未连接</span></div>
+    </header>
+
+    <main class="viewport">
+      <section class="page active" id="homePage" aria-label="首页">
+        <div class="home-actions">
+          <button class="primary-btn" id="homePrimary">连接设备</button>
+          <button class="danger-btn" id="homeDisconnect" hidden>断开</button>
+        </div>
+
+        <p class="eyebrow home-subline" id="homeSubline">请确认设备已开机并靠近手机，连接后查看实时状态</p>
+
+        <div class="surface pad">
+          <div class="row" style="padding:0 0 14px; min-height:auto;">
+            <div>
+              <div class="device-name" id="homeDeviceName">未连接设备</div>
+              <div class="device-meta" id="homeDeviceMeta">连接后显示速度、电量和设备状态</div>
+            </div>
+            <span class="soft-pill" id="homeDataState">等待数据</span>
+          </div>
+
+          <div class="gauge">
+            <div class="readout">
+              <div>
+                <div class="speed" id="homeSpeed">--</div>
+                <div class="unit" id="homeUnit">KM/H</div>
+                <div class="caption">实时速度</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="surface home-metrics">
+            <div class="metric-grid">
+              <div class="metric-cell">
+                <div class="label">电量</div>
+                <div class="value" id="homeBattery">--</div>
+              </div>
+              <div class="metric-cell">
+                <div class="label">里程</div>
+                <div class="value" id="homeOdometer">--</div>
+              </div>
+              <div class="metric-cell">
+                <div class="label">最高速度</div>
+                <div class="value" id="homeMaxSpeed">--</div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="label">设备状态</div>
+              <div class="value" id="homeTelemetry">未连接</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="devicePage" aria-label="设备">
+        <div class="page-lead">
+          <h1>设备</h1>
+          <p class="eyebrow" id="deviceLead">查找附近设备，选择直连设备或多节点设备</p>
+        </div>
+
+        <div class="surface pad" id="scanSummary">
+          <div class="scan-head">
+            <div>
+              <h2 id="scanTitle">附近设备</h2>
+              <p class="small" id="scanText">点击重新扫描，或选择列表中的设备</p>
+            </div>
+            <div class="status-pill gold" id="scanState"><span class="dot gold"></span><span>待扫描</span></div>
+          </div>
+          <button class="ghost-btn" id="scanButton">重新扫描</button>
+        </div>
+
+        <div class="section-title">BLE 设备</div>
+        <div class="surface" id="deviceList"></div>
+
+        <div id="nodeArea" style="display:none;">
+          <div class="section-title">设备节点</div>
+          <p class="eyebrow" style="margin-bottom:10px;">多节点设备已连接，请选择一个节点，首页会显示该节点实时数据</p>
+          <div class="surface" id="nodeList"></div>
+          <div class="helper">
+            <span class="dot gold" style="margin-top:4px;"></span>
+            <span>切换节点前会停止当前遥测，避免显示旧数据。</span>
+          </div>
+          <button class="ghost-btn" id="rescanNodes">重新扫描节点</button>
+        </div>
+      </section>
+
+      <section class="page" id="minePage" aria-label="我的">
+        <div class="page-lead">
+          <h1>我的</h1>
+          <p class="eyebrow">设置、支持与合规入口</p>
+        </div>
+
+        <div class="surface">
+          <div class="row">
+            <div class="label">当前状态</div>
+            <div class="value" id="mineConnection">未连接</div>
+          </div>
+          <div class="row">
+            <div class="label">最近设备</div>
+            <div class="value" id="mineDevice">--</div>
+          </div>
+          <div class="row">
+            <div class="label">蓝牙扫描</div>
+            <div class="value good">可用</div>
+          </div>
+          <div class="row">
+            <div class="label">数据存储</div>
+            <div class="value">本地</div>
+          </div>
+        </div>
+
+        <div class="section-title">设置与合规</div>
+        <div class="surface">
+          <button class="row clickable" type="button" data-action="language">
+            <div class="label">语言</div>
+            <div class="value"><span id="languageValue">简体中文</span><span class="chevron">›</span></div>
+          </button>
+          <button class="row clickable" type="button" data-action="unit">
+            <div class="label">单位</div>
+            <div class="value"><span id="unitValue">km/h</span><span class="chevron">›</span></div>
+          </button>
+          <button class="row clickable" type="button" data-modal="support">
+            <div class="label">支持与反馈</div>
+            <div class="value row-action">查看<span class="chevron">›</span></div>
+          </button>
+          <button class="row clickable" type="button" data-modal="privacy">
+            <div class="label">隐私政策</div>
+            <div class="value row-action">查看<span class="chevron">›</span></div>
+          </button>
+          <button class="row clickable" type="button" data-modal="terms">
+            <div class="label">用户协议</div>
+            <div class="value row-action">查看<span class="chevron">›</span></div>
+          </button>
+          <button class="row clickable" type="button" data-modal="about">
+            <div class="label">关于 BM</div>
+            <div class="value row-action">查看<span class="chevron">›</span></div>
+          </button>
+        </div>
+
+        <p class="mine-note">蓝牙仅用于发现和连接附近 BM 设备，不上传个人数据。</p>
+      </section>
+    </main>
+
+    <nav class="tabbar" aria-label="主导航">
+      <button class="active" data-tab="home">首页</button>
+      <button data-tab="device">设备</button>
+      <button data-tab="mine">我的</button>
+    </nav>
+
+    <div class="modal" id="modal" aria-modal="true" role="dialog">
+      <div class="sheet">
+        <h2 id="modalTitle">标题</h2>
+        <p id="modalBody">内容</p>
+        <button class="primary-btn" id="modalClose">完成</button>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <script>
+    const els = {};
+    for (const id of [
+      "topTitle", "globalStatus", "homeSubline", "homeDeviceName",
+      "homeDeviceMeta", "homeDataState", "homeSpeed", "homeUnit",
+      "homeBattery", "homeOdometer", "homeMaxSpeed", "homeTelemetry",
+      "homePrimary", "homeDisconnect", "scanTitle", "scanText", "scanState",
+      "scanButton", "deviceList", "nodeArea", "nodeList", "rescanNodes",
+      "mineConnection", "mineDevice", "languageValue", "unitValue", "modal",
+      "modalTitle", "modalBody", "modalClose", "toast"
+    ]) {
+      els[id] = document.getElementById(id);
+    }
+
+    const devices = [
+      { id: "direct", name: "BM Device", type: "直连设备", hint: "连接后首页显示实时数据", signal: "强", mode: "direct" },
+      { id: "express", name: "BM Express", type: "多节点设备", hint: "连接后需要选择节点", signal: "强", mode: "express" },
+      { id: "timeout", name: "BM Device B", type: "直连设备", hint: "信号较弱，可能需要重试", signal: "弱", mode: "timeout" }
+    ];
+
+    const nodes = [
+      { id: 12, name: "BM Controller", fw: "1.2", uuid: "8F2A-41C9", state: "可用", last: true },
+      { id: 18, name: "BM Controller", fw: "1.1", uuid: "74C0-29AB", state: "可用", last: false },
+      { id: 22, name: "未命名设备", fw: "读取中", uuid: "--", state: "读取中", last: false }
+    ];
+
+    const state = {
+      page: "home",
+      connection: "disconnected",
+      scan: "idle",
+      connectingId: "",
+      countdown: 0,
+      connectedDevice: null,
+      selectedNode: null,
+      unit: "metric",
+      language: "简体中文",
+      telemetryValid: false,
+      speedKph: 0,
+      battery: 82,
+      odometer: 126.4,
+      maxSpeedKph: 0,
+      faultCode: "FAULT_CODE_NONE",
+      lastUpdate: 0,
+      tick: 0
+    };
+
+    let scanTimer = null;
+    let connectTimer = null;
+    let countdownTimer = null;
+    let toastTimer = null;
+
+    function showToast(text) {
+      clearTimeout(toastTimer);
+      els.toast.textContent = text;
+      els.toast.classList.add("show");
+      toastTimer = setTimeout(() => els.toast.classList.remove("show"), 1600);
+    }
+
+    function switchPage(page) {
+      state.page = page;
+      for (const section of document.querySelectorAll(".page")) {
+        section.classList.remove("active");
+      }
+
+      const pageMap = {
+        home: "homePage",
+        device: "devicePage",
+        mine: "minePage"
+      };
+      document.getElementById(pageMap[page]).classList.add("active");
+
+      for (const button of document.querySelectorAll(".tabbar button")) {
+        button.classList.toggle("active", button.dataset.tab === page);
+      }
+      const titleMap = { home: "首页", device: "设备", mine: "我的" };
+      els.topTitle.textContent = titleMap[page];
+      render();
+    }
+
+    function setGlobalStatus(kind, text) {
+      els.globalStatus.className = "status-pill" + (kind ? " " + kind : "");
+      els.globalStatus.innerHTML = '<span class="dot"></span><span>' + text + "</span>";
+    }
+
+    function formatSpeed(kph) {
+      if (!state.telemetryValid) return "--";
+      const value = state.unit === "metric" ? kph : kph * 0.621371;
+      return value.toFixed(1);
+    }
+
+    function speedUnit() {
+      return state.unit === "metric" ? "KM/H" : "MPH";
+    }
+
+    function distanceUnit() {
+      return state.unit === "metric" ? "km" : "mi";
+    }
+
+    function formatDistance(km) {
+      const value = state.unit === "metric" ? km : km * 0.621371;
+      return value.toFixed(1) + " " + distanceUnit();
+    }
+
+    function displayDeviceName() {
+      if (!state.connectedDevice) return "未连接设备";
+      if (state.selectedNode) return state.connectedDevice.name + " · 节点 " + state.selectedNode.id;
+      return state.connectedDevice.name;
+    }
+
+    function startScan() {
+      clearTimeout(scanTimer);
+      state.scan = "scanning";
+      showToast("正在搜索附近 BM 设备");
+      switchPage("device");
+      render();
+      scanTimer = setTimeout(() => {
+        if (state.scan === "scanning") {
+          state.scan = "found";
+          showToast("已发现附近设备");
+          render();
+        }
+      }, 900);
+    }
+
+    function resetConnection() {
+      clearTimeout(connectTimer);
+      clearInterval(countdownTimer);
+      state.connection = "disconnected";
+      state.connectingId = "";
+      state.countdown = 0;
+      state.connectedDevice = null;
+      state.selectedNode = null;
+      state.telemetryValid = false;
+      state.speedKph = 0;
+      state.maxSpeedKph = 0;
+      state.lastUpdate = 0;
+      showToast("已断开设备");
+      switchPage("home");
+      render();
+    }
+
+    function connectToDevice(deviceId) {
+      const device = devices.find(item => item.id === deviceId);
+      if (!device || state.connection === "connecting") return;
+
+      clearTimeout(connectTimer);
+      clearInterval(countdownTimer);
+      state.connection = "connecting";
+      state.connectingId = device.id;
+      state.countdown = 15;
+      state.connectedDevice = null;
+      state.selectedNode = null;
+      state.telemetryValid = false;
+      showToast("正在连接 " + device.name);
+      render();
+
+      countdownTimer = setInterval(() => {
+        state.countdown = Math.max(0, state.countdown - 1);
+        render();
+        if (state.countdown === 0 && state.connection === "connecting") {
+          clearInterval(countdownTimer);
+          state.connection = "failed";
+          state.connectingId = "";
+          showToast("连接超时，请重试");
+          render();
+        }
+      }, 1000);
+
+      if (device.mode === "timeout") return;
+
+      connectTimer = setTimeout(() => {
+        clearInterval(countdownTimer);
+        state.connection = "connected";
+        state.connectedDevice = device;
+        state.connectingId = "";
+        state.countdown = 0;
+        state.telemetryValid = true;
+        state.lastUpdate = Date.now();
+        state.speedKph = device.mode === "express" ? 0 : 18.6;
+        state.maxSpeedKph = state.speedKph;
+
+        if (device.mode === "express") {
+          state.selectedNode = null;
+          showToast("BM Express 已连接，请选择节点");
+          switchPage("device");
+        } else {
+          showToast("连接成功，首页已显示实时数据");
+          switchPage("home");
+        }
+        render();
+      }, 1500);
+    }
+
+    function selectNode(nodeId) {
+      const node = nodes.find(item => item.id === nodeId);
+      if (!node || !state.connectedDevice) return;
+      state.selectedNode = node;
+      state.telemetryValid = node.state === "可用";
+
+      if (node.state !== "可用") {
+        showToast("节点信息读取中");
+        setTimeout(() => {
+          node.state = "可用";
+          node.fw = "1.0";
+          node.uuid = "55A2-90F1";
+          state.telemetryValid = true;
+          state.lastUpdate = Date.now();
+          showToast("节点信息已更新");
+          switchPage("home");
+          render();
+        }, 1200);
+        render();
+        return;
+      }
+
+      state.lastUpdate = Date.now();
+      state.speedKph = 14 + node.id / 8;
+      state.maxSpeedKph = Math.max(state.maxSpeedKph, state.speedKph);
+      showToast("已切换到节点 " + node.id);
+      switchPage("home");
+      render();
+    }
+
+    function updateTelemetry() {
+      state.tick += 0.055;
+      if (state.connection !== "connected" || !state.telemetryValid) {
+        return;
+      }
+
+      const nodeOffset = state.selectedNode ? state.selectedNode.id / 18 : 0;
+      const wave = (Math.sin(state.tick + nodeOffset) + 1) / 2;
+      const softWave = (Math.sin(state.tick * .38) + 1) / 2;
+      state.speedKph = 6 + wave * 27;
+      state.battery = Math.max(12, state.battery - 0.002);
+      state.odometer += state.speedKph / 36000;
+      state.maxSpeedKph = Math.max(state.maxSpeedKph, state.speedKph);
+      state.lastUpdate = Date.now() - Math.round((1 - softWave) * 900);
+      renderTelemetryOnly();
+    }
+
+    function renderTelemetryOnly() {
+      const speedText = formatSpeed(state.speedKph);
+      const unitText = speedUnit();
+      const batteryText = state.telemetryValid ? Math.round(state.battery) + "%" : "--";
+      const odometerText = state.telemetryValid ? formatDistance(state.odometer) : "--";
+      const maxSpeedText = state.telemetryValid ? formatSpeed(state.maxSpeedKph) + " " + unitText.toLowerCase() : "--";
+
+      els.homeSpeed.textContent = speedText;
+      els.homeUnit.textContent = unitText;
+      els.homeBattery.textContent = batteryText;
+      els.homeOdometer.textContent = odometerText;
+      els.homeMaxSpeed.textContent = maxSpeedText;
+    }
+
+    function renderDeviceList() {
+      els.deviceList.innerHTML = "";
+      const showList = state.scan !== "idle" || state.connection === "connecting" || state.connection === "failed";
+
+      if (!showList) {
+        const empty = document.createElement("div");
+        empty.className = "row";
+        empty.innerHTML = '<div><div class="device-name">暂无扫描结果</div><div class="device-meta">点击重新扫描开始查找附近设备</div></div><div class="value">--</div>';
+        els.deviceList.appendChild(empty);
+        return;
+      }
+
+      for (const device of devices) {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "row clickable";
+        const isConnecting = state.connection === "connecting" && state.connectingId === device.id;
+        const isConnected = state.connection === "connected" && state.connectedDevice && state.connectedDevice.id === device.id;
+        let action = "连接";
+        let valueClass = "gold";
+        if (isConnecting) {
+          action = "连接中 " + state.countdown + "s";
+        } else if (isConnected) {
+          action = "已连接";
+          valueClass = "good";
+        } else if (state.connection === "failed" && device.id === "timeout") {
+          action = "重试";
+          valueClass = "bad";
+        }
+        row.setAttribute("aria-label", device.name + "，" + device.type + "，" + action);
+
+        row.innerHTML =
+          '<div><div class="device-name">' + device.name + '</div><div class="device-meta">' +
+          device.type + ' · 信号 ' + device.signal + ' · ' + device.hint + '</div></div>' +
+          '<div class="value ' + valueClass + '">' + action + '<span class="chevron">›</span></div>';
+        row.addEventListener("click", () => connectToDevice(device.id));
+        els.deviceList.appendChild(row);
+      }
+    }
+
+    function renderNodeList() {
+      els.nodeList.innerHTML = "";
+      for (const node of nodes) {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "node-row" + (node.last ? " selected" : "");
+        row.setAttribute("aria-label", "节点 " + node.id + "，" + node.name + "，" + node.state);
+        row.innerHTML =
+          '<div><div class="label">节点</div><div class="node-id">' + node.id + '</div>' +
+          (node.last ? '<div class="node-tag">上次选择</div>' : '') + '</div>' +
+          '<div><div class="label">设备名称</div><div class="device-name">' + node.name + '</div>' +
+          '<div class="device-meta" style="margin-top:16px;">固件版本<br><span style="color:var(--text);font-size:15px;">' + node.fw + '</span></div></div>' +
+          '<div style="text-align:right;"><div class="label">状态</div><div class="value ' + (node.state === "可用" ? "good" : "gold") + '">' + node.state + '</div>' +
+          '<div class="device-meta" style="margin-top:16px;">UUID<br><span style="color:var(--text);font-size:13px;">' + node.uuid + '</span></div></div>';
+        row.addEventListener("click", () => selectNode(node.id));
+        els.nodeList.appendChild(row);
+      }
+    }
+
+    function render() {
+      const connected = state.connection === "connected";
+      const connecting = state.connection === "connecting";
+      const failed = state.connection === "failed";
+
+      if (connected) setGlobalStatus("good", "已连接");
+      else if (connecting) setGlobalStatus("gold", "连接中");
+      else if (failed) setGlobalStatus("bad", "连接失败");
+      else if (state.scan === "scanning") setGlobalStatus("gold", "扫描中");
+      else setGlobalStatus("", "未连接");
+
+      const faultCode = state.faultCode || "FAULT_CODE_NONE";
+      const hasFault = faultCode !== "FAULT_CODE_NONE";
+      const homeStateText = connected && state.telemetryValid
+        ? (hasFault ? "需检查 · " + faultCode : "正常 · " + faultCode)
+        : connected ? "读取中" : failed ? "需重试" : "未连接";
+      const homeStateClass = connected && state.telemetryValid
+        ? (hasFault ? " bad" : " good")
+        : failed ? " bad" : connected ? " gold" : "";
+
+      els.homeSubline.textContent = connected ? "实时查看设备状态和安全提示" : "请确认设备已开机并靠近手机，连接后查看实时状态";
+      els.homeDeviceName.textContent = displayDeviceName();
+      els.homeDeviceMeta.textContent = connected ? "已连接 · 刚刚更新" : failed ? "连接超时，请在设备页重试" : "连接后显示速度、电量和设备状态";
+      els.homeDataState.textContent = connected && state.telemetryValid ? "数据正常" : connected ? "等待数据" : failed ? "需重试" : "等待数据";
+      els.homeDataState.className = "soft-pill" + (connected && state.telemetryValid ? " good" : failed ? " bad" : connected ? " gold" : "");
+      els.homeTelemetry.textContent = homeStateText;
+      els.homeTelemetry.className = "value" + homeStateClass;
+      els.homePrimary.textContent = connected ? "实时数据已显示" : "连接设备";
+      els.homeDisconnect.hidden = !connected;
+      els.homePrimary.parentElement.classList.toggle("connected", connected);
+
+      if (state.scan === "scanning") {
+        els.scanTitle.textContent = "正在搜索附近设备";
+        els.scanText.textContent = "扫描结果会实时显示在下方列表";
+        els.scanState.className = "status-pill gold";
+        els.scanState.innerHTML = '<span class="spinner"></span><span>扫描中</span>';
+      } else if (state.scan === "found") {
+        els.scanTitle.textContent = "已发现附近设备";
+        els.scanText.textContent = "选择设备后开始连接";
+        els.scanState.className = "status-pill good";
+        els.scanState.innerHTML = '<span class="dot"></span><span>可连接</span>';
+      } else if (failed) {
+        els.scanTitle.textContent = "连接超时";
+        els.scanText.textContent = "请确认设备已开机并靠近手机";
+        els.scanState.className = "status-pill bad";
+        els.scanState.innerHTML = '<span class="dot"></span><span>可重试</span>';
+      } else {
+        els.scanTitle.textContent = "附近设备";
+        els.scanText.textContent = connected ? displayDeviceName() + " 已连接" : "点击重新扫描，或选择列表中的设备";
+        els.scanState.className = connected ? "status-pill good" : "status-pill gold";
+        els.scanState.innerHTML = '<span class="dot"></span><span>' + (connected ? "已连接" : "待扫描") + '</span>';
+      }
+
+      els.nodeArea.style.display = connected && state.connectedDevice && state.connectedDevice.mode === "express" ? "block" : "none";
+      els.mineConnection.textContent = connected ? "已连接" : "未连接";
+      els.mineConnection.className = connected ? "value good" : "value";
+      els.mineDevice.textContent = connected ? displayDeviceName() : "--";
+      els.unitValue.textContent = state.unit === "metric" ? "km/h" : "mph";
+      els.languageValue.textContent = state.language;
+
+      renderDeviceList();
+      renderNodeList();
+      renderTelemetryOnly();
+    }
+
+    const modalCopy = {
+      support: ["支持与反馈", "如遇到连接失败、数据异常或设备安全提示，请记录设备名称、节点 ID 和发生时间，并发邮件到 op727142092@gmail.com。"],
+      privacy: ["隐私政策", "本原型不采集个人资料。蓝牙权限仅用于发现和连接附近 BM 设备；所有演示数据都在本地模拟，不会上传。"],
+      terms: ["用户协议", "请在安全环境中使用设备。App 展示的数据用于辅助判断设备状态，不替代设备本身的安全检查。"],
+      about: ["关于 BM", "BM 是面向普通用户的移动设备管理 App，首版聚焦连接、遥测、设备信息、安全提示和合规入口。"]
+    };
+
+    document.querySelectorAll(".tabbar button").forEach(button => {
+      button.addEventListener("click", () => switchPage(button.dataset.tab));
+    });
+
+    els.homePrimary.addEventListener("click", () => {
+      if (state.connection === "connected") showToast("实时数据已在首页显示");
+      else startScan();
+    });
+    els.homeDisconnect.addEventListener("click", resetConnection);
+    els.scanButton.addEventListener("click", startScan);
+    els.rescanNodes.addEventListener("click", () => {
+      showToast("正在重新扫描节点");
+      setTimeout(() => showToast("节点列表已更新"), 900);
+    });
+    document.querySelectorAll("[data-modal]").forEach(row => {
+      row.addEventListener("click", () => {
+        const [title, body] = modalCopy[row.dataset.modal];
+        els.modalTitle.textContent = title;
+        els.modalBody.textContent = body;
+        els.modal.classList.add("open");
+      });
+    });
+
+    document.querySelector('[data-action="language"]').addEventListener("click", () => {
+      state.language = state.language === "简体中文" ? "English" : "简体中文";
+      showToast("语言已切换为 " + state.language);
+      render();
+    });
+
+    document.querySelector('[data-action="unit"]').addEventListener("click", () => {
+      state.unit = state.unit === "metric" ? "imperial" : "metric";
+      showToast("单位已切换为 " + (state.unit === "metric" ? "km/h" : "mph"));
+      render();
+    });
+
+    els.modalClose.addEventListener("click", () => els.modal.classList.remove("open"));
+    els.modal.addEventListener("click", event => {
+      if (event.target === els.modal) els.modal.classList.remove("open");
+    });
+
+    startScan();
+    switchPage("home");
+    setInterval(updateTelemetry, 120);
+  </script>
+</body>
+</html>

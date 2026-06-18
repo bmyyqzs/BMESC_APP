@@ -43,6 +43,8 @@ public:
     void setMcConfig(ConfigParams *mcConfig);
     void setAppConfig(ConfigParams *appConfig);
     void checkMcConfig();
+    void resetCommunicationTimeouts();
+    bool isFwVersionRequestPending() const;
     Q_INVOKABLE void emitEmptyValues();
     Q_INVOKABLE void emitEmptySetupValues();
     Q_INVOKABLE void emitEmptyStats();

@@ -55,18 +55,33 @@ void BleUart::startScan()
     init();
 
     mDevs.clear();
+#ifdef DEBUG_BLE_UART_LOGS
+    qDebug() << "BLE scan starting. active before start:" << mDeviceDiscoveryAgent->isActive()
+             << "timeout ms:" << mDeviceDiscoveryAgent->lowEnergyDiscoveryTimeout();
+#endif
     mDeviceDiscoveryAgent->start(QBluetoothDeviceDiscoveryAgent::LowEnergyMethod);
     mScanFinished = false;
+#ifdef DEBUG_BLE_UART_LOGS
+    qDebug() << "BLE scan active after start:" << mDeviceDiscoveryAgent->isActive();
+#endif
 }
 
 void BleUart::startConnect(QString addr)
 {
     init();
 
+    if (mDeviceDiscoveryAgent->isActive()) {
+        qDebug() << "Stopping BLE scan before connecting";
+        mDeviceDiscoveryAgent->stop();
+        mScanFinished = true;
+        emit scanDone(mDevs, true);
+    }
+
     disconnectBle();
 
     mUartServiceFound = false;
     mConnectDone = false;
+    qDebug() << "Starting BLE connection to" << addr;
 
 #if defined(Q_OS_MACOS) || defined(Q_OS_IOS)
     // Create BT Controller from unique device UUID stored as addr. Creating
@@ -132,10 +147,13 @@ void BleUart::emitScanDone()
 
 void BleUart::writeData(QByteArray data)
 {
-    if (isConnected()) {
+    if (isConnected() && mService) {
         const QLowEnergyCharacteristic  rxChar = mService->characteristic(QBluetoothUuid(QUuid(mRxUuid)));
         if (rxChar.isValid()) {
             int chunk = 20;
+#ifdef DEBUG_BLE_UART_LOGS
+            qDebug() << "BLE UART write bytes:" << data.size();
+#endif
             while(data.size() > chunk) {
                 mService->writeCharacteristic(rxChar, data.mid(0, chunk),
                                               QLowEnergyService::WriteWithoutResponse);
@@ -143,17 +161,24 @@ void BleUart::writeData(QByteArray data)
             }
 
             mService->writeCharacteristic(rxChar, data, QLowEnergyService::WriteWithoutResponse);
+        } else {
+            qWarning() << "BLE UART Rx characteristic invalid while writing";
         }
+    } else if (isConnected()) {
+        qWarning() << "BLE UART write skipped because service is not available";
     }
 }
 
 void BleUart::addDevice(const QBluetoothDeviceInfo &dev)
 {
     if ((dev.coreConfigurations() & QBluetoothDeviceInfo::LowEnergyCoreConfiguration)) {
+#ifdef DEBUG_BLE_UART_LOGS
         qDebug() << "BLE scan found device:" << dev.name() <<
                     "Valid:" << dev.isValid() <<
                     "Cached:" << dev.isCached() <<
-                    "rssi:" << dev.rssi();
+                    "rssi:" << dev.rssi() <<
+                    "service UUIDs:" << dev.serviceUuids();
+#endif
 
 #if defined(Q_OS_MACOS) || defined(Q_OS_IOS)
         // macOS and iOS do not expose the hardware address of BLTE devices, must use
@@ -183,8 +208,19 @@ void BleUart::addDevice(const QBluetoothDeviceInfo &dev)
 #if defined(Q_OS_WIN)
         mDevs.insert(addr, dev.name());
 #else
-        if(preferred || dev.serviceUuids().contains(QBluetoothUuid(QUuid("6e400001-b5a3-f393-e0a9-e50e24dcca9e")))) {
+        const QString deviceName = dev.name().trimmed();
+        const bool isNamedUartDevice = deviceName.contains(QStringLiteral("VESC BLE UART"),
+                                                           Qt::CaseInsensitive);
+        if(preferred || isNamedUartDevice ||
+                dev.serviceUuids().contains(QBluetoothUuid(QUuid("6e400001-b5a3-f393-e0a9-e50e24dcca9e")))) {
             mDevs.insert(addr, dev.name());
+#ifdef DEBUG_BLE_UART_LOGS
+            qDebug() << "BLE scan accepted device:" << dev.name() << addr;
+#endif
+        } else {
+#ifdef DEBUG_BLE_UART_LOGS
+            qDebug() << "BLE scan ignored device without UART service/name:" << dev.name() << addr;
+#endif
         }
 #endif
 
@@ -233,6 +269,11 @@ void BleUart::serviceScanDone()
         mService = nullptr;
     }
 
+    if (!mControl) {
+        qWarning() << "BLE controller invalid when service scan finished";
+        return;
+    }
+
     if (mUartServiceFound) {
         qDebug() << "Connecting to BLE UART service";
         mService = mControl->createServiceObject(QBluetoothUuid(QUuid(mServiceUuid)), this);
@@ -250,6 +291,8 @@ void BleUart::serviceScanDone()
     } else {
         qWarning() << "BLE UART service not found";
         disconnectBle();
+        mConnectTimeoutTimer.stop();
+        emit bleError(tr("The selected device does not provide the required BLE UART service."));
     }
 }
 
@@ -263,6 +306,11 @@ void BleUart::controllerError(QLowEnergyController::Error e)
 
 void BleUart::deviceConnected()
 {
+    if (!mControl) {
+        qWarning() << "BLE controller invalid after device connected";
+        return;
+    }
+
     qDebug() << "BLE device connected";
     mControl->discoverServices();
 }
@@ -270,7 +318,12 @@ void BleUart::deviceConnected()
 void BleUart::deviceDisconnected()
 {
     qDebug() << "BLE service disconnected";
+    const bool connectionWasInProgress = isConnecting();
     disconnectBle();
+    mConnectTimeoutTimer.stop();
+    if (connectionWasInProgress) {
+        emit bleError(tr("The Bluetooth device disconnected before setup completed."));
+    }
 }
 
 void BleUart::serviceStateChanged(QLowEnergyService::ServiceState s)
@@ -290,6 +343,9 @@ void BleUart::serviceStateChanged(QLowEnergyService::ServiceState s)
 
         if (!txChar.isValid()){
             qDebug() << "BLE Tx characteristic not found";
+            disconnectBle();
+            mConnectTimeoutTimer.stop();
+            emit bleError(tr("The Bluetooth device is missing the required transmit characteristic."));
             break;
         }
 
@@ -298,6 +354,9 @@ void BleUart::serviceStateChanged(QLowEnergyService::ServiceState s)
 
         if (!rxChar.isValid()) {
             qDebug() << "BLE Rx characteristic not found";
+            disconnectBle();
+            mConnectTimeoutTimer.stop();
+            emit bleError(tr("The Bluetooth device is missing the required receive characteristic."));
             break;
         }
 
@@ -309,6 +368,11 @@ void BleUart::serviceStateChanged(QLowEnergyService::ServiceState s)
         if (mNotificationDescTx.isValid()) {
             // enable notification
             mService->writeDescriptor(mNotificationDescTx, QByteArray::fromHex("0100"));
+        } else {
+            qDebug() << "BLE notification descriptor not found";
+            disconnectBle();
+            mConnectTimeoutTimer.stop();
+            emit bleError(tr("The Bluetooth device does not support data notifications."));
         }
 
         break;
@@ -320,12 +384,20 @@ void BleUart::serviceStateChanged(QLowEnergyService::ServiceState s)
 }
 
 void BleUart::serviceError(QLowEnergyService::ServiceError e){
-    qDebug() << e;
+    qWarning() << "BLE service error:" << e;
+    if (!mConnectDone) {
+        disconnectBle();
+        mConnectTimeoutTimer.stop();
+        emit bleError(tr("BLE service error: ") + Utility::QEnumToQString(e));
+    }
 }
 
 void BleUart::updateData(const QLowEnergyCharacteristic &c, const QByteArray &value)
 {
     if (c.uuid() == QBluetoothUuid(QUuid(mTxUuid))) {
+#ifdef DEBUG_BLE_UART_LOGS
+        qDebug() << "BLE UART notification bytes:" << value.size();
+#endif
         emit dataRx(value);
     }
 }
@@ -373,6 +445,7 @@ void BleUart::init()
     Utility::requestBleConnectPermission();
 
     mDeviceDiscoveryAgent = new QBluetoothDeviceDiscoveryAgent(this);
+    mDeviceDiscoveryAgent->setLowEnergyDiscoveryTimeout(20000);
 
     connect(mDeviceDiscoveryAgent, SIGNAL(deviceDiscovered(const QBluetoothDeviceInfo&)),
             this, SLOT(addDevice(const QBluetoothDeviceInfo&)));

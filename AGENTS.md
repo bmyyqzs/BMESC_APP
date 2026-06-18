@@ -12,11 +12,11 @@ This repository is a fork/adaptation of vesc\_tool and is being turned into our 
 
 Transform the codebase into a maintainable branded application with:
 
-\- our own branding
+\- BM branding
 
 \- simplified user flows
 
-\- Android-first MVP
+\- iOS-first commercial MVP
 
 \- support for our own hardware defaults and onboarding
 
@@ -36,15 +36,61 @@ Priorities:
 
 1\. Rebrand the app completely
 
-2\. Keep Android build usable first
+2\. Keep the iOS build usable first
 
 3\. Simplify the UI for target users
 
 4\. Preserve core communication/protocol behavior unless explicitly changed
 
-5\. Add our own hardware presets, onboarding, and product-facing flows
+5\. Isolate product-facing UI from engineering protocol APIs
 
-6\. Prefer maintainability over quick hacks
+6\. Add our own hardware presets, onboarding, and product-facing flows
+
+7\. Prefer maintainability over quick hacks
+
+
+
+\## Commercial MVP Scope
+
+The first commercial MVP includes only:
+
+\- BLE device discovery and connection
+
+\- live telemetry
+
+\- device information and management
+
+\- user-facing fault and safety messages
+
+\- settings
+
+\- privacy, legal, support, and open-source compliance entry points
+
+The following belong to phase two and must not block the first commercial MVP:
+
+\- firmware updates
+
+\- user accounts and authentication
+
+\- cloud device binding
+
+\- leaderboards
+
+\- social or community features
+
+
+
+\## Product Layer Isolation
+
+\- Product-facing QML must use narrow product models or facades rather than calling `Commands` or mutable `ConfigParams` APIs directly.
+
+\- Keep `BleUart`, `Packet`, `Commands`, and protocol-facing parts of `VescInterface` stable unless a task explicitly targets them.
+
+\- Product models own user-facing connection state, device identity, telemetry conversion, stale-data handling, fault presentation, and allowed product actions.
+
+\- Engineering pages may continue using low-level APIs, but they must not be reachable from the commercial MVP navigation.
+
+\- Do not expose motor current, duty, RPM, raw configuration writes, terminal commands, bootloader operations, or unrestricted firmware upload through commercial product models.
 
 
 
@@ -136,6 +182,8 @@ When doing rebranding work, search for and handle:
 
 \- config/export/import labels if user-facing
 
+The official user-facing brand is `BM`.
+
 
 
 \## UX Direction
@@ -214,17 +262,19 @@ When asked to transform the app, prefer this order:
 
 2\. branding replacement
 
-3\. Android build validation
+3\. iOS build validation
 
-4\. menu/page simplification
+4\. product layer isolation
 
-5\. onboarding improvements
+5\. menu/page simplification
 
-6\. hardware preset integration
+6\. onboarding improvements
 
-7\. visual polish
+7\. hardware preset integration
 
-8\. release preparation
+8\. visual polish
+
+9\. release preparation
 
 
 
@@ -248,3 +298,50 @@ If uncertain, do not guess silently.
 
 State the uncertainty and propose the smallest inspectable next step.
 
+
+
+\## Project Memory Workflow
+
+This repository uses persistent project memory so important context survives across conversations.
+
+At the start of every user turn:
+
+1\. Read `PROJECT_MEMORY.md` before analyzing or changing the project.
+
+2\. If `PROJECT_MEMORY_PRIVATE.md` exists, read it as local confidential context.
+
+3\. Treat newer entries as authoritative when they explicitly replace older decisions.
+
+Before the final response of every user turn:
+
+1\. Append one concise entry to `PROJECT_MEMORY.md` using its required template.
+
+2\. Record the user request, relevant context, confirmed decisions or preferences, actions and results, unresolved items, and whether sensitive information was involved.
+
+3\. Do not repeat unchanged facts already recorded. Reference the earlier entry or write only the new information.
+
+4\. Never rewrite or delete historical entries. If a decision changes, append a new entry that identifies the superseded decision and its replacement.
+
+5\. Use the current date and timezone from the environment. Use a clear topic name for each entry.
+
+\### Public and Private Memory
+
+\- `PROJECT_MEMORY.md` is tracked by Git and may be read by the team. Never place passwords, tokens, private keys, certificates, recovery codes, personal identifiers, or other secret values in it.
+
+\- `PROJECT_MEMORY_PRIVATE.md` is local-only and ignored by Git. Store a sensitive value there only when it has a clear future project use.
+
+\- In public memory, record only the sensitive item's purpose, where it is expected to be used, and a reference label matching the private entry. Never copy the value itself.
+
+\- Do not echo private values in summaries, patches, logs, or final responses unless the user explicitly requires the value for the immediate task.
+
+\- If no sensitive value was provided, leave the private file unchanged.
+
+\### Memory Boundaries
+
+\- Keep stable product background in `PROJECT_CONTEXT.md`; keep chronological conversation and task outcomes in `PROJECT_MEMORY.md`.
+
+\- Memory is project-scoped to this `MicroEV2` repository.
+
+\- A memory entry is a summary, not a full transcript. Preserve decisions and outcomes while omitting conversational filler.
+
+\- If a user explicitly asks not to remember a specific item, do not write that item to either memory file.

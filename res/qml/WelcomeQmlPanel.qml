@@ -309,7 +309,7 @@ Item {
             fullLogo: false
 
             Component.onCompleted: {
-                VescIf.bleDevice().emitScanDone()
+                VescIf.bleDeviceObject().emitScanDone()
             }
 
             onYChanged: {

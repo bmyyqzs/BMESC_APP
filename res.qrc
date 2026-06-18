@@ -57,7 +57,14 @@
         <file>res/images/esk8.jpg</file>
         <file>res/images/propeller.jpg</file>
         <file>res/+theme_light/logo_vertical.png</file>
+        <file>res/branding/bm_logo_transparent.png</file>
         <file>res/icons/bluetooth.png</file>
+        <file>res/icons/bm_tab_device.png</file>
+        <file>res/icons/bm_tab_device_active.png</file>
+        <file>res/icons/bm_tab_home.png</file>
+        <file>res/icons/bm_tab_home_active.png</file>
+        <file>res/icons/bm_tab_mine.png</file>
+        <file>res/icons/bm_tab_mine_active.png</file>
         <file>res/icons/minimize.png</file>
         <file>res/icons/icons8-battery-100.png</file>
         <file>res/icons/fullscreen.png</file>

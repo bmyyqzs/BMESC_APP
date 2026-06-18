@@ -23,11 +23,13 @@ import QtQuick.Controls.Material 2.2
 import QtQuick.Layouts 1.3
 import QtQuick.Window 2.10
 
+import Vedder.vesc.bleuart 1.0
 import Vedder.vesc.vescinterface 1.0
 import Vedder.vesc.commands 1.0
 import Vedder.vesc.configparams 1.0
 import Vedder.vesc.utility 1.0
 import Vedder.vesc.vesc3ditem 1.0
+import BM.Product 1.0
 
 ApplicationWindow {
     id: appWindow
@@ -35,13 +37,53 @@ ApplicationWindow {
     property ConfigParams mMcConf: VescIf.mcConfig()
     property ConfigParams mAppConf: VescIf.appConfig()
     property ConfigParams mInfoConf: VescIf.infoConfig()
-    property bool connected: false
+    property var mBle: VescIf.bleDeviceObject()
+    property bool transportConnected: productDevice.connected
+    property bool protocolReady: productDevice.protocolReady
     property bool fwReadCorrectly: false
 
+    ProductDeviceModel {
+        id: productDevice
+        vesc: VescIf
+        highRateTelemetry: protocolReady && mainSwipeView.currentIndex === 0
+    }
+
+    Connections {
+        target: productDevice
+
+        function onRequestShowHome() {
+            appWindow.navigateToPage(0)
+        }
+    }
+
+    BMTheme {
+        id: theme
+    }
+
+    function navigateToPage(pageIndex) {
+        if (pageIndex < 0 || pageIndex >= rep.model.length) {
+            return
+        }
+
+        tabBar.setCurrentIndex(pageIndex)
+        mainSwipeView.setCurrentIndex(pageIndex)
+    }
+
+    function openConnectionPage() {
+        navigateToPage(1)
+        productDevice.startBleScan()
+    }
+
     visible: true
-    width: 500
-    height: 850
-    title: qsTr("MicroEV")
+    width: 390
+    height: 844
+    title: qsTr("BM")
+
+    // Language toggle stub for the header pill; real i18n lands on the Mine page (phase 4).
+    property bool langEn: false
+
+    // App-level premium gradient background (prototype body/frame glows).
+    background: BMBackground {}
 
     // Full screen iPhone X workaround:
     property int notchLeft: 0
@@ -79,6 +121,7 @@ ApplicationWindow {
 
     Component.onCompleted: {
         updateNotch()
+        VescIf.setIntroDone(true)
         startupInitTimer.start()
     }
 
@@ -92,11 +135,6 @@ ApplicationWindow {
             Utility.allowScreenRotation(VescIf.getAllowScreenRotation())
             Utility.stopGnssForegroundService()
         }
-    }
-
-    SetupWizardIntro {
-        id: introWizard
-        dialogParent: mainSwipeView
     }
 
     Controls {
@@ -178,7 +216,7 @@ ApplicationWindow {
                 Layout.preferredHeight: (sourceSize.height * Layout.preferredWidth) / sourceSize.width
                 Layout.margins: Math.min(parent.width, parent.height)*0.1
                 Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
-                source: "qrc" + Utility.getThemePath() + "/logo.png"
+                source: "qrc:/res/branding/bm_logo_transparent.png"
                 antialiasing: true
 
             }
@@ -186,13 +224,13 @@ ApplicationWindow {
             Button {
                 id: reconnectButton
                 Layout.fillWidth: true
-                text: connected ? "Disconnect" : "Connect"
+                text: transportConnected ? "Disconnect" : "Connect"
                 flat: true
                 onClicked: {
-                    if (connected) {
+                    if (transportConnected) {
                         VescIf.disconnectPort()
                     } else {
-                        connScreen.opened = true
+                        openConnectionPage()
                     }
 
                     drawer.close()
@@ -235,7 +273,7 @@ ApplicationWindow {
 
                 onClicked: {
                     VescIf.emitMessageDialog(
-                                "VESC Tool Changelog",
+                                "BM Changelog",
                                 Utility.vescToolChangeLog(),
                                 true, false)
                 }
@@ -267,7 +305,7 @@ ApplicationWindow {
                 flat: true
 
                 onClicked: {
-                    Qt.openUrlExternally("https://vesc-project.com/privacy_policies")
+                    Qt.openUrlExternally("https://example.com/privacy")
                 }
             }
         }
@@ -275,7 +313,12 @@ ApplicationWindow {
 
     SwipeView {
         id: mainSwipeView
-        currentIndex: tabBar.currentIndex
+        currentIndex: 0
+        onCurrentIndexChanged: {
+            if (tabBar.currentIndex !== currentIndex) {
+                tabBar.setCurrentIndex(currentIndex)
+            }
+        }
         anchors.fill: parent
         anchors.leftMargin: notchLeft*0.75
         anchors.rightMargin: notchRight*0.75
@@ -299,71 +342,102 @@ ApplicationWindow {
                                        Qt.Horizontal ? width : height)
         }
 
+        // Home tab: full connect -> device -> realtime flow lives inside this StackView.
         Page {
-            ConnectScreen {
+            background: Rectangle { color: "transparent" }
+            BMHomeFlow {
+                id: homeFlow
                 anchors.fill: parent
-                opened: true
-                allowHide: false
-                fullLogo: false
+                deviceModel: productDevice
+                theme: theme
+                onRequestConnect: appWindow.openConnectionPage()
             }
         }
 
         Page {
-            id: rtDataPage
-            Loader {
-                id: rtDataLoader
+            background: Rectangle { color: "transparent" }
+            BMDevicePage {
                 anchors.fill: parent
-                asynchronous: true
-                visible: status == Loader.Ready
-                sourceComponent: RtDataSetup {
-                    anchors.fill: parent
-                    updateData: tabBar.currentIndex == 1
-                }
+                deviceModel: productDevice
+                onRequestConnect: productDevice.startBleScan()
+                onRequestDisconnect: productDevice.disconnectDevice()
             }
+        }
+
+        Page {
+            background: Rectangle { color: "transparent" }
+            BMMinePage {
+                anchors.fill: parent
+                deviceModel: productDevice
+                langEn: appWindow.langEn
+                onLangToggled: appWindow.langEn = !appWindow.langEn
+            }
+        }
+    }
+
+    // Connection-status plumbing kept alive for the legacy timers / Connections below.
+    // The visible connection state is shown on the home card (phase 2), so these are hidden.
+    Item {
+        visible: false
+        Rectangle {
+            id: connectedRect
+            Text { id: connectedText }
         }
     }
 
     header: Rectangle {
         id: headerBar
-        color: Utility.getAppHexColor("lightestBackground")
-        height: tabBar.implicitHeight + notchTop // iPhone X Workaround
+        color: "transparent"
+        height: notchTop + 76
 
-        RowLayout {
-            anchors.left: parent.left
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 16
+            text: tabBar.currentIndex === 2 ? qsTr("我的")
+                  : (tabBar.currentIndex === 1 ? qsTr("设备") : qsTr("首页"))
+            color: "#f4f1ea"
+            font.pixelSize: 22
+            font.bold: true
+        }
+
+        Rectangle {
             anchors.right: parent.right
             anchors.bottom: parent.bottom
-            spacing: 0
+            anchors.rightMargin: 38 + notchRight * 0.75
+            anchors.bottomMargin: 15
+            width: Math.max(76, statusText.implicitWidth + 34)
+            height: 30
+            radius: 999
+            color: "#15191f"
+            border.width: 1
+            border.color: protocolReady ? "#356653"
+                          : (transportConnected ? "#8d704f" : "#2e353d")
 
-            TabBar {
-                id: tabBar
-                currentIndex: mainSwipeView.currentIndex
-                Layout.fillWidth: true
-                implicitWidth: 0
-                clip: true
+            Rectangle {
+                width: 6
+                height: 6
+                radius: 3
+                anchors.left: parent.left
+                anchors.leftMargin: 12
+                anchors.verticalCenter: parent.verticalCenter
+                color: protocolReady ? theme.success
+                      : (transportConnected ? "#dfbd91" : "#6f7886")
+            }
 
-                background: Rectangle {
-                    opacity: 1
-                    color: Utility.getAppHexColor("lightBackground")
-                }
-
-                property int buttonWidth: Math.max(120,
-                                                   tabBar.width /
-                                                   (rep.model.length +
-                                                    (uiHwPage.visible ? 1 : 0) +
-                                                    (uiAppPage.visible ? 1 : 0) +
-                                                    (confCustomButton.visible ? 1 : 0) +
-                                                    (confPageMotor.visible ? 1 : 0) +
-                                                    (confPageApp.visible ? 1 : 0)))
-
-                Repeater {
-                    id: rep
-                    model: ["Connect", "RT Data"]
-
-                    TabButton {
-                        text: modelData
-                        width: tabBar.buttonWidth
-                    }
-                }
+            Text {
+                id: statusText
+                anchors.left: parent.left
+                anchors.leftMargin: 25
+                anchors.right: parent.right
+                anchors.rightMargin: 11
+                anchors.verticalCenter: parent.verticalCenter
+                text: protocolReady ? qsTr("已连接")
+                      : (transportConnected ? qsTr("识别中") : qsTr("未连接"))
+                color: protocolReady ? theme.success
+                      : (transportConnected ? "#dfbd91" : "#c1c7d0")
+                font.pixelSize: 12
+                font.bold: true
             }
         }
     }
@@ -478,146 +552,89 @@ ApplicationWindow {
     }
 
     footer: Rectangle {
-        id: connectedRect
+        id: navBar
         clip: true
-        color: Utility.getAppHexColor("lightBackground")
+        color: "#e6050609"
         width: parent.width
-        height: 35 + notchBot
-        Rectangle {
+        height: 92 + notchBot
+
+        TabBar {
+            id: tabBar
+            currentIndex: 0
             anchors.left: parent.left
             anchors.right: parent.right
-            anchors.top:parent.top
-            height: parent.height/2.0
-            gradient: Gradient {
-                    GradientStop { position: 0.0; color: "#15ffffff"}
-                    GradientStop { position: 0.3; color: "#04ffffff"}
-                    GradientStop { position: 1.0; color: "transparent" }
-            }
-        }
-        Behavior on color {
-            ColorAnimation {
-                duration: 200;
-                easing.type: Easing.OutBounce
-                easing.overshoot: 3
-            }
-        }
-
-        RowLayout{
-            enabled:true
-            anchors.fill: parent
+            anchors.top: parent.top
+            anchors.topMargin: 8
+            height: 68
             spacing: 0
-            ToolButton {
-                id:settingsButton
-                visible: false
-                Layout.fillHeight: true
-                Layout.preferredWidth: 70
-                Image {
-                    anchors.centerIn: parent
-                    anchors.verticalCenterOffset: -notchBot/2
-                    antialiasing: true
-                    height: parent.width*0.35
-                    width: height
-                    source: "qrc" + Utility.getThemePath() + "icons/Settings-96.png"
+            Material.accent: "transparent"
+
+            onCurrentIndexChanged: {
+                if (mainSwipeView.currentIndex !== currentIndex) {
+                    mainSwipeView.setCurrentIndex(currentIndex)
                 }
-                onClicked: {
-                    if (drawer.visible) {
-                        drawer.close()
-                    } else {
-                        drawer.open()
+            }
+
+            property int buttonWidth: tabBar.width / Math.max(1, rep.model.length)
+
+            background: Rectangle { color: "transparent" }
+
+            Repeater {
+                id: rep
+                model: [
+                    {
+                        label: qsTr("首页"),
+                        icon: "qrc:/res/icons/bm_tab_home.png",
+                        activeIcon: "qrc:/res/icons/bm_tab_home_active.png"
+                    },
+                    {
+                        label: qsTr("设备"),
+                        icon: "qrc:/res/icons/bm_tab_device.png",
+                        activeIcon: "qrc:/res/icons/bm_tab_device_active.png"
+                    },
+                    {
+                        label: qsTr("我的"),
+                        icon: "qrc:/res/icons/bm_tab_mine.png",
+                        activeIcon: "qrc:/res/icons/bm_tab_mine_active.png"
                     }
-                }
+                ]
 
-            }
-            Rectangle{
-                Layout.fillHeight: true
-                Layout.preferredWidth: 1
-                color: "#33000000"
-            }
-            Rectangle{
-                Layout.fillHeight: true
-                Layout.preferredWidth: 1
-                color:  "#33ffffff"
-            }
-            ColumnLayout{
-                spacing: 0
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Text {
-                    id: connectedText
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    color: Utility.getAppHexColor("lightText")
-                    text: VescIf.getConnectedPortName()
-                    verticalAlignment: Text.AlignVCenter
-                    horizontalAlignment: Text.AlignHCenter
-                    wrapMode: Text.Wrap
-                }
-                Rectangle{
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: notchBot
-                    opacity: 0
-                }
-            }
-            Rectangle{
-                Layout.fillHeight: true
-                Layout.preferredWidth: 1
-                color: "#33000000"
-            }
-            Rectangle{
-                Layout.fillHeight: true
-                Layout.preferredWidth: 1
-                color: "#33ffffff"
-            }
-            ToolButton {
-                visible: tabBar.currentIndex !== 0 && !connScreen.opened
-                Layout.fillHeight: true
-                Layout.preferredWidth: 70
-                Image {
-                    anchors.centerIn: parent
-                    anchors.verticalCenterOffset: -notchBot/2
-                    antialiasing: true
-                    height: parent.width*0.35
-                    width: height
-                    source: "qrc" + Utility.getThemePath() + "icons/can_off.png"
-                }
-                onClicked: {
-                    if (canDrawerLoader.item.visible) {
-                        canDrawerLoader.item.close()
-                    } else {
-                        canDrawerLoader.item.open()
+                TabButton {
+                    id: tabBtn
+                    width: tabBar.buttonWidth
+                    height: 68
+                    Material.accent: "transparent"
+
+                    background: Rectangle { color: "transparent" }
+
+                    contentItem: Item {
+                        implicitWidth: tabBtn.width
+                        implicitHeight: tabBtn.height
+
+                        Image {
+                            id: tabIcon
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.top: parent.top
+                            anchors.topMargin: 2
+                            width: 34
+                            height: 34
+                            source: tabBtn.checked ? modelData.activeIcon : modelData.icon
+                            fillMode: Image.PreserveAspectFit
+                            smooth: true
+                            mipmap: true
+                        }
+
+                        Text {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.top: tabIcon.bottom
+                            anchors.topMargin: 3
+                            text: modelData.label
+                            color: tabBtn.checked ? theme.gold2 : "#6f7886"
+                            font.pixelSize: 14
+                            font.bold: tabBtn.checked
+                        }
+
                     }
-                }
-            }
-        }
-    }
-
-    Rectangle {
-        parent: ApplicationWindow.overlay
-        anchors.fill: parent
-        color: "black"
-        visible: false
-
-        ConnectScreen {
-            id: connScreen
-            x: 0
-            y: 0
-            height: parent.height
-            width: parent.width
-            opened: true
-            fullLogo: true
-            autoStartScan: false
-
-            onYChanged: {
-                parent.color.a = Math.min(1, Math.max(1 - y / height, 0))
-
-                if (opened) {
-                    drawer.interactive = false
-                    canDrawerLoader.item.interactive = false
-                    drawer.close()
-                    canDrawerLoader.item.close()
-                } else {
-                    drawer.interactive = true
-                    canDrawerLoader.item.interactive = true
                 }
             }
         }
@@ -669,28 +686,6 @@ ApplicationWindow {
     }
 
     Timer {
-        id: rtTimer
-        interval: 50
-        running: true
-        repeat: true
-
-        onTriggered: {
-            if (VescIf.isPortConnected()) {
-                if (VescIf.isRtLogOpen()) {
-                    interval = 50
-                    mCommands.getValues()
-                } else {
-                    if (mainSwipeView.currentItem == rtDataPage) {
-                        interval = 50
-                        mCommands.getValuesSetup()
-                        mCommands.getImuData(0xFFFF)
-                    }
-                }
-            }
-        }
-    }
-
-    Timer {
         id: bleDisconnectTimer
         interval: 1000
         running: false
@@ -700,13 +695,24 @@ ApplicationWindow {
         onTriggered: {
             if(trysLeft < 1 || fwReadCorrectly) {
                 bleDisconnectTimer.stop()
-                connScreen.opened = VescIf.isPortConnected() ? false : true
+                if (!VescIf.isPortConnected()) {
+                    openConnectionPage()
+                }
                 return
             }
+
+            // A BLE setup and firmware handshake can take several seconds.
+            // Do not tear down an active attempt by starting it again every tick.
+            if (mBle.isConnecting() || mBle.isConnected()) {
+                return
+            }
+
             if(VescIf.getLastBleAddr().length > 0) {
                 VescIf.connectBle(VescIf.getLastBleAddr())
+                trysLeft = trysLeft - 1
+            } else {
+                trysLeft = 0
             }
-            trysLeft = trysLeft - 1
         }
     }
 
@@ -905,21 +911,12 @@ ApplicationWindow {
             if (!VescIf.isPortConnected()) {
                 confTimer.mcConfRx = false
                 confTimer.appConfRx = false
-                connected = false
                 fwReadCorrectly = false
-                mainSwipeView.setCurrentIndex(0)
-                tabBar.setCurrentIndex(0)
-            } else {
-                connected = true
-                mainSwipeView.setCurrentIndex(1)
-                tabBar.setCurrentIndex(1)
+                navigateToPage(0)
             }
 
             if (VescIf.useWakeLock()) {
                 VescIf.setWakeLock(VescIf.isPortConnected())
-            }
-            if(!bleDisconnectTimer.running) {
-                connScreen.opened = VescIf.isPortConnected() ? false : true
             }
         }
 
@@ -975,11 +972,8 @@ ApplicationWindow {
         }
 
         function onQmlLoadDone() {
-            if (VescIf.askQmlLoad()) {
-                qmlLoadDialog.open()
-            } else {
-                updateHwAppUi()
-            }
+            // Commercial mobile flow does not load hardware-provided custom UI.
+            // Keep the connection alive and continue using the BM product screens.
         }
 
         function onCustomConfigLoadDone() {
@@ -1020,54 +1014,4 @@ ApplicationWindow {
         }
     }
 
-    Dialog {
-        id: qmlLoadDialog
-        standardButtons: Dialog.Yes | Dialog.Cancel
-        modal: true
-        focus: true
-        rightMargin: 10
-        leftMargin: 10
-        closePolicy: Popup.CloseOnEscape
-        title: "Load Custom User Interface"
-
-        Overlay.modal: Rectangle {
-            color: "#AA000000"
-        }
-
-        parent: mainSwipeView
-        y: parent.y + parent.height / 2 - height / 2
-        width: parent.width - 20
-
-        ColumnLayout {
-            anchors.fill: parent
-
-            Text {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                color: Utility.getAppHexColor("lightText")
-                verticalAlignment: Text.AlignVCenter
-                wrapMode: Text.WordWrap
-                text:
-                    "The hardware you are connecting to contains code that will alter the " +
-                    "user interface of VESC Tool. This code has not been verified by the " +
-                    "authors of VESC Tool and could contain bugs and security problems. \n\n" +
-                    "Do you want to load this custom user interface?"
-            }
-
-            CheckBox {
-                Layout.fillWidth: true
-                id: qmlDoNotAskAgainBox
-                text: "Load without asking"
-            }
-        }
-
-        onAccepted: {
-            VescIf.setAskQmlLoad(!qmlDoNotAskAgainBox.checked)
-            updateHwAppUi()
-        }
-
-        onRejected: {
-            VescIf.disconnectPort()
-        }
-    }
 }

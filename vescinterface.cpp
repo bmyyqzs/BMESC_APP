@@ -205,12 +205,12 @@ VescInterface::VescInterface(QObject *parent) : QObject(parent)
         mSettings.endArray();
     }
 
-    connect(mBleUart, SIGNAL(dataRx(QByteArray)), this, SLOT(bleDataRx(QByteArray)));
+    connect(mBleUart, &BleUart::dataRx, this, &VescInterface::bleDataRx);
     connect(mBleUart, &BleUart::connected, [this]{
         setLastConnectionType(CONN_BLE);
         mSettings.setValue("ble_addr", mLastBleAddr);
     });
-    connect(mBleUart, SIGNAL(unintentionalDisconnect()), this, SLOT(bleUnintentionalDisconnect()));
+    connect(mBleUart, &BleUart::unintentionalDisconnect, this, &VescInterface::bleUnintentionalDisconnect);
 #else
     mBleUart = new BleUartDummy(this);
 #endif
@@ -2172,7 +2172,14 @@ BleUart *VescInterface::bleDevice()
 {
     return mBleUart;
 }
+#endif
 
+QObject *VescInterface::bleDeviceObject()
+{
+    return mBleUart;
+}
+
+#ifdef HAS_BLUETOOTH
 void VescInterface::storeBleName(QString address, QString name)
 {
     mBleNames.insert(address, name);
@@ -2277,6 +2284,16 @@ void VescInterface::disconnectPort()
     }
 #endif
 
+    // A new connection must always start by talking to the local controller first.
+    // Keeping a stale CAN-forward target here can make the first firmware request
+    // go to an old node, which looks like a failed BLE connection.
+    mCommands->setSendCan(false, 0);
+    mCanTmpFwdActive = false;
+    mCanTmpFwdSendCanLast = false;
+    mCanTmpFwdIdLast = -1;
+    ignoreCanChange(false);
+
+    mCommands->resetCommunicationTimeouts();
     mFwRetries = 0;
 }
 
@@ -2727,6 +2744,18 @@ void VescInterface::connectUdp(QString server, int port)
 void VescInterface::connectBle(QString address)
 {
 #ifdef HAS_BLUETOOTH
+    if (address.isEmpty() || mBleUart->isConnecting() || mBleUart->isConnected()) {
+        return;
+    }
+
+    // Always start a fresh BLE session by talking to the local controller first.
+    mCommands->resetCommunicationTimeouts();
+    mCommands->setSendCan(false, 0);
+    mCanTmpFwdActive = false;
+    mCanTmpFwdSendCanLast = false;
+    mCanTmpFwdIdLast = -1;
+    updateFwRx(false);
+
     mBleUart->startConnect(address);
     mLastBleAddr = address;
 #else
@@ -3200,7 +3229,6 @@ void VescInterface::udpInputError(QAbstractSocket::SocketError socketError)
     updateFwRx(false);
 }
 
-#ifdef HAS_BLUETOOTH
 void VescInterface::bleDataRx(QByteArray data)
 {
     mPacket->processData(data);
@@ -3208,9 +3236,12 @@ void VescInterface::bleDataRx(QByteArray data)
 
 void VescInterface::bleUnintentionalDisconnect()
 {
-   emit unintentionalBleDisconnect();
-}
+#ifdef HAS_BLUETOOTH
+    mBleUart->disconnectBle();
 #endif
+    updateFwRx(false);
+    emit unintentionalBleDisconnect();
+}
 
 void VescInterface::timerSlot()
 {
@@ -3247,21 +3278,26 @@ void VescInterface::timerSlot()
             if (mFwPollCnt >= 4) {
                 mFwPollCnt = 0;
                 if (!mFwVersionReceived) {
-                    mCommands->getFwVersion();
-                    mFwRetries++;
-
-                    // Timeout if the firmware cannot be read
-                    if (mFwRetries >= 25) {
-                        emit statusMessage(tr("No firmware read response"), false);
-                        emit messageDialog(tr("Read Firmware Version"),
-                                           tr("Could not read firmware version. Make sure that "
-                                              "the selected port really belongs to the VESC. If "
-                                              "you are using UART, make sure that the port is enabled, "
-                                              "connected correctly (rx to tx and tx to rx) and uses "
-                                              "the correct baudrate"),
-                                           false, false);
-                        disconnectPort();
+                    if (!mCommands->isFwVersionRequestPending()) {
+                        // Commands throttles firmware requests internally. Count only
+                        // requests that can actually be sent, otherwise BLE sessions can
+                        // time out after just a couple of real attempts.
+                        if (mFwRetries >= 25) {
+                            emit statusMessage(tr("No firmware read response"), false);
+                            emit messageDialog(tr("Read Firmware Version"),
+                                               tr("Could not read firmware version. Make sure that "
+                                                  "the selected port really belongs to the VESC. If "
+                                                  "you are using UART, make sure that the port is enabled, "
+                                                  "connected correctly (rx to tx and tx to rx) and uses "
+                                                  "the correct baudrate"),
+                                               false, false);
+                            disconnectPort();
+                        } else {
+                            mCommands->getFwVersion();
+                            mFwRetries++;
+                        }
                     }
+
                 }
             }
         } else {

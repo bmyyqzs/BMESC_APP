@@ -1237,23 +1237,25 @@ void MainWindow::on_actionExit_triggered()
     qApp->exit();
 }
 
-#ifndef Q_OS_IOS
 void MainWindow::on_actionLaunchBoardConfigurator_triggered()
 {
+#ifndef Q_OS_IOS
     QString program = qApp->arguments()[0];
     QStringList params = QStringList() << "--useBoardSetupWindow" ;
     qApp->quit();
     QProcess::startDetached(program, params);
+#endif
 }
 
 void MainWindow::on_actionLaunchMobileTool_triggered()
 {
+#ifndef Q_OS_IOS
     QString program = qApp->arguments()[0];
     QStringList params = QStringList() << "--useMobileUi" ;
     qApp->quit();
     QProcess::startDetached(program, params);
-}
 #endif
+}
 
 void MainWindow::on_actionAbout_triggered()
 {

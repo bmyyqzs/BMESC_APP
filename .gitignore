@@ -54,3 +54,6 @@ res/firmwares/*/
 
 # Nix output
 /result
+
+# Local project memory containing sensitive values
+/PROJECT_MEMORY_PRIVATE.md

@@ -5,6 +5,18 @@
     </qresource>
     <qresource prefix="/mobile">
         <file>main.qml</file>
+        <file>BMTheme.qml</file>
+        <file>BMBackground.qml</file>
+        <file>BMHomeFlow.qml</file>
+        <file>BMDiscoverPage.qml</file>
+        <file>BMMinePage.qml</file>
+        <file>BMBatteryIndicator.qml</file>
+        <file>BMRingGauge.qml</file>
+        <file>BMHomePage.qml</file>
+        <file>BMRealtimePage.qml</file>
+        <file>BMDevicePage.qml</file>
+        <file>BMSettingsPage.qml</file>
+        <file>LabelOnly.qml</file>
         <file>StartPage.qml</file>
         <file>RtData.qml</file>
         <file>FwUpdate.qml</file>

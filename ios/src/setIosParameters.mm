@@ -22,4 +22,9 @@ void SetIosParams::NoSleep()
     // Configure the phone to application to keep the phone screen awake
        [UIApplication sharedApplication].idleTimerDisabled = YES;
 }
+
+void SetIosParams::Sleep()
+{
+    [UIApplication sharedApplication].idleTimerDisabled = NO;
+}
 #endif

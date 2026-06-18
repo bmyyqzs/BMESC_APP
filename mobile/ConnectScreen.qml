@@ -29,7 +29,7 @@ import Vedder.vesc.udpserversimple 1.0
 Item {
     id: rootItem
     property int animationDuration: 500
-    property BleUart mBle: VescIf.bleDevice()
+    property var mBle: VescIf.bleDeviceObject()
     property Commands mCommands: VescIf.commands()
     property bool opened: true
     property bool pingTcpHub: false
@@ -38,11 +38,17 @@ Item {
     property bool fullLogo: true
     property bool allowHide: true
     property bool autoStartScan: true
+    property bool connectionAttemptActive: false
+    property string connectingAddress: ""
+    property string connectingName: ""
 
     onOpenedChanged: {
         if(opened){
             animationDuration = 500
             y = 0
+            if (autoStartScan) {
+                autoStartScanTimer.restart()
+            }
         } else {
             y = Qt.binding(function() {return parent.height})
         }
@@ -97,6 +103,34 @@ Item {
         return "Pull down to rescan"
     }
 
+    function beginBleConnection(address, deviceName) {
+        if (connectionAttemptActive) {
+            return
+        }
+
+        if (!address || address.length === 0) {
+            VescIf.emitMessageDialog(qsTr("Connect"),
+                                     qsTr("This Bluetooth device has no valid identifier."),
+                                     false, false)
+            return
+        }
+
+        connectionAttemptActive = true
+        connectingAddress = address
+        connectingName = deviceName ? deviceName.split("\n")[0] : qsTr("Bluetooth device")
+        console.log("[BLE UI] Connect requested:", connectingName, connectingAddress)
+        disableDialog()
+        workaroundTimerConnect.bleAddr = address
+        workaroundTimerConnect.start()
+    }
+
+    function finishConnectionAttempt() {
+        connectionAttemptActive = false
+        connectingAddress = ""
+        connectingName = ""
+        enableDialog()
+    }
+
     onYChanged: {
         if (y > 1) {
             enableDialog()
@@ -115,6 +149,18 @@ Item {
             if (rootItem.autoStartScan && rootItem.visible && rootItem.opened) {
                 startBleScan()
             }
+        }
+    }
+
+    Timer {
+        id: workaroundTimerConnect
+        property string bleAddr: ""
+        interval: 1
+        repeat: false
+        running: false
+        onTriggered: {
+            console.log("[BLE UI] Starting BLE connection:", workaroundTimerConnect.bleAddr)
+            VescIf.connectBle(workaroundTimerConnect.bleAddr)
         }
     }
 
@@ -326,17 +372,6 @@ Item {
                             Layout.rightMargin: 10
                             spacing: -5
 
-                            Timer {
-                                id: workaroundTimerConnect
-                                property string bleAddr: ""
-                                interval: 0
-                                repeat: false
-                                running: false
-                                onTriggered: {
-                                    VescIf.connectBle(workaroundTimerConnect.bleAddr)
-                                }
-                            }
-
                             Button {
                                 Layout.alignment: Qt.AlignHCenter | Qt.AlignBottom
                                 Layout.preferredHeight: 55
@@ -350,9 +385,14 @@ Item {
                                     }
                                 }
 
-                                text: "Connect"
+                                enabled: !rootItem.connectionAttemptActive
+                                text: rootItem.connectionAttemptActive &&
+                                      rootItem.connectingAddress === bleAddr
+                                      ? qsTr("Connecting...")
+                                      : qsTr("Connect")
 
                                 onClicked: {
+                                    console.log("[Connect UI] Connect button clicked:", connectionType, bleAddr)
                                     if (connectionType === 1) {
                                         if (bleAddr === "") {
                                             VescIf.autoconnect()
@@ -364,9 +404,7 @@ Item {
                                     } else if (connectionType === 3) {
                                         VescIf.connectTcpHubUuid(hubUuid)
                                     } else {
-                                        disableDialog()
-                                        workaroundTimerConnect.bleAddr = bleAddr
-                                        workaroundTimerConnect.start()
+                                        rootItem.beginBleConnection(bleAddr, name)
                                     }
                                 }
                             }
@@ -555,7 +593,6 @@ Item {
             if (done) {
                 scanDotTimer.running = false
                 scanning = false
-                scanButton.text = qsTr("Scan...")
             }
             var devices = [];
             
@@ -597,8 +634,17 @@ Item {
         }
 
         function onBleError(info) {
+            console.warn("[BLE UI] Connection failed:", info)
+            connectionAttemptActive = false
+            connectingAddress = ""
+            connectingName = ""
             VescIf.emitMessageDialog("BLE Error", info, false, false)
             enableDialog()
+        }
+
+        function onConnected() {
+            console.log("[BLE UI] Connection established:", connectingAddress)
+            finishConnectionAttempt()
         }
     }
 
@@ -607,7 +653,9 @@ Item {
 
         function onPortConnectedChanged() {
             if (VescIf.isPortConnected()) {
-                enableDialog()
+                finishConnectionAttempt()
+            } else if (connectionAttemptActive && !mBle.isConnecting()) {
+                finishConnectionAttempt()
             }
         }
     }
@@ -632,6 +680,9 @@ Item {
         interval: 15000
 
         onTriggered: {
+            connectionAttemptActive = false
+            connectingAddress = ""
+            connectingName = ""
             enableDialog()
             VescIf.emitMessageDialog("Connect",
                                      "Connection timed out",
@@ -641,7 +692,9 @@ Item {
 
     Dialog {
         id: commDialog
-        title: "Connecting..."
+        title: connectingName.length > 0
+               ? qsTr("Connecting to %1...").arg(connectingName)
+               : qsTr("Connecting...")
         closePolicy: Popup.NoAutoClose
         modal: true
         focus: true

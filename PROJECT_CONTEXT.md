@@ -8,6 +8,8 @@ We are adapting this app as part of our own product/business roadmap.
 
 The goal is not just to make a technical fork, but to turn it into a usable branded product entry point.
 
+The official user-facing brand is BM.
+
 
 
 \## Target Users
@@ -24,13 +26,17 @@ The goal is not just to make a technical fork, but to turn it into a usable bran
 
 Short term:
 
-\- Android-first MVP
+\- iOS-first commercial MVP
 
 \- complete branding replacement
 
 \- simplified UI
 
 \- support our own hardware defaults
+
+\- isolate product UI from engineering protocol APIs
+
+\- ship only device connection, live telemetry, device management, fault messages, settings, and compliance entry points
 
 
 
@@ -43,6 +49,12 @@ Mid term:
 \- simplified configuration and diagnostics
 
 \- customer-friendly structure
+
+\- managed firmware updates
+
+\- user accounts and cloud device binding
+
+\- leaderboards and optional social features
 
 
 
@@ -73,4 +85,3 @@ Long term:
 \- supporting every legacy feature
 
 \- broad speculative refactors
-
