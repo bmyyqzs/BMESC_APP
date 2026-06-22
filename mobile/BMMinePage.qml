@@ -7,10 +7,10 @@ Item {
 
     property var deviceModel
     readonly property string supportEmail: "op727142092@gmail.com"
-    readonly property string privacyPolicyUrl: "https://gcore.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/privacy-policy.html"
-    readonly property string userAgreementUrl: "https://gcore.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/user-agreement.html"
-    readonly property string supportUrl: "https://gcore.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/support.html"
-    readonly property string openSourceUrl: "https://gcore.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/open-source.html"
+    readonly property string privacyPolicyUrl: "https://bmyyqzs.github.io/BMESC_APP/app-store/privacy-policy.html"
+    readonly property string userAgreementUrl: "https://bmyyqzs.github.io/BMESC_APP/app-store/user-agreement.html"
+    readonly property string supportUrl: "https://bmyyqzs.github.io/BMESC_APP/app-store/support.html"
+    readonly property string openSourceUrl: "https://bmyyqzs.github.io/BMESC_APP/app-store/open-source.html"
     readonly property real pageMargin: Math.max(24, Math.min(40, width * 0.065))
     readonly property bool connected: deviceModel ? deviceModel.connected : false
     readonly property bool isEnglish: deviceModel ? deviceModel.isEnglish : false

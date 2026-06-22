@@ -311,7 +311,7 @@ ApplicationWindow {
                 flat: true
 
                 onClicked: {
-                    Qt.openUrlExternally("https://gcore.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/privacy-policy.html")
+                    Qt.openUrlExternally("https://bmyyqzs.github.io/BMESC_APP/app-store/privacy-policy.html")
                 }
             }
         }
