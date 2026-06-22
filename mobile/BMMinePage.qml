@@ -6,6 +6,11 @@ Item {
     id: root
 
     property var deviceModel
+    readonly property string supportEmail: "op727142092@gmail.com"
+    readonly property string privacyPolicyUrl: "https://cdn.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/privacy-policy.html"
+    readonly property string userAgreementUrl: "https://cdn.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/user-agreement.html"
+    readonly property string supportUrl: "https://cdn.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/support.html"
+    readonly property string openSourceUrl: "https://cdn.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/open-source.html"
     readonly property real pageMargin: Math.max(24, Math.min(40, width * 0.065))
     readonly property bool connected: deviceModel ? deviceModel.connected : false
     readonly property bool isEnglish: deviceModel ? deviceModel.isEnglish : false
@@ -23,6 +28,10 @@ Item {
 
     function showFaultLogs() {
         faultLogModal.open()
+    }
+
+    function openExternal(url) {
+        Qt.openUrlExternally(url)
     }
 
     ScrollView {
@@ -66,23 +75,22 @@ Item {
                     ActionRow {
                         label: root.t("支持与反馈", "Support")
                         value: root.t("查看", "View")
-                        onClicked: root.showInfo(root.t("支持与反馈", "Support"),
-                                                 root.t("如遇到连接失败、数据异常或设备安全提示，请记录设备名称、节点 ID 和发生时间，并发邮件到 op727142092@gmail.com。",
-                                                        "If connection fails, data looks abnormal, or a safety warning appears, record the device name, node ID, and time, then email op727142092@gmail.com."))
+                        onClicked: root.openExternal(root.supportUrl)
                     }
                     ActionRow {
                         label: root.t("隐私政策", "Privacy Policy")
                         value: root.t("查看", "View")
-                        onClicked: root.showInfo(root.t("隐私政策", "Privacy Policy"),
-                                                 root.t("蓝牙权限仅用于发现和连接附近 BMESC 设备。遥测数据用于本地状态显示，不用于账号或云端绑定。",
-                                                        "Bluetooth permission is used only to find and connect nearby BMESC devices. Telemetry is used for local status display, not accounts or cloud binding."))
+                        onClicked: root.openExternal(root.privacyPolicyUrl)
                     }
                     ActionRow {
                         label: root.t("用户协议", "User Agreement")
                         value: root.t("查看", "View")
-                        onClicked: root.showInfo(root.t("用户协议", "User Agreement"),
-                                                 root.t("请在安全环境中使用设备。App 展示的数据用于辅助判断设备状态，不替代设备本身的安全检查。",
-                                                        "Use the device in a safe environment. App data helps judge device status and does not replace the device's own safety checks."))
+                        onClicked: root.openExternal(root.userAgreementUrl)
+                    }
+                    ActionRow {
+                        label: root.t("开源许可", "Open Source")
+                        value: root.t("查看", "View")
+                        onClicked: root.openExternal(root.openSourceUrl)
                     }
                     ActionRow {
                         label: root.t("关于 BMESC", "About BMESC")

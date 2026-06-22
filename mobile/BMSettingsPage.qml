@@ -11,6 +11,10 @@ Item {
     property string languageName: qsTr("Chinese / English")
     property bool notificationsEnabled: true
     property bool useImperialUnits: false
+    readonly property string privacyPolicyUrl: "https://cdn.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/privacy-policy.html"
+    readonly property string userAgreementUrl: "https://cdn.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/user-agreement.html"
+    readonly property string supportUrl: "https://cdn.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/support.html"
+    readonly property string openSourceUrl: "https://cdn.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/open-source.html"
 
     readonly property color pageColor: "#090b0d"
     readonly property color surfaceColor: "#13171a"
@@ -73,16 +77,30 @@ Item {
             SettingsGroup {
                 SettingRow {
                     label: qsTr("Privacy policy")
-                    value: qsTr("Not configured")
+                    value: qsTr("Open")
                     onClicked: {
-                        // Official URL will be supplied by the product configuration layer.
+                        Qt.openUrlExternally(root.privacyPolicyUrl)
                     }
                 }
                 SettingRow {
                     label: qsTr("User agreement")
-                    value: qsTr("Not configured")
+                    value: qsTr("Open")
                     onClicked: {
-                        // Official URL will be supplied by the product configuration layer.
+                        Qt.openUrlExternally(root.userAgreementUrl)
+                    }
+                }
+                SettingRow {
+                    label: qsTr("Support")
+                    value: qsTr("Open")
+                    onClicked: {
+                        Qt.openUrlExternally(root.supportUrl)
+                    }
+                }
+                SettingRow {
+                    label: qsTr("Open source licenses")
+                    value: qsTr("Open")
+                    onClicked: {
+                        Qt.openUrlExternally(root.openSourceUrl)
                     }
                 }
                 SettingRow {

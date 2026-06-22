@@ -10,8 +10,8 @@
 - Price: Free
 - Version: `1.0.0`
 - Build: `1`
-- Support URL: `https://bmyyqzs.github.io/BMESC_APP/app-store/support.html`
-- Privacy Policy URL: `https://bmyyqzs.github.io/BMESC_APP/app-store/privacy-policy.html`
+- Support URL: `https://cdn.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/support.html`
+- Privacy Policy URL: `https://cdn.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/privacy-policy.html`
 
 ## Subtitle
 
