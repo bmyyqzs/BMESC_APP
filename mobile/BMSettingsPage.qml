@@ -11,10 +11,10 @@ Item {
     property string languageName: qsTr("Chinese / English")
     property bool notificationsEnabled: true
     property bool useImperialUnits: false
-    readonly property string privacyPolicyUrl: "https://cdn.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/privacy-policy.html"
-    readonly property string userAgreementUrl: "https://cdn.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/user-agreement.html"
-    readonly property string supportUrl: "https://cdn.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/support.html"
-    readonly property string openSourceUrl: "https://cdn.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/open-source.html"
+    readonly property string privacyPolicyUrl: "https://gcore.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/privacy-policy.html"
+    readonly property string userAgreementUrl: "https://gcore.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/user-agreement.html"
+    readonly property string supportUrl: "https://gcore.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/support.html"
+    readonly property string openSourceUrl: "https://gcore.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/open-source.html"
 
     readonly property color pageColor: "#090b0d"
     readonly property color surfaceColor: "#13171a"
