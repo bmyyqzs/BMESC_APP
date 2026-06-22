@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -e
+
+#./build_cp_fw
+./build_lin
+./build_win
+./build_android
+
+rm /storage/mnt_webserver/web/ubercart_downloads/BMESC_*
+mv build/lin/BMESC_* /storage/mnt_webserver/web/ubercart_downloads/
+mv build/win/BMESC_* /storage/mnt_webserver/web/ubercart_downloads/
+mv build/android/BMESC_* /storage/mnt_webserver/web/ubercart_downloads/
+cp build/macos/BMESC_* /storage/mnt_webserver/web/ubercart_downloads/
