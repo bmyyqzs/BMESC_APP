@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080b10">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="BMESC 官方下载：iPhone 前往 App Store，Android 获取正式安装包或前往 Google Play。">
+  <meta property="og:title" content="下载 BMESC">
+  <meta property="og:description" content="BMESC 官方 iOS 与 Android 下载入口">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://download.floatw.com/">
+  <meta property="og:image" content="https://download.floatw.com/assets/bmesc-icon.png">
+  <link rel="canonical" href="https://download.floatw.com/">
+  <link rel="icon" href="assets/bmesc-icon.png">
+  <link rel="apple-touch-icon" href="assets/bmesc-icon.png">
+  <title>下载 BMESC</title>
+  <style>
+    :root {
+      --bg: #080b10;
+      --surface: rgba(20, 25, 33, 0.86);
+      --surface-strong: #141921;
+      --line: rgba(224, 174, 91, 0.2);
+      --gold: #e0ae5b;
+      --gold-bright: #f0c87f;
+      --mint: #68d6b0;
+      --text: #f6f2ea;
+      --muted: #a5abb5;
+      --danger: #f09a87;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { background: var(--bg); }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 50% -10%, rgba(224, 174, 91, 0.16), transparent 36rem),
+        radial-gradient(circle at 100% 90%, rgba(104, 214, 176, 0.08), transparent 30rem),
+        var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; }
+
+    button, a { -webkit-tap-highlight-color: transparent; }
+
+    .page {
+      width: min(100%, 68rem);
+      margin: 0 auto;
+      padding: max(2rem, env(safe-area-inset-top)) 1.25rem max(2rem, env(safe-area-inset-bottom));
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 8rem minmax(0, 1fr);
+      gap: 2rem;
+      align-items: center;
+      padding: clamp(1.25rem, 4vw, 2.5rem);
+      border: 1px solid var(--line);
+      border-radius: 2rem;
+      background: linear-gradient(145deg, rgba(24, 30, 39, 0.94), rgba(12, 15, 21, 0.9));
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 18rem;
+      height: 18rem;
+      right: -8rem;
+      top: -9rem;
+      border: 1px solid rgba(224, 174, 91, 0.13);
+      border-radius: 50%;
+      box-shadow: 0 0 0 2.5rem rgba(224, 174, 91, 0.025), 0 0 0 5rem rgba(224, 174, 91, 0.018);
+      pointer-events: none;
+    }
+
+    .app-icon {
+      width: 8rem;
+      height: 8rem;
+      border-radius: 1.75rem;
+      box-shadow: 0 16px 38px rgba(0, 0, 0, 0.38), 0 0 0 1px rgba(224, 174, 91, 0.2);
+    }
+
+    .eyebrow {
+      margin: 0 0 0.5rem;
+      color: var(--gold);
+      font-size: 0.76rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.3rem, 7vw, 4rem);
+      line-height: 0.98;
+      letter-spacing: -0.055em;
+    }
+
+    .subtitle {
+      max-width: 38rem;
+      margin: 1rem 0 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 2.4vw, 1.15rem);
+      line-height: 1.65;
+    }
+
+    .subtitle-en, .english {
+      display: block;
+      margin-top: 0.35rem;
+      color: #7f8792;
+      font-size: 0.82em;
+      line-height: 1.5;
+    }
+
+    .wechat-notice {
+      display: none;
+      margin: 1rem 0 0;
+      padding: 0.8rem 1rem;
+      border: 1px solid rgba(224, 174, 91, 0.3);
+      border-radius: 1rem;
+      color: var(--gold-bright);
+      background: rgba(224, 174, 91, 0.08);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .wechat-notice.visible { display: block; }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: end;
+      margin: 2.25rem 0 1rem;
+    }
+
+    .section-title h2 { margin: 0; font-size: 1.15rem; letter-spacing: -0.02em; }
+    .section-title span { color: var(--muted); font-size: 0.82rem; }
+
+    .desktop-qr {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 1rem;
+      padding: 1rem;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 1.25rem;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.025);
+      font-size: 0.86rem;
+      line-height: 1.55;
+    }
+
+    .desktop-qr img { width: 7.25rem; height: 7.25rem; border-radius: 0.75rem; }
+    .desktop-qr strong { display: block; margin-bottom: 0.25rem; color: var(--text); font-size: 1rem; }
+
+    .channels {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+    }
+
+    .channel {
+      display: flex;
+      flex-direction: column;
+      min-height: 17rem;
+      padding: 1.35rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 1.5rem;
+      background: var(--surface);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 12px 38px rgba(0, 0, 0, 0.2);
+      transition: transform 180ms ease, border-color 180ms ease;
+    }
+
+    .channel.recommended {
+      border-color: rgba(224, 174, 91, 0.42);
+      transform: translateY(-0.25rem);
+    }
+
+    .channel-top { display: flex; justify-content: space-between; gap: 0.75rem; align-items: center; }
+
+    .platform {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .platform-mark {
+      display: grid;
+      place-items: center;
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 0.8rem;
+      color: var(--gold-bright);
+      background: rgba(224, 174, 91, 0.1);
+      font-size: 0.76rem;
+      letter-spacing: -0.03em;
+    }
+
+    .status {
+      flex: none;
+      padding: 0.35rem 0.62rem;
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.06);
+      font-size: 0.72rem;
+      font-weight: 650;
+    }
+
+    .status.live { color: var(--mint); background: rgba(104, 214, 176, 0.1); }
+    .status.paused { color: var(--danger); background: rgba(240, 154, 135, 0.1); }
+
+    .channel h3 { margin: 1.25rem 0 0.5rem; font-size: 1.28rem; letter-spacing: -0.025em; }
+    .channel p { margin: 0; color: var(--muted); font-size: 0.9rem; line-height: 1.55; }
+    .meta { margin-top: 0.8rem; color: #7f8792; font-size: 0.76rem; line-height: 1.5; word-break: break-all; }
+
+    .download-button {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 3rem;
+      margin-top: auto;
+      padding: 0.78rem 1rem;
+      border: 1px solid rgba(224, 174, 91, 0.34);
+      border-radius: 1rem;
+      color: #0b0e13;
+      background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+      font: inherit;
+      font-size: 0.92rem;
+      font-weight: 750;
+      text-decoration: none;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(224, 174, 91, 0.13);
+    }
+
+    .download-button:focus-visible, .close-button:focus-visible, .continue-button:focus-visible {
+      outline: 3px solid rgba(104, 214, 176, 0.55);
+      outline-offset: 3px;
+    }
+
+    .download-button[aria-disabled="true"] {
+      color: #727984;
+      border-color: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.045);
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    .notes {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .note {
+      padding: 1.2rem;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 1.25rem;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.025);
+      font-size: 0.86rem;
+      line-height: 1.6;
+    }
+
+    .note strong { display: block; margin-bottom: 0.25rem; color: var(--text); }
+
+    footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 2.25rem;
+      padding: 1rem 0;
+      color: #777f8a;
+      font-size: 0.78rem;
+    }
+
+    footer nav { display: flex; flex-wrap: wrap; gap: 1.2rem; }
+    footer a { text-underline-offset: 0.25rem; }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: max(4.5rem, env(safe-area-inset-top)) 1.25rem 1.25rem;
+      background: rgba(2, 4, 7, 0.9);
+      backdrop-filter: blur(16px);
+    }
+
+    .overlay.visible { display: flex; }
+
+    .overlay-card {
+      width: min(100%, 27rem);
+      padding: 1.5rem;
+      border: 1px solid var(--line);
+      border-radius: 1.5rem;
+      background: var(--surface-strong);
+      box-shadow: var(--shadow);
+    }
+
+    .menu-arrow { text-align: right; color: var(--gold); font-size: 2rem; line-height: 0.8; }
+    .overlay h2 { margin: 0.6rem 0; font-size: 1.35rem; }
+    .overlay p { margin: 0; color: var(--muted); line-height: 1.65; }
+    .overlay-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1.25rem; }
+
+    .close-button, .continue-button {
+      min-height: 2.8rem;
+      border-radius: 0.9rem;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .close-button { color: var(--text); border: 1px solid rgba(255,255,255,.12); background: transparent; }
+    .continue-button { color: #0b0e13; border: 0; background: var(--gold); }
+    .continue-button.hidden { display: none; }
+
+    @media (max-width: 760px) {
+      .page { padding-left: 1rem; padding-right: 1rem; }
+      .hero { grid-template-columns: 4.9rem minmax(0, 1fr); gap: 1rem; border-radius: 1.5rem; }
+      .app-icon { width: 4.9rem; height: 4.9rem; border-radius: 1.15rem; }
+      .eyebrow { font-size: 0.66rem; }
+      h1 { font-size: clamp(2rem, 11vw, 3rem); }
+      .subtitle { grid-column: 1 / -1; margin-top: 0.2rem; }
+      .wechat-notice { grid-column: 1 / -1; }
+      .channels { grid-template-columns: 1fr; }
+      .channel { min-height: 15.5rem; }
+      .channel.recommended { transform: none; }
+      .notes { grid-template-columns: 1fr; }
+      .desktop-qr { display: none; }
+      footer { flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero" aria-labelledby="page-title">
+      <img class="app-icon" src="assets/bmesc-icon.png" alt="BMESC App 图标" width="512" height="512">
+      <div>
+        <p class="eyebrow">BM Official Download</p>
+        <h1 id="page-title">下载 BMESC</h1>
+      </div>
+      <p class="subtitle">连接附近的 BMESC 设备，查看实时状态、设备信息与安全提示。一个入口，适用于 iPhone 和 Android。<span class="subtitle-en" lang="en">Connect to nearby BMESC devices and view live status, device information, and safety messages.</span></p>
+      <div class="wechat-notice" id="wechat-notice" role="status">当前在微信内打开。安装时请点右上角“⋯”，选择“在浏览器打开”。</div>
+    </section>
+
+    <aside class="desktop-qr" aria-label="手机扫码下载">
+      <img src="assets/bmesc-download-qr.png" alt="BMESC 官方下载二维码" width="1200" height="1200">
+      <div><strong>使用微信扫码下载</strong>二维码永久指向 BMESC 官方下载入口，后续版本更新无需更换二维码。<span class="english" lang="en">Scan with WeChat to open the official BMESC download page.</span></div>
+    </aside>
+
+    <div class="section-title">
+      <h2>选择下载方式</h2>
+      <span id="updated-at">正在读取发布状态…</span>
+    </div>
+
+    <section class="channels" id="channels" aria-label="BMESC 下载渠道">
+      <article class="channel" id="channel-ios" data-channel="ios">
+        <div class="channel-top">
+          <div class="platform"><span class="platform-mark" aria-hidden="true">iOS</span>iPhone</div>
+          <span class="status" id="status-ios">读取中</span>
+        </div>
+        <h3>App Store</h3>
+        <p>面向 iPhone 用户的正式发行渠道，由 Apple 完成安装与后续更新。<span class="english" lang="en">Official iPhone distribution and updates through Apple.</span></p>
+        <div class="meta" id="meta-ios"></div>
+        <a class="download-button" id="button-ios" href="#" aria-disabled="true">读取发布状态</a>
+      </article>
+
+      <article class="channel" id="channel-androidDirect" data-channel="androidDirect">
+        <div class="channel-top">
+          <div class="platform"><span class="platform-mark" aria-hidden="true">APK</span>Android</div>
+          <span class="status" id="status-androidDirect">读取中</span>
+        </div>
+        <h3>直接下载安装</h3>
+        <p>适合中国大陆用户。请使用手机系统浏览器下载，并允许安装来自该浏览器的应用。<span class="english" lang="en">Direct Android download for users without Google Play.</span></p>
+        <div class="meta" id="meta-androidDirect"></div>
+        <a class="download-button" id="button-androidDirect" href="#" aria-disabled="true">读取发布状态</a>
+      </article>
+
+      <article class="channel" id="channel-googlePlay" data-channel="googlePlay">
+        <div class="channel-top">
+          <div class="platform"><span class="platform-mark" aria-hidden="true">GP</span>Android</div>
+          <span class="status" id="status-googlePlay">读取中</span>
+        </div>
+        <h3>Google Play</h3>
+        <p>适合可使用 Google Play 的地区，由 Google Play 完成安装与后续更新。<span class="english" lang="en">Official Android distribution and updates through Google Play.</span></p>
+        <div class="meta" id="meta-googlePlay"></div>
+        <a class="download-button" id="button-googlePlay" href="#" aria-disabled="true">读取发布状态</a>
+      </article>
+    </section>
+
+    <section class="notes" aria-label="安装说明">
+      <div class="note"><strong>官方安全提示</strong>请只通过本页面提供的入口安装。Android 安装包发布后会同时展示版本、大小和 SHA-256 校验值。</div>
+      <div class="note"><strong>更新渠道说明</strong>直接安装版与 Google Play 版暂按独立渠道维护。请持续使用最初安装时选择的渠道更新。</div>
+    </section>
+
+    <footer>
+      <span>© 2026 BM · BMESC</span>
+      <nav aria-label="相关链接">
+        <a id="privacy-link" href="https://bmyyqzs.github.io/BMESC_APP/app-store/privacy-policy.html">隐私政策</a>
+        <a id="support-link" href="https://bmyyqzs.github.io/BMESC_APP/app-store/support.html">技术支持</a>
+      </nav>
+    </footer>
+  </main>
+
+  <div class="overlay" id="wechat-overlay" role="dialog" aria-modal="true" aria-labelledby="overlay-title">
+    <div class="overlay-card">
+      <div class="menu-arrow" aria-hidden="true">↗</div>
+      <h2 id="overlay-title">请在浏览器中打开</h2>
+      <p id="overlay-copy">点击微信右上角“⋯”，选择“在浏览器打开”，然后继续下载安装。</p>
+      <div class="overlay-actions">
+        <button class="close-button" id="close-overlay" type="button">我知道了</button>
+        <button class="continue-button hidden" id="continue-link" type="button">仍然尝试打开</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const fallbackConfig = {
+        updatedAt: "2026-07-16",
+        supportUrl: "https://bmyyqzs.github.io/BMESC_APP/app-store/support.html",
+        privacyUrl: "https://bmyyqzs.github.io/BMESC_APP/app-store/privacy-policy.html",
+        channels: {
+          ios: { status: "review", version: "1.0.0", url: "https://apps.apple.com/cn/app/id6782801007" },
+          androidDirect: { status: "pending", version: "1.00", versionCode: 192, url: "releases/android/BMESC-1.00-192.apk", fileSize: "46.9 MB", sha256: "088e0b4e1082522d6d948c4e9d7d1099352ece3e6cc86aa15a89fd50cd0c57b7" },
+          googlePlay: { status: "review", version: "1.00", url: "https://play.google.com/store/apps/details?id=com.bmesc.app" }
+        }
+      };
+
+      const ua = navigator.userAgent || "";
+      const isWeChat = /MicroMessenger/i.test(ua);
+      const isAndroid = /Android/i.test(ua);
+      const isIOS = /iPhone|iPod|iPad/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
+      const statusCopy = {
+        live: ["可下载", "立即下载"],
+        review: ["审核中", "审核通过后开放"],
+        pending: ["准备中", "完成发布验证后开放"],
+        paused: ["已暂停", "暂时无法下载"]
+      };
+      let pendingUrl = "";
+
+      const overlay = document.getElementById("wechat-overlay");
+      const continueButton = document.getElementById("continue-link");
+      const closeButton = document.getElementById("close-overlay");
+
+      function openWeChatGuide(url, allowContinue) {
+        pendingUrl = url;
+        continueButton.classList.toggle("hidden", !allowContinue);
+        overlay.classList.add("visible");
+        closeButton.focus();
+      }
+
+      function closeWeChatGuide() {
+        overlay.classList.remove("visible");
+        pendingUrl = "";
+      }
+
+      closeButton.addEventListener("click", closeWeChatGuide);
+      continueButton.addEventListener("click", () => {
+        if (pendingUrl) window.location.href = pendingUrl;
+      });
+      overlay.addEventListener("click", (event) => {
+        if (event.target === overlay) closeWeChatGuide();
+      });
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && overlay.classList.contains("visible")) closeWeChatGuide();
+      });
+
+      function buildMeta(key, channel) {
+        const parts = [];
+        if (channel.version) parts.push(`版本 ${channel.version}${channel.versionCode ? ` (${channel.versionCode})` : ""}`);
+        if (channel.fileSize) parts.push(channel.fileSize);
+        if (channel.sha256) parts.push(`SHA-256 ${channel.sha256}`);
+        return parts.join(" · ");
+      }
+
+      function renderChannel(key, channel) {
+        const status = statusCopy[channel.status] || statusCopy.paused;
+        const badge = document.getElementById(`status-${key}`);
+        const button = document.getElementById(`button-${key}`);
+        const meta = document.getElementById(`meta-${key}`);
+
+        badge.textContent = status[0];
+        badge.className = `status ${channel.status}`;
+        meta.textContent = buildMeta(key, channel);
+        button.textContent = status[1];
+
+        if (channel.status !== "live" || !channel.url) {
+          button.setAttribute("aria-disabled", "true");
+          button.removeAttribute("target");
+          button.href = "#";
+          button.addEventListener("click", (event) => event.preventDefault());
+          return;
+        }
+
+        button.setAttribute("aria-disabled", "false");
+        button.href = channel.url;
+        button.addEventListener("click", (event) => {
+          if (!isWeChat) return;
+          event.preventDefault();
+          openWeChatGuide(channel.url, key !== "androidDirect");
+        });
+      }
+
+      function applyDevicePriority() {
+        const iosCard = document.getElementById("channel-ios");
+        const directCard = document.getElementById("channel-androidDirect");
+        const playCard = document.getElementById("channel-googlePlay");
+
+        if (isIOS) {
+          iosCard.style.order = "1";
+          directCard.style.order = "2";
+          playCard.style.order = "3";
+          iosCard.classList.add("recommended");
+        } else if (isAndroid) {
+          directCard.style.order = "1";
+          playCard.style.order = "2";
+          iosCard.style.order = "3";
+          directCard.classList.add("recommended");
+        }
+
+        if (isWeChat) document.getElementById("wechat-notice").classList.add("visible");
+      }
+
+      function render(config) {
+        const date = new Date(`${config.updatedAt}T00:00:00`);
+        const formatted = Number.isNaN(date.getTime())
+          ? config.updatedAt
+          : new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "long", day: "numeric" }).format(date);
+        document.getElementById("updated-at").textContent = `更新于 ${formatted}`;
+        document.getElementById("privacy-link").href = config.privacyUrl;
+        document.getElementById("support-link").href = config.supportUrl;
+
+        Object.entries(config.channels).forEach(([key, channel]) => renderChannel(key, channel));
+        applyDevicePriority();
+      }
+
+      fetch("download-config.json", { cache: "no-store" })
+        .then((response) => {
+          if (!response.ok) throw new Error(`Config HTTP ${response.status}`);
+          return response.json();
+        })
+        .then(render)
+        .catch(() => render(fallbackConfig));
+    })();
+  </script>
+</body>
+</html>
