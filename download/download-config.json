@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "updatedAt": "2026-07-16",
-  "canonicalUrl": "https://download.floatw.com/",
+  "canonicalUrl": "https://bmyyqzs.github.io/BMESC_APP/download/",
   "supportUrl": "https://bmyyqzs.github.io/BMESC_APP/app-store/support.html",
   "privacyUrl": "https://bmyyqzs.github.io/BMESC_APP/app-store/privacy-policy.html",
   "channels": {
@@ -11,7 +11,7 @@
       "url": "https://apps.apple.com/cn/app/id6782801007"
     },
     "androidDirect": {
-      "status": "pending",
+      "status": "live",
       "version": "1.00",
       "versionCode": 192,
       "url": "releases/android/BMESC-1.00-192.apk",
