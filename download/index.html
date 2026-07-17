@@ -18,14 +18,14 @@
   <style>
     :root {
       --bg: #080b10;
-      --surface: rgba(20, 25, 33, 0.86);
-      --surface-strong: #141921;
-      --line: rgba(224, 174, 91, 0.2);
+      --surface: rgba(255, 255, 255, 0.035);
+      --line: rgba(224, 174, 91, 0.22);
       --gold: #e0ae5b;
       --gold-bright: #f0c87f;
       --mint: #68d6b0;
       --text: #f6f2ea;
       --muted: #a5abb5;
+      --faint: #7f8792;
       --danger: #f09a87;
       --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
     }
@@ -51,199 +51,278 @@
     button, a { -webkit-tap-highlight-color: transparent; }
 
     .page {
-      width: min(100%, 68rem);
+      width: min(100%, 64rem);
       margin: 0 auto;
-      padding: max(2rem, env(safe-area-inset-top)) 1.25rem max(2rem, env(safe-area-inset-bottom));
+      padding: max(1.75rem, env(safe-area-inset-top)) 1.25rem max(2.5rem, env(safe-area-inset-bottom));
     }
 
-    .hero {
-      display: grid;
-      grid-template-columns: 8rem minmax(0, 1fr);
-      gap: 2rem;
+    /* ---------- 品牌头部 ---------- */
+
+    .brand {
+      display: flex;
       align-items: center;
-      padding: clamp(1.25rem, 4vw, 2.5rem);
-      border: 1px solid var(--line);
-      border-radius: 2rem;
-      background: linear-gradient(145deg, rgba(24, 30, 39, 0.94), rgba(12, 15, 21, 0.9));
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      position: relative;
-    }
-
-    .hero::after {
-      content: "";
-      position: absolute;
-      width: 18rem;
-      height: 18rem;
-      right: -8rem;
-      top: -9rem;
-      border: 1px solid rgba(224, 174, 91, 0.13);
-      border-radius: 50%;
-      box-shadow: 0 0 0 2.5rem rgba(224, 174, 91, 0.025), 0 0 0 5rem rgba(224, 174, 91, 0.018);
-      pointer-events: none;
+      gap: 1.1rem;
+      padding: 0.25rem 0.15rem;
     }
 
     .app-icon {
-      width: 8rem;
-      height: 8rem;
-      border-radius: 1.75rem;
-      box-shadow: 0 16px 38px rgba(0, 0, 0, 0.38), 0 0 0 1px rgba(224, 174, 91, 0.2);
+      width: 4.4rem;
+      height: 4.4rem;
+      border-radius: 1.15rem;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(224, 174, 91, 0.22);
     }
 
     .eyebrow {
-      margin: 0 0 0.5rem;
+      margin: 0 0 0.32rem;
       color: var(--gold);
-      font-size: 0.76rem;
+      font-size: 0.74rem;
       font-weight: 700;
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
+      letter-spacing: 0.24em;
     }
 
     h1 {
       margin: 0;
-      font-size: clamp(2.3rem, 7vw, 4rem);
-      line-height: 0.98;
-      letter-spacing: -0.055em;
+      font-size: clamp(2.2rem, 8.5vw, 3rem);
+      line-height: 1;
+      letter-spacing: -0.04em;
     }
 
-    .subtitle {
-      max-width: 38rem;
-      margin: 1rem 0 0;
-      color: var(--muted);
-      font-size: clamp(1rem, 2.4vw, 1.15rem);
-      line-height: 1.65;
+    /* ---------- 步骤卡片 ---------- */
+
+    .step {
+      position: relative;
+      margin-top: 1.5rem;
+      padding: clamp(1.3rem, 4vw, 2rem);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 1.6rem;
+      background: linear-gradient(150deg, rgba(24, 30, 39, 0.94), rgba(12, 15, 21, 0.92));
+      box-shadow: var(--shadow);
+      overflow: hidden;
     }
 
-    .subtitle-en, .english {
-      display: block;
-      margin-top: 0.35rem;
-      color: #7f8792;
-      font-size: 0.82em;
-      line-height: 1.5;
-    }
-
-    .wechat-notice {
-      display: none;
-      margin: 1rem 0 0;
-      padding: 0.8rem 1rem;
-      border: 1px solid rgba(224, 174, 91, 0.3);
-      border-radius: 1rem;
-      color: var(--gold-bright);
-      background: rgba(224, 174, 91, 0.08);
-      font-size: 0.9rem;
-      line-height: 1.5;
-    }
-
-    .wechat-notice.visible { display: block; }
-
-    .section-title {
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-      align-items: end;
-      margin: 2.25rem 0 1rem;
-    }
-
-    .section-title h2 { margin: 0; font-size: 1.15rem; letter-spacing: -0.02em; }
-    .section-title span { color: var(--muted); font-size: 0.82rem; }
-
-    .desktop-qr {
+    .step-top {
       display: flex;
       align-items: center;
-      gap: 1rem;
-      margin-top: 1rem;
-      padding: 1rem;
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      border-radius: 1.25rem;
-      color: var(--muted);
-      background: rgba(255, 255, 255, 0.025);
-      font-size: 0.86rem;
-      line-height: 1.55;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
     }
 
-    .desktop-qr img { width: 7.25rem; height: 7.25rem; border-radius: 0.75rem; }
-    .desktop-qr strong { display: block; margin-bottom: 0.25rem; color: var(--text); font-size: 1rem; }
+    .step-no {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.36rem 0.85rem;
+      border-radius: 999px;
+      color: #0b0e13;
+      background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+    }
+
+    .step-aside {
+      color: var(--faint);
+      font-size: 0.82rem;
+      text-align: right;
+    }
+
+    .step h2 {
+      margin: 0 0 0.65rem;
+      font-size: clamp(1.5rem, 6vw, 2rem);
+      font-weight: 750;
+      line-height: 1.22;
+      letter-spacing: -0.03em;
+    }
+
+    .step-copy {
+      max-width: 36rem;
+      margin: 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 3vw, 1.08rem);
+      line-height: 1.75;
+    }
+
+    .step-copy strong { color: var(--text); font-weight: 700; }
+
+    /* ---------- 第一步：在浏览器打开 ---------- */
+
+    .step-guide { border-color: rgba(224, 174, 91, 0.45); }
+
+    .step-guide::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 88% 12%, rgba(224, 174, 91, 0.12), transparent 14rem);
+      pointer-events: none;
+    }
+
+    .guide-main { padding-right: clamp(4.6rem, 18vw, 7rem); }
+
+    .guide-state {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: var(--gold-bright);
+      font-size: 0.86rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .step-guide.done { border-color: rgba(104, 214, 176, 0.32); }
+    .step-guide.done::before { background: radial-gradient(circle at 88% 12%, rgba(104, 214, 176, 0.07), transparent 14rem); }
+    .step-guide.done .guide-state { color: var(--mint); }
+    .step-guide.done .guide-visual { display: none; }
+    .step-guide.done .guide-main { padding-right: 0; }
+
+    .guide-visual {
+      position: absolute;
+      right: 1.2rem;
+      bottom: 1.1rem;
+      width: clamp(4.4rem, 17vw, 6.8rem);
+      color: var(--gold);
+      pointer-events: none;
+      filter: drop-shadow(0 6px 18px rgba(224, 174, 91, 0.25));
+    }
+
+    /* 微信内：右上角固定指引 */
+    .corner-pointer {
+      position: fixed;
+      top: max(0.8rem, env(safe-area-inset-top));
+      right: 0.85rem;
+      z-index: 30;
+      display: none;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.45rem;
+      pointer-events: none;
+    }
+
+    .corner-pointer.visible { display: flex; }
+
+    .corner-ring {
+      width: 2.7rem;
+      height: 2.7rem;
+      border: 2.5px solid var(--gold-bright);
+      border-radius: 0.85rem;
+      animation: corner-pulse 1.5s ease-out infinite;
+    }
+
+    .corner-label {
+      padding: 0.42rem 0.75rem;
+      border-radius: 0.75rem;
+      color: #0b0e13;
+      background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+      font-size: 0.8rem;
+      font-weight: 800;
+      box-shadow: 0 8px 22px rgba(224, 174, 91, 0.35);
+    }
+
+    @keyframes corner-pulse {
+      0% { box-shadow: 0 0 0 0 rgba(240, 200, 127, 0.55); }
+      100% { box-shadow: 0 0 0 16px rgba(240, 200, 127, 0); }
+    }
+
+    /* ---------- 第二步：下载渠道 ---------- */
 
     .channels {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 1rem;
+      gap: 0.9rem;
+      margin-top: 1.5rem;
     }
 
     .channel {
       display: flex;
       flex-direction: column;
-      min-height: 17rem;
-      padding: 1.35rem;
+      min-height: 16.5rem;
+      padding: 1.3rem;
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 1.5rem;
+      border-radius: 1.3rem;
       background: var(--surface);
-      backdrop-filter: blur(18px);
-      box-shadow: 0 12px 38px rgba(0, 0, 0, 0.2);
       transition: transform 180ms ease, border-color 180ms ease;
     }
 
-    .channel.recommended {
-      border-color: rgba(224, 174, 91, 0.42);
-      transform: translateY(-0.25rem);
-    }
+    .channel.recommended { border-color: rgba(224, 174, 91, 0.5); }
 
-    .channel-top { display: flex; justify-content: space-between; gap: 0.75rem; align-items: center; }
+    .channel-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+    }
 
     .platform {
       display: inline-flex;
       align-items: center;
-      gap: 0.6rem;
-      font-size: 1rem;
-      font-weight: 700;
+      gap: 0.65rem;
+      font-size: 1.06rem;
+      font-weight: 750;
     }
 
     .platform-mark {
       display: grid;
       place-items: center;
-      width: 2.25rem;
-      height: 2.25rem;
-      border-radius: 0.8rem;
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 0.85rem;
       color: var(--gold-bright);
-      background: rgba(224, 174, 91, 0.1);
-      font-size: 0.76rem;
-      letter-spacing: -0.03em;
+      background: rgba(224, 174, 91, 0.12);
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
     }
 
     .status {
       flex: none;
-      padding: 0.35rem 0.62rem;
+      padding: 0.38rem 0.68rem;
       border-radius: 999px;
       color: var(--muted);
       background: rgba(255, 255, 255, 0.06);
-      font-size: 0.72rem;
-      font-weight: 650;
+      font-size: 0.76rem;
+      font-weight: 700;
     }
 
-    .status.live { color: var(--mint); background: rgba(104, 214, 176, 0.1); }
+    .status.live { color: var(--mint); background: rgba(104, 214, 176, 0.12); }
     .status.paused { color: var(--danger); background: rgba(240, 154, 135, 0.1); }
 
-    .channel h3 { margin: 1.25rem 0 0.5rem; font-size: 1.28rem; letter-spacing: -0.025em; }
-    .channel p { margin: 0; color: var(--muted); font-size: 0.9rem; line-height: 1.55; }
-    .meta { margin-top: 0.8rem; color: #7f8792; font-size: 0.76rem; line-height: 1.5; word-break: break-all; }
+    .channel h3 {
+      margin: 1.2rem 0 0.5rem;
+      font-size: 1.28rem;
+      font-weight: 750;
+      letter-spacing: -0.02em;
+    }
+
+    .channel p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.65;
+    }
+
+    .meta {
+      margin-top: 0.85rem;
+      color: var(--faint);
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
 
     .download-button {
       display: inline-flex;
       justify-content: center;
       align-items: center;
-      min-height: 3rem;
+      min-height: 3.25rem;
       margin-top: auto;
-      padding: 0.78rem 1rem;
-      border: 1px solid rgba(224, 174, 91, 0.34);
-      border-radius: 1rem;
+      padding: 0.85rem 1rem;
+      border: 1px solid rgba(224, 174, 91, 0.36);
+      border-radius: 1.05rem;
       color: #0b0e13;
       background: linear-gradient(135deg, var(--gold-bright), var(--gold));
       font: inherit;
-      font-size: 0.92rem;
-      font-weight: 750;
+      font-size: 1rem;
+      font-weight: 800;
       text-decoration: none;
       cursor: pointer;
-      box-shadow: 0 10px 24px rgba(224, 174, 91, 0.13);
+      box-shadow: 0 10px 24px rgba(224, 174, 91, 0.14);
     }
 
     .download-button:focus-visible, .close-button:focus-visible, .continue-button:focus-visible {
@@ -259,24 +338,45 @@
       cursor: not-allowed;
     }
 
+    /* ---------- 桌面端扫码条 ---------- */
+
+    .desktop-qr {
+      display: flex;
+      align-items: center;
+      gap: 1.1rem;
+      margin-top: 1.5rem;
+      padding: 1.1rem 1.25rem;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 1.3rem;
+      color: var(--muted);
+      background: var(--surface);
+      font-size: 0.9rem;
+      line-height: 1.65;
+    }
+
+    .desktop-qr img { width: 7rem; height: 7rem; border-radius: 0.85rem; }
+    .desktop-qr strong { display: block; margin-bottom: 0.3rem; color: var(--text); font-size: 1.02rem; }
+
+    /* ---------- 说明与页脚 ---------- */
+
     .notes {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      margin-top: 1rem;
+      gap: 0.9rem;
+      margin-top: 1.5rem;
     }
 
     .note {
-      padding: 1.2rem;
+      padding: 1.15rem 1.25rem;
       border: 1px solid rgba(255, 255, 255, 0.07);
-      border-radius: 1.25rem;
+      border-radius: 1.2rem;
       color: var(--muted);
-      background: rgba(255, 255, 255, 0.025);
-      font-size: 0.86rem;
-      line-height: 1.6;
+      background: var(--surface);
+      font-size: 0.88rem;
+      line-height: 1.7;
     }
 
-    .note strong { display: block; margin-bottom: 0.25rem; color: var(--text); }
+    .note strong { display: block; margin-bottom: 0.3rem; color: var(--text); font-size: 0.95rem; }
 
     footer {
       display: flex;
@@ -284,18 +384,20 @@
       justify-content: space-between;
       gap: 1rem;
       margin-top: 2.25rem;
-      padding: 1rem 0;
+      padding: 1rem 0.15rem;
       color: #777f8a;
-      font-size: 0.78rem;
+      font-size: 0.8rem;
     }
 
-    footer nav { display: flex; flex-wrap: wrap; gap: 1.2rem; }
+    footer nav { display: flex; flex-wrap: wrap; gap: 1.4rem; }
     footer a { text-underline-offset: 0.25rem; }
+
+    /* ---------- 微信下载拦截弹窗 ---------- */
 
     .overlay {
       position: fixed;
       inset: 0;
-      z-index: 10;
+      z-index: 40;
       display: none;
       align-items: flex-start;
       justify-content: center;
@@ -308,21 +410,21 @@
 
     .overlay-card {
       width: min(100%, 27rem);
-      padding: 1.5rem;
+      padding: 1.6rem;
       border: 1px solid var(--line);
       border-radius: 1.5rem;
-      background: var(--surface-strong);
+      background: #141921;
       box-shadow: var(--shadow);
     }
 
-    .menu-arrow { text-align: right; color: var(--gold); font-size: 2rem; line-height: 0.8; }
-    .overlay h2 { margin: 0.6rem 0; font-size: 1.35rem; }
-    .overlay p { margin: 0; color: var(--muted); line-height: 1.65; }
-    .overlay-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1.25rem; }
+    .menu-arrow { text-align: right; color: var(--gold); font-size: 2.4rem; line-height: 0.8; }
+    .overlay h2 { margin: 0.7rem 0; font-size: 1.4rem; }
+    .overlay p { margin: 0; color: var(--muted); font-size: 0.98rem; line-height: 1.7; }
+    .overlay-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1.35rem; }
 
     .close-button, .continue-button {
-      min-height: 2.8rem;
-      border-radius: 0.9rem;
+      min-height: 2.9rem;
+      border-radius: 0.95rem;
       font: inherit;
       font-weight: 700;
       cursor: pointer;
@@ -332,87 +434,107 @@
     .continue-button { color: #0b0e13; border: 0; background: var(--gold); }
     .continue-button.hidden { display: none; }
 
+    /* ---------- 移动端 ---------- */
+
     @media (max-width: 760px) {
       .page { padding-left: 1rem; padding-right: 1rem; }
-      .hero { grid-template-columns: 4.9rem minmax(0, 1fr); gap: 1rem; border-radius: 1.5rem; }
-      .app-icon { width: 4.9rem; height: 4.9rem; border-radius: 1.15rem; }
-      .eyebrow { font-size: 0.66rem; }
-      h1 { font-size: clamp(2rem, 11vw, 3rem); }
-      .subtitle { grid-column: 1 / -1; margin-top: 0.2rem; }
-      .wechat-notice { grid-column: 1 / -1; }
+      .app-icon { width: 3.9rem; height: 3.9rem; border-radius: 1rem; }
       .channels { grid-template-columns: 1fr; }
-      .channel { min-height: 15.5rem; }
-      .channel.recommended { transform: none; }
+      .channel { min-height: 0; }
+      .channel .download-button { margin-top: 1.15rem; }
       .notes { grid-template-columns: 1fr; }
       .desktop-qr { display: none; }
       footer { flex-direction: column; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
     }
   </style>
 </head>
 <body>
+  <div class="corner-pointer" id="corner-pointer" aria-hidden="true">
+    <div class="corner-ring"></div>
+    <div class="corner-label">点右上角「···」</div>
+  </div>
+
   <main class="page">
-    <section class="hero" aria-labelledby="page-title">
+    <header class="brand">
       <img class="app-icon" src="assets/bmesc-icon.png" alt="BMESC App 图标" width="512" height="512">
       <div>
-        <p class="eyebrow">BM Official Download</p>
-        <h1 id="page-title">下载 BMESC</h1>
+        <p class="eyebrow">BM 官方下载</p>
+        <h1 id="page-title">BMESC</h1>
       </div>
-      <p class="subtitle">连接附近的 BMESC 设备，查看实时状态、设备信息与安全提示。一个入口，适用于 iPhone 和 Android。<span class="subtitle-en" lang="en">Connect to nearby BMESC devices and view live status, device information, and safety messages.</span></p>
-      <div class="wechat-notice" id="wechat-notice" role="status">当前在微信内打开。安装时请点右上角“⋯”，选择“在浏览器打开”。</div>
+    </header>
+
+    <section class="step step-guide" id="step-guide" aria-labelledby="guide-title">
+      <div class="step-top">
+        <span class="step-no">第一步</span>
+        <span class="guide-state" id="guide-state">等待操作</span>
+      </div>
+      <div class="guide-main">
+        <h2 id="guide-title">在浏览器中打开本页</h2>
+        <p class="step-copy" id="guide-copy">微信内无法直接安装应用。请点击屏幕<strong>右上角「···」</strong>，选择<strong>「在浏览器打开」</strong>，然后再继续下载。</p>
+      </div>
+      <svg class="guide-visual" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+        <circle cx="16" cy="86" r="4" fill="currentColor" opacity="0.55"/>
+        <path d="M16 86 C 42 78, 66 54, 80 22" stroke="currentColor" stroke-width="5.5" stroke-linecap="round"/>
+        <path d="M61 31 L 80 20 L 87 45" stroke="currentColor" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </section>
+
+    <section class="step" aria-labelledby="download-title">
+      <div class="step-top">
+        <span class="step-no">第二步</span>
+        <span class="step-aside" id="updated-at">正在读取发布状态…</span>
+      </div>
+      <h2 id="download-title">下载 BMESC</h2>
+      <p class="step-copy">连接附近的 BMESC 设备，实时查看车辆状态、设备信息与安全提示。iPhone 与 Android 均可使用。</p>
+
+      <div class="channels" id="channels" aria-label="BMESC 下载渠道">
+        <article class="channel recommended" id="channel-androidDirect" data-channel="androidDirect">
+          <div class="channel-top">
+            <div class="platform"><span class="platform-mark" aria-hidden="true">APK</span>Android</div>
+            <span class="status" id="status-androidDirect">读取中</span>
+          </div>
+          <h3>直接下载安装</h3>
+          <p>适合中国大陆用户。下载完成后，按系统提示允许安装来自该浏览器的应用。</p>
+          <div class="meta" id="meta-androidDirect"></div>
+          <a class="download-button" id="button-androidDirect" href="#" aria-disabled="true">读取发布状态</a>
+        </article>
+
+        <article class="channel" id="channel-ios" data-channel="ios">
+          <div class="channel-top">
+            <div class="platform"><span class="platform-mark" aria-hidden="true">iOS</span>iPhone</div>
+            <span class="status" id="status-ios">读取中</span>
+          </div>
+          <h3>App Store</h3>
+          <p>面向 iPhone 用户的正式发行渠道，由 Apple 完成安装与后续更新。</p>
+          <div class="meta" id="meta-ios"></div>
+          <a class="download-button" id="button-ios" href="#" aria-disabled="true">读取发布状态</a>
+        </article>
+
+        <article class="channel" id="channel-googlePlay" data-channel="googlePlay">
+          <div class="channel-top">
+            <div class="platform"><span class="platform-mark" aria-hidden="true">GP</span>Android</div>
+            <span class="status" id="status-googlePlay">读取中</span>
+          </div>
+          <h3>Google Play</h3>
+          <p>适合可使用 Google Play 的地区，由 Google Play 完成安装与后续更新。</p>
+          <div class="meta" id="meta-googlePlay"></div>
+          <a class="download-button" id="button-googlePlay" href="#" aria-disabled="true">读取发布状态</a>
+        </article>
+      </div>
     </section>
 
     <aside class="desktop-qr" aria-label="手机扫码下载">
       <img src="assets/bmesc-download-qr.png" alt="BMESC 官方下载二维码" width="1200" height="1200">
-      <div><strong>使用微信扫码下载</strong>二维码永久指向 BMESC 官方下载入口，后续版本更新无需更换二维码。<span class="english" lang="en">Scan with WeChat to open the official BMESC download page.</span></div>
+      <div><strong>使用手机扫码下载</strong>二维码永久指向 BMESC 官方下载入口，后续版本更新无需更换二维码。</div>
     </aside>
 
-    <div class="section-title">
-      <h2>选择下载方式</h2>
-      <span id="updated-at">正在读取发布状态…</span>
-    </div>
-
-    <section class="channels" id="channels" aria-label="BMESC 下载渠道">
-      <article class="channel" id="channel-ios" data-channel="ios">
-        <div class="channel-top">
-          <div class="platform"><span class="platform-mark" aria-hidden="true">iOS</span>iPhone</div>
-          <span class="status" id="status-ios">读取中</span>
-        </div>
-        <h3>App Store</h3>
-        <p>面向 iPhone 用户的正式发行渠道，由 Apple 完成安装与后续更新。<span class="english" lang="en">Official iPhone distribution and updates through Apple.</span></p>
-        <div class="meta" id="meta-ios"></div>
-        <a class="download-button" id="button-ios" href="#" aria-disabled="true">读取发布状态</a>
-      </article>
-
-      <article class="channel" id="channel-androidDirect" data-channel="androidDirect">
-        <div class="channel-top">
-          <div class="platform"><span class="platform-mark" aria-hidden="true">APK</span>Android</div>
-          <span class="status" id="status-androidDirect">读取中</span>
-        </div>
-        <h3>直接下载安装</h3>
-        <p>适合中国大陆用户。请使用手机系统浏览器下载，并允许安装来自该浏览器的应用。<span class="english" lang="en">Direct Android download for users without Google Play.</span></p>
-        <div class="meta" id="meta-androidDirect"></div>
-        <a class="download-button" id="button-androidDirect" href="#" aria-disabled="true">读取发布状态</a>
-      </article>
-
-      <article class="channel" id="channel-googlePlay" data-channel="googlePlay">
-        <div class="channel-top">
-          <div class="platform"><span class="platform-mark" aria-hidden="true">GP</span>Android</div>
-          <span class="status" id="status-googlePlay">读取中</span>
-        </div>
-        <h3>Google Play</h3>
-        <p>适合可使用 Google Play 的地区，由 Google Play 完成安装与后续更新。<span class="english" lang="en">Official Android distribution and updates through Google Play.</span></p>
-        <div class="meta" id="meta-googlePlay"></div>
-        <a class="download-button" id="button-googlePlay" href="#" aria-disabled="true">读取发布状态</a>
-      </article>
-    </section>
-
     <section class="notes" aria-label="安装说明">
-      <div class="note"><strong>官方安全提示</strong>请只通过本页面提供的入口安装。Android 安装包发布后会同时展示版本、大小和 SHA-256 校验值。</div>
-      <div class="note"><strong>更新渠道说明</strong>直接安装版与 Google Play 版暂按独立渠道维护。请持续使用最初安装时选择的渠道更新。</div>
+      <div class="note"><strong>官方安全提示</strong>请只通过本页面提供的入口安装。Android 安装包会展示版本号与文件大小，便于核对。</div>
+      <div class="note"><strong>更新渠道说明</strong>直接安装版与 Google Play 版暂按独立渠道维护，请持续使用最初安装时选择的渠道更新。</div>
     </section>
 
     <footer>
@@ -428,7 +550,7 @@
     <div class="overlay-card">
       <div class="menu-arrow" aria-hidden="true">↗</div>
       <h2 id="overlay-title">请在浏览器中打开</h2>
-      <p id="overlay-copy">点击微信右上角“⋯”，选择“在浏览器打开”，然后继续下载安装。</p>
+      <p id="overlay-copy">点击微信右上角「···」，选择「在浏览器打开」，然后继续下载安装。</p>
       <div class="overlay-actions">
         <button class="close-button" id="close-overlay" type="button">我知道了</button>
         <button class="continue-button hidden" id="continue-link" type="button">仍然尝试打开</button>
@@ -446,15 +568,13 @@
         privacyUrl: "https://bmyyqzs.github.io/BMESC_APP/app-store/privacy-policy.html",
         channels: {
           ios: { status: "live", version: "1.0.0", url: "https://apps.apple.com/cn/app/id6782801007" },
-          androidDirect: { status: "live", version: "1.00", versionCode: 192, url: "releases/android/BMESC-1.00-192.apk", fileSize: "46.9 MB", sha256: "088e0b4e1082522d6d948c4e9d7d1099352ece3e6cc86aa15a89fd50cd0c57b7" },
+          androidDirect: { status: "live", version: "1.00", versionCode: 192, url: "releases/android/BMESC-1.00-192.apk", fileSize: "46.9 MB" },
           googlePlay: { status: "live", version: "1.00", url: "https://play.google.com/store/apps/details?id=com.bmesc.app" }
         }
       };
 
       const ua = navigator.userAgent || "";
       const isWeChat = /MicroMessenger/i.test(ua);
-      const isAndroid = /Android/i.test(ua);
-      const isIOS = /iPhone|iPod|iPad/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
       const statusCopy = {
         live: ["可下载", "立即下载"],
         review: ["审核中", "审核通过后开放"],
@@ -490,11 +610,28 @@
         if (event.key === "Escape" && overlay.classList.contains("visible")) closeWeChatGuide();
       });
 
-      function buildMeta(key, channel) {
+      function applyBrowserGuide() {
+        const guideCard = document.getElementById("step-guide");
+        const guideState = document.getElementById("guide-state");
+        const guideTitle = document.getElementById("guide-title");
+        const guideCopy = document.getElementById("guide-copy");
+
+        if (isWeChat) {
+          document.getElementById("corner-pointer").classList.add("visible");
+          guideState.textContent = "等待操作";
+          return;
+        }
+
+        guideCard.classList.add("done");
+        guideState.textContent = "✓ 已在浏览器中";
+        guideTitle.textContent = "本页已在浏览器中打开";
+        guideCopy.textContent = "你可以直接前往第二步，选择适合的方式下载安装。";
+      }
+
+      function buildMeta(channel) {
         const parts = [];
         if (channel.version) parts.push(`版本 ${channel.version}${channel.versionCode ? ` (${channel.versionCode})` : ""}`);
         if (channel.fileSize) parts.push(channel.fileSize);
-        if (channel.sha256) parts.push(`SHA-256 ${channel.sha256}`);
         return parts.join(" · ");
       }
 
@@ -506,7 +643,7 @@
 
         badge.textContent = status[0];
         badge.className = `status ${channel.status}`;
-        meta.textContent = buildMeta(key, channel);
+        meta.textContent = buildMeta(channel);
         button.textContent = status[1];
 
         if (channel.status !== "live" || !channel.url) {
@@ -526,26 +663,6 @@
         });
       }
 
-      function applyDevicePriority() {
-        const iosCard = document.getElementById("channel-ios");
-        const directCard = document.getElementById("channel-androidDirect");
-        const playCard = document.getElementById("channel-googlePlay");
-
-        if (isIOS) {
-          iosCard.style.order = "1";
-          directCard.style.order = "2";
-          playCard.style.order = "3";
-          iosCard.classList.add("recommended");
-        } else if (isAndroid) {
-          directCard.style.order = "1";
-          playCard.style.order = "2";
-          iosCard.style.order = "3";
-          directCard.classList.add("recommended");
-        }
-
-        if (isWeChat) document.getElementById("wechat-notice").classList.add("visible");
-      }
-
       function render(config) {
         const date = new Date(`${config.updatedAt}T00:00:00`);
         const formatted = Number.isNaN(date.getTime())
@@ -556,8 +673,10 @@
         document.getElementById("support-link").href = config.supportUrl;
 
         Object.entries(config.channels).forEach(([key, channel]) => renderChannel(key, channel));
-        applyDevicePriority();
+        applyBrowserGuide();
       }
+
+      applyBrowserGuide();
 
       fetch("download-config.json", { cache: "no-store" })
         .then((response) => {
