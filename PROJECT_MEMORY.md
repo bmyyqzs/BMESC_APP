@@ -6712,3 +6712,46 @@ This Git-tracked file is the chronological memory for project conversations and 
 
 ### Sensitive information
 - No new secrets; AK remains only in PROJECT_MEMORY_PRIVATE.md (PRIVATE-20260717-001).
+
+## 2026-07-17 - Redesign QR download page with browser-open step guide
+
+### User request
+- Beautify the QR download page: better layout/typography; make "open in browser" the first guided step with an arrow pointing to the top-right corner; app intro and downloads come second; remove all English intro copy and the displayed SHA-256 content.
+
+### Confirmed decisions and preferences
+- Two-step structure: 第一步 = 在浏览器打开 guide card (gold, prominent, curved arrow pointing top-right, WeChat-only fixed corner pointer with pulsing ring + "点右上角「···」" chip); 第二步 = app intro + 3 download channels.
+- In non-WeChat browsers the guide card auto-flips to a mint "✓ 已在浏览器中" completed state and hides the arrow.
+- All English intro sentences removed (eyebrow, subtitle, channel descriptions, QR caption); SHA-256 no longer rendered in meta or mentioned in the safety note. `download-config.json` data untouched (sha256 kept in file, just not displayed).
+- Kept existing config fetch, channel status rendering, device ordering, WeChat download-intercept overlay, and all element IDs.
+
+### Actions and results
+- Rewrote `docs/download/index.html` (single-file change; no backend/protocol impact).
+- Verified via headless Chrome screenshots: desktop, mobile browser state, and simulated WeChat UA state all render correctly; learned headless Chrome enforces a 500px minimum window width (initial "clipped" screenshots were a tooling artifact, debug injection confirmed docScrollW == innerWidth, no real overflow).
+
+### Unresolved
+- Page not yet deployed; live QR page is still the old version on gh-pages (download.floatw.com remains UserDisable-suspended per earlier entry).
+
+### Sensitive information
+- No sensitive values involved; private memory unchanged.
+
+## 2026-07-17 - Deploy redesigned download page (OSS + gh-pages live)
+
+### User request
+- Put the Android direct-install channel before iOS, then deploy the redesigned page so the QR link takes effect immediately.
+
+### Confirmed decisions and preferences
+- APK channel is now first and marked recommended on all devices; the previous device-based reordering JS was removed.
+- QR target remains `https://download.bmesc.floatw.com/` (verified live again after the earlier arrears suspension) - no QR regeneration needed.
+
+### Actions and results (verified)
+- Reordered channels (APK > iOS > Google Play), removed `applyDevicePriority()` and unused UA checks; verified via headless Chrome screenshots.
+- Uploaded `index.html` to OSS bucket `bmesc-download` and set `Cache-Control: no-cache, no-store, must-revalidate` (ossutil 2.x syntax: `set-meta --cache-control ... --metadata-directive update`; `--region cn-hangzhou` required for sign v4).
+- Verified live: `https://download.bmesc.floatw.com/` HTTP 200, 23644 B, contains new step-guide markup, zero SHA-256 occurrences.
+- Git: committed `b380c12` on codex/focstrot and pushed; synced to gh-pages via temporary worktree, commit `616cc1d`, pushed (github.io deploy not verifiable from this machine, per earlier note).
+
+### Unresolved
+- Physical WeChat scan test of the final page still pending.
+- Cert renewal for both download domains before 2026-10-15.
+
+### Sensitive information
+- RAM AccessKey (PRIVATE-20260717-001) was used from private memory for the OSS upload; no secrets printed or newly recorded.
