@@ -2,6 +2,1771 @@
 
 This Git-tracked file is the chronological memory for project conversations and task outcomes. Append new entries; do not rewrite history. Stable product background belongs in `PROJECT_CONTEXT.md`. Sensitive values belong only in the ignored `PROJECT_MEMORY_PRIVATE.md`.
 
+### 2026-07-08 - Reopen BMESC Xcode project
+
+**User request**
+- Reopen the BMESC Xcode project, explicitly invoking the computer-use workflow.
+
+**Key context**
+- The existing generated project remained available at `build/ios/BMESC.xcodeproj`.
+
+**Confirmed decisions and preferences**
+- Reuse the existing Xcode project and bring Xcode to the foreground.
+
+**Actions and results**
+- Confirmed `/Users/a202603/Documents/BMESC_APP/build/ios/BMESC.xcodeproj` exists.
+- Ran `open -a Xcode /Users/a202603/Documents/BMESC_APP/build/ios/BMESC.xcodeproj` and activated Xcode with AppleScript.
+- Command completed successfully.
+
+**Unresolved items**
+- None.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-10 - Regenerate three Refloat-based pedal UI directions
+
+**User request**
+- Replace the prior pedal concepts with three new UI options based on the Refloat footpad.
+
+**Key context**
+- Upstream `bmyyqzs/refloat` `ui.qml.in` defines a compact footpad HUD with a symmetric arched top, flat bottom, center divider, independent left/right sensor fills, light-accent glow, and a short opacity transition.
+- BM product styling remains dark navy/black with champagne-gold controls and mint-green live state.
+
+**Confirmed decisions and preferences**
+- Use the authentic Refloat dual-zone footpad silhouette rather than a full-board photo, footprints, or generic sensor cards.
+- Keep `踏板1` / `踏板2`, omit ADC voltages and redundant “未按下” / “两侧” copy, and preserve the speed-limit controls as context.
+
+**Actions and results**
+- Inspected the current BM Home UI and the upstream Refloat footpad QML geometry and state treatment.
+- Generated three new independent 390 x 844 concepts: faithful Refloat HUD, enlarged split-zone emphasis, and compact Refloat instrument row.
+- No application source, product model, or protocol behavior was changed; waiting for the user to select or refine an option.
+
+**Unresolved items**
+- The preferred Refloat-based option still needs user selection before implementation.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-09 - Rebuild and install latest BMESC on iPhone
+
+**User request**
+- Download/install the latest BMESC build to the connected phone after the Home footpad text adjustment.
+
+**Key context**
+- Connected device was `邱增顺的iPhone`, physical UDID `00008110-00012D403CE2401E`.
+- The latest source change removed the repeated footpad status text below the Home FOCSTrot segments.
+
+**Confirmed decisions and preferences**
+- Rebuild the iOS Debug target before installing so the phone receives the newest QML change.
+
+**Actions and results**
+- Ran Xcode Debug build for scheme `BMESC` targeting the connected iPhone; build succeeded.
+- Installed `/Users/a202603/Documents/BMESC_APP/build/ios/Debug-iphoneos/BMESC.app` to the iPhone with `devicectl`; install succeeded.
+- Launched bundle `com.floatingwheel.bmesc` on the iPhone; launch succeeded.
+
+**Unresolved items**
+- `devicectl` still prints the known non-blocking CoreDevice provider warning, but build, install, and launch succeeded.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-09 - Remove repeated footpad status text on Home
+
+**User request**
+- When `踏板1` or `踏板2` is pressed, do not show extra text below the icon/segment.
+
+**Key context**
+- The Home FOCSTrot card already highlights the active footpad segment and was also showing `ProductDeviceModel::pedalStateText()` below it.
+
+**Confirmed decisions and preferences**
+- Keep the two segment labels and active highlight; remove only the repeated dynamic text under the segments.
+
+**Actions and results**
+- Removed the `pedalStateText` `Text` item from `mobile/BMHomePage.qml`.
+- Verified Home QML no longer references `pedalStateText`; backend property remains available for other future use.
+- Verified with `git diff --check` and `/Users/a202603/Qt/5.15.2/ios/bin/qmllint mobile/BMHomePage.qml`.
+
+**Unresolved items**
+- None.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-09 - Rename English footpad labels
+
+**User request**
+- Change the English labels for `踏板1` and `踏板2` from `Pedal 1/2` to `Footpad 1/2`.
+
+**Key context**
+- The FOCSTrot Home card and `ProductDeviceModel::pedalStateText()` both exposed the English pedal labels.
+
+**Confirmed decisions and preferences**
+- Keep Chinese labels as `踏板1` and `踏板2`; only change English copy.
+
+**Actions and results**
+- Updated `mobile/BMHomePage.qml` segment labels to `Footpad 1` and `Footpad 2`.
+- Updated `ProductDeviceModel::pedalStateText()` English output to `Footpad 1` and `Footpad 2`.
+- Verified no old `Pedal 1/2` labels remain and `qmllint mobile/BMHomePage.qml` passes.
+
+**Unresolved items**
+- None.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-09 - Install updated BMESC build on iPhone
+
+**User request**
+- Download/install the updated BMESC app build to the connected phone and continue until done.
+
+**Key context**
+- Connected device was `邱增顺的iPhone`, physical UDID `00008110-00012D403CE2401E`.
+- App bundle was `/Users/a202603/Documents/BMESC_APP/build/ios/Debug-iphoneos/BMESC.app`, bundle id `com.floatingwheel.bmesc`, signed July 9, 2026 at 12:08:38 with Team ID `R2QUAAM332`.
+
+**Confirmed decisions and preferences**
+- Installed the already-built iOS Debug app that included the latest FOCSTrot/Refloat UI and speed-limit changes.
+
+**Actions and results**
+- Verified the phone was connected and the app bundle was signed.
+- Installed the app to the iPhone with `devicectl`; install succeeded.
+- Launched `com.floatingwheel.bmesc` on the iPhone with `devicectl`; launch succeeded.
+
+**Unresolved items**
+- `devicectl` continued to print the known non-blocking CoreDevice provider warning, but install and launch both succeeded.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-09 - Update FOCSTrot pedal labels and auto speed-limit read
+
+**User request**
+- Modify the BMESC FOCSTrot/Refloat feature so Home no longer shows "not pressed" or "both"; left/right become pedal 1/pedal 2; after Bluetooth connection the app automatically reads and displays the Refloat speed limit.
+
+**Key context**
+- Product-facing QML must keep using `ProductDeviceModel` and must not directly access `Commands` or `ConfigParams`.
+- The existing feature already had guarded FOCSTrot detection, Refloat realtime polling, pedal state parsing, and speed-limit write support.
+
+**Confirmed decisions and preferences**
+- Keep changes scoped to `product/productdevicemodel.h`, `product/productdevicemodel.cpp`, and `mobile/BMHomePage.qml`.
+
+### 2026-07-10 - Run daily Gmail cooperation summary
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- Search prioritized recent unread inbox and recent inbox mail, then all-mail after 2026-07-08, 14-day BMESC/VESC/pev.dev/Refloat topic mail, 30-day controller hardware/BLE/motor/speed controller terms, and 30-day English/Chinese cooperation/business keywords.
+
+**Confirmed decisions and preferences**
+- Gmail access stayed read-only. No replies, drafts, labels, archiving, deletion, or mailbox modifications were performed.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- Recent unread/recent inbox showed only an Ollama promotional/update email.
+- Topic matches included the known Google Play Support BMESC policy rejection, pev.dev Refloat 1.3 announcement, and pev.dev summary; these were compliance/community/update messages rather than cooperation requests.
+- Broader business-keyword matches were Google Search Console, AIHubMix, OpenAI, newsletter, or promotional/service messages, not supplier, distributor, OEM/ODM, integration, support, or collaboration demand.
+- Wrote this run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None for cooperation-demand mail. The Google Play policy issue remains separate and was not modified by this automation.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+- Keep write behavior unchanged: `ProductDeviceModel::setSpeedLimitKph(int)` clamps to `0..100` and writes `customConfig(0).tiltback_speed`.
+
+**Actions and results**
+- Changed pedal state text so state `1` shows `踏板1 / Pedal 1`, state `2` shows `踏板2 / Pedal 2`, and states `0`/`3` return no visible status text.
+- Updated the Home FOCSTrot card to show only two pedal segments and to hide the status text when no single pedal is active.
+- Added a product-model guarded auto-read path that requests `customConfigGet(0, false)` once Refloat realtime data confirms package `101`, then refreshes `speedLimitKph` from `tiltback_speed` when custom config data is received.
+- Updated speed-limit display so unloaded values show loading instead of implying `0 / Off`.
+- Verified with `git diff --check`, `/Users/a202603/Qt/5.15.2/ios/bin/qmllint mobile/BMHomePage.qml`, and an iOS Debug `xcodebuild` for the connected iPhone; build succeeded.
+
+**Unresolved items**
+- Live Refloat hardware validation is still needed to confirm actual `tiltback_speed` read timing and pedal-state mapping against a real FOCSTrot V2/V3/V4 device.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-09 - Refine FOCSTrot Refloat prompt requirements
+
+**User request**
+- Organize a prompt for adjusting the FOCSTrot/Refloat pedal and speed-limit feature.
+
+**Key context**
+- Requested UI changes: remove display of "not pressed" and "both sides"; rename left/right pedal states to "pedal 1" and "pedal 2"; automatically read and display the speed-limit value after Bluetooth connection.
+
+**Confirmed decisions and preferences**
+- This turn only organized the implementation prompt; no source code changes were made.
+
+**Actions and results**
+- Drafted a scoped implementation prompt that keeps protocol/config access behind `ProductDeviceModel` and limits UI work to the Home FOCSTrot card.
+
+**Unresolved items**
+- Implementation and validation still need to be performed in a later coding turn.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-09 - Run daily Gmail cooperation summary
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- Search prioritized recent unread inbox and recent inbox mail, then all-mail after 2026-07-07, 14-day BMESC/VESC/pev.dev/Refloat topic mail, 30-day controller hardware/BLE/motor/speed controller terms, and 30-day English/Chinese cooperation/business keywords.
+
+**Confirmed decisions and preferences**
+- Gmail access stayed read-only. No replies, drafts, labels, archiving, deletion, or mailbox modifications were performed.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- Recent unread/recent inbox showed only Ollama, Google Play Support, Google Search Console, OpenAI, and Cloudflare messages; no partnership or business inquiry.
+- Topic matches were the known Google Play Support BMESC policy rejection and pev.dev login links, neither a cooperation request.
+- Broader business-keyword matches were newsletters or service/account notices, not supplier, distributor, OEM/ODM, integration, support, or collaboration demand.
+- Wrote this run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None for cooperation-demand mail. The Google Play policy issue remains separate and was not modified by this automation.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-16 - Run daily Gmail cooperation summary
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- Search prioritized recent unread inbox and recent inbox mail, then all-mail after 2026-07-12 and targeted 30-day BMESC/VESC/controller/BLE/electric skateboard/e-bike/scooter plus cooperation/business keyword searches.
+
+**Confirmed decisions and preferences**
+- Gmail access stayed read-only. No replies, drafts, labels, archiving, deletion, or mailbox modifications were performed.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- Recent relevant non-matches were an IARC BMESC live rating notice and a pev.dev summary with a community "Vesc using Ubox single" topic; neither was a partnership, distribution, supplier, OEM/ODM, reseller, integration, support, or collaboration request.
+- Other recent inbox items were Google Play notices, ElevenReader subscription/order messages, xAI login, Ollama updates, Google Search Console, and AIHubMix service notices.
+- Wrote this run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None for cooperation-demand mail.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-13 - Run daily Gmail cooperation summary
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for new or relevant BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- Search prioritized recent unread inbox and recent inbox mail, then all mail after 2026-07-11 and broader 30-day BMESC/VESC/controller/BLE/electric skateboard/e-bike/scooter plus cooperation/business keyword searches.
+
+**Confirmed decisions and preferences**
+- Gmail access stayed read-only. No replies, drafts, labels, archiving, deletion, or mailbox modifications were performed.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- New/recent mail since the last run included xAI login notification and YouTube monthly review; neither is BMESC/VESC/controller cooperation demand.
+- Broader matches remained non-cooperation items: Ollama promotional/update email, Google Play BMESC policy rejection, pev.dev login/summary/Refloat update, Google Search Console notices, and AIHubMix service notice.
+- Wrote this run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None for cooperation-demand mail. The Google Play policy issue remains separate and was not modified by this automation.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-12 - Run daily Gmail cooperation summary
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- Search prioritized recent unread inbox and recent inbox mail, then all-mail after 2026-07-10, 14-day BMESC/VESC/pev.dev/Refloat topic mail, 30-day controller hardware/BLE/motor/speed controller terms, and 30-day English/Chinese cooperation/business keywords.
+
+**Confirmed decisions and preferences**
+- Gmail access stayed read-only. No replies, drafts, labels, archiving, deletion, or mailbox modifications were performed.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- Recent inbox/unread searches showed YouTube Creators, Class Central, Ollama, Google Play Terms, and the known Google Play Support BMESC policy rejection; these were updates, newsletters, or compliance/platform notices.
+- Broader all-mail searches showed Ollama, AIHubMix, Google Search Console, Google Play newsletter, Google Play Support BMESC policy rejection, and pev.dev login links; none were partnership, supplier, reseller, OEM/ODM, integration, support, or collaboration requests.
+- Wrote this run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None for cooperation-demand mail. The Google Play policy issue remains separate and was not modified by this automation.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-08 - Verify BMESC iPhone installation goal completion
+
+**User request**
+- Continue the active goal to install the app onto the phone using Xcode.
+
+**Key context**
+- Connected device remained `邱增顺的iPhone`, physical UDID `00008110-00012D403CE2401E`.
+- Built app bundle remained at `/Users/a202603/Documents/BMESC_APP/build/ios/Debug-iphoneos/BMESC.app` with bundle id `com.floatingwheel.bmesc` and Team ID `R2QUAAM332`.
+
+**Confirmed decisions and preferences**
+- Completion required current-state verification rather than relying only on prior memory.
+
+**Actions and results**
+- Verified the connected device, signed app bundle, bundle id, and code signing metadata.
+- Relaunched `com.floatingwheel.bmesc` on the physical iPhone with `devicectl`, confirming the installed app is runnable.
+- Marked the active Codex goal complete.
+
+**Unresolved items**
+- `devicectl` still prints a non-blocking CoreDevice provider warning, but launch succeeds.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-09 - Update FOCSTrot pedal labels and auto speed-limit read
+
+**User request**
+- Modify the BMESC FOCSTrot/Refloat feature so Home no longer shows "not pressed" or "both"; left/right become pedal 1/pedal 2; after Bluetooth connection the app automatically reads and displays the Refloat speed limit.
+
+**Key context**
+- Product-facing QML must keep using `ProductDeviceModel` and must not directly access `Commands` or `ConfigParams`.
+- The existing feature already had guarded FOCSTrot detection, Refloat realtime polling, pedal state parsing, and speed-limit write support.
+
+**Confirmed decisions and preferences**
+- Keep changes scoped to `product/productdevicemodel.h`, `product/productdevicemodel.cpp`, and `mobile/BMHomePage.qml`.
+- Keep write behavior unchanged: `ProductDeviceModel::setSpeedLimitKph(int)` clamps to `0..100` and writes `customConfig(0).tiltback_speed`.
+
+**Actions and results**
+- Changed pedal state text so state `1` shows `踏板1 / Pedal 1`, state `2` shows `踏板2 / Pedal 2`, and states `0`/`3` return no visible status text.
+- Updated the Home FOCSTrot card to show only two pedal segments and to hide the status text when no single pedal is active.
+- Added a product-model guarded auto-read path that requests `customConfigGet(0, false)` once Refloat realtime data confirms package `101`, then refreshes `speedLimitKph` from `tiltback_speed` when custom config data is received.
+- Updated speed-limit display so unloaded values show loading instead of implying `0 / Off`.
+- Verified with `git diff --check`, `/Users/a202603/Qt/5.15.2/ios/bin/qmllint mobile/BMHomePage.qml`, and an iOS Debug `xcodebuild` for the connected iPhone; build succeeded.
+
+**Unresolved items**
+- Live Refloat hardware validation is still needed to confirm actual `tiltback_speed` read timing and pedal-state mapping against a real FOCSTrot V2/V3/V4 device.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-08 - Open Xcode and install BMESC on iPhone
+
+**User request**
+- Use Xcode to reopen the BMESC iOS project, build it, and run/install it on the connected phone.
+
+**Key context**
+- Existing `build/ios/BMESC.xcodeproj` was missing/corrupt, so it could not be used directly.
+- Connected device was `邱增顺的iPhone`, CoreDevice identifier `DC6A5BAD-BD5E-5492-B8A5-05F5DC8992A7`, physical UDID `00008110-00012D403CE2401E`, iOS `26.5`.
+- Build used Qt `5.15.2` iOS qmake and Xcode `26.4.1`.
+
+**Confirmed decisions and preferences**
+- Regenerated only the iOS build directory from `BMESC_APP.pro`; no source changes were made for this install task.
+
+**Actions and results**
+- Regenerated `/Users/a202603/Documents/BMESC_APP/build/ios/BMESC.xcodeproj` with qmake.
+- Opened the regenerated project in Xcode.
+- Built scheme `BMESC` Debug for the physical iPhone with development team `R2QUAAM332`; build succeeded.
+- Installed and launched bundle `com.floatingwheel.bmesc` on the connected iPhone using `devicectl`.
+
+**Unresolved items**
+- `devicectl` printed a non-blocking CoreDevice provider warning while still installing and launching successfully.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-08 - Open BMESC Xcode project
+
+**User request**
+- Open the BMESC project with Xcode.
+
+**Key context**
+- Existing Xcode projects were present under `build/`; the branded main project is `build/ios/BMESC.xcodeproj`.
+
+**Confirmed decisions and preferences**
+- Use the existing generated Xcode project rather than regenerating a new one.
+
+**Actions and results**
+- Ran `open -a Xcode /Users/a202603/Documents/BMESC_APP/build/ios/BMESC.xcodeproj`.
+- Xcode open command completed successfully.
+
+**Unresolved items**
+- None.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-08 - Add FOCSTrot Refloat pedal status and speed limit plan implementation
+
+**User request**
+- Implement the planned FOCSTrot V2/V3/V4 feature: show pedal pressed state under the home realtime status area and allow setting a Refloat-based speed limit.
+
+**Key context**
+- Feature is scoped to the product-facing mobile home page and `ProductDeviceModel`; protocol primitives such as `BleUart`, `Packet`, generic `Commands` semantics, firmware upload, and engineering pages were not changed.
+- Refloat reference behavior used package id `101`, command `31` (`REALTIME_DATA_INTERNAL`), pedal state bits `23..22` of `state_flags`, and custom config parameter `tiltback_speed` with documented range `0..100 km/h`; `0` means disabled.
+
+**Confirmed decisions and preferences**
+- Persist speed limit by writing Refloat custom config `customConfig(0).tiltback_speed`.
+- Show both pedal state and speed limit controls on the home page card, only for detected FOCSTrot V2/V3/V4 devices.
+
+**Actions and results**
+- Added `ProductDeviceModel` properties for FOCSTrot detection, Refloat availability, pedal state/text, speed limit value/load/save status, and a `setSpeedLimitKph(int)` product-facade write method.
+- Added 250 ms Refloat polling only when a connected protocol-ready device identity matches FOCSTrot V2/V3/V4; valid custom app responses update pedal state, and stale/missing responses mark Refloat unavailable.
+- Added guarded speed-limit loading and persistent writing through `customConfig(0)` and `Commands::customConfigSet(0, ...)`, clamped to `0..100`.
+- Added a bilingual home-page card under the realtime status/KPI card with four pedal states and a slider/stepper/save control for speed limit.
+- Verification: `git diff --check` passed; `qmllint mobile/BMHomePage.qml` passed; qmake generated the iOS Xcode project; direct iOS simulator `-fsyntax-only` compile of `product/productdevicemodel.cpp` passed.
+- Full `xcodebuild` reached moc/rcc/compile stages but failed on existing generated moc inputs missing in the temporary qmake build (`moc_qplaintexteditsearchwidget.cpp`, `moc_qminimp3.cpp`), not on the modified files.
+
+**Unresolved items**
+- Needs real or mocked FOCSTrot/Refloat hardware validation for device identity matching, custom app response parsing, pedal state display, and persistent `tiltback_speed` write/ack behavior.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-07 - Inspect Google Play rejection reason
+
+**User request**
+- Check the Google Play Console policy email/details link to identify why the BMESC app listing was not approved.
+
+**Key context**
+- The Play Console policy status page for BMESC showed the app was rejected on 2026-07-06.
+- The policy issue detail page identified a Metadata policy violation caused by text spam content.
+
+**Confirmed decisions and preferences**
+- This turn was read-only in Play Console; no store listing edits, uploads, appeals, or review submissions were performed.
+
+**Actions and results**
+- Opened the BMESC policy issue details page in Chrome and read the rejection details.
+- Google located the issue in the English full description (`en-US`). The evidence text included broad keyword-like feature claims such as partial compatibility with the VESC ecosystem and lists of speed, battery level, mileage, top speed, and fault logs.
+- Google's fix guidance was to remove repeated, irrelevant, or excessive keywords from the full and short descriptions and ensure all promotional text directly relates to app functionality.
+
+**Unresolved items**
+- Store listing metadata still needs to be rewritten and resubmitted for review.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-08 - Run daily Gmail cooperation summary
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- Search prioritized recent unread inbox and recent inbox mail, then inbox/all-mail after 2026-07-06, 14-day topic/business keyword searches, and 30-day topic-plus-business cross-checks.
+- Queries covered BMESC, BMESC app, VESC, VESC Tool, pev.dev/Refloat, controller hardware, BLE/motor/FOC/speed controller, electric skateboard/e-bike/scooter controller terms, plus English and Chinese cooperation/business keywords.
+
+**Confirmed decisions and preferences**
+- Gmail access stayed read-only. No replies, drafts, labels, archiving, deletion, or mailbox modifications were performed.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- Relevant but non-cooperation BMESC mail found: Google Play Support policy rejection notice for app `BMESC`, dated 2026-07-05 23:38:32 -0700; it is a store compliance issue, not a cooperation/business inquiry.
+- Other non-matching recent mail included Ollama updates, Google Search Console floatw.com indexing notice, OpenAI subscription-feedback request, Cloudflare AI bot controls notice, AIHubMix access/API notices, Google Play monthly update, pev.dev login links, pev.dev Refloat/community summaries, and unrelated newsletter/promotional mail.
+- Wrote this run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None for cooperation-demand mail. Google Play compliance follow-up remains separate and was not modified in this automation run.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-07 - Rewrite Google Play metadata and resubmit review
+
+**User request**
+- Change the Google Play store copy after the metadata-policy rejection and resubmit BMESC for review.
+
+**Key context**
+- The rejection was caused by the English full description containing text-spam/keyword-like metadata, including VESC ecosystem compatibility language and a feature list.
+- The Play Console app remained `BMESC` / `com.bmesc.app`.
+
+**Confirmed decisions and preferences**
+- Keep the fix scoped to store metadata; do not change app code, protocol behavior, assets, or privacy policy in this turn.
+- User explicitly authorized resubmission.
+
+**Actions and results**
+- Updated local store metadata drafts to use `Bluetooth companion for BMESC devices` as the short description and a plain English full description focused on compatible BMESC hardware, local Bluetooth connection, device status, telemetry, fault messages, and no account/cloud/ads/payments/social features.
+- Updated the Play Console default `en-US` store listing short description and full description to match the safer copy, removing Chinese/English wrapper tags, VESC references, and keyword-stuffed feature lists.
+- Saved the store listing successfully, then submitted 10 pending changes from Publishing overview for Google review.
+- Play Console showed the changes under `正在审核中的更改` while quick checks continued; Google indicated review usually completes within 7 days but can take longer.
+
+**Unresolved items**
+- Wait for Google Play review result. If rejected again, inspect the new policy detail before making further changes.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-03 - Run daily Gmail cooperation summary
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- Search prioritized recent unread inbox and recent inbox mail, then recent BMESC/VESC/pev.dev/Refloat keyword mail and broader 14-30 day all-mail cross-checks.
+- Queries covered BMESC, BMESC app, VESC, VESC Tool, pev.dev/Refloat, controller hardware, BLE/motor/FOC/speed controller, electric skateboard/e-bike/scooter controller terms, plus English and Chinese cooperation/business keywords.
+
+**Confirmed decisions and preferences**
+- Gmail access stayed read-only. No replies, drafts, labels, archiving, deletion, or mailbox modifications were performed.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- Recent unread/recent inbox contained OpenAI subscription-feedback survey, Cloudflare AI bot controls notice, Ollama updates, AIHubMix access/API endpoint notices, Google Play monthly update, and pev.dev login-link messages.
+- VESC/pev.dev matches were login links, Refloat 1.3 announcement, and community summaries; not cooperation or business inquiries.
+- Controller-specific searches for electric skateboard/e-bike/scooter/motor/BLE/FOC/speed controller terms returned no relevant cooperation mail.
+- Wrote this run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-02 - Run daily Gmail cooperation summary
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- Search prioritized recent unread inbox and recent inbox mail, then broader 14-day all-mail keyword searches and 30-day cross-checks.
+- Queries covered BMESC, BMESC app, VESC, VESC Tool, pev.dev/Refloat, controller hardware, BLE controller, electric skateboard/e-bike/scooter controller terms, plus English and Chinese cooperation/business keywords.
+
+**Confirmed decisions and preferences**
+- Gmail access stayed read-only. No replies, drafts, labels, archiving, deletion, or mailbox modifications were performed.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- Recent unread/recent inbox contained Ollama updates, AIHubMix backup access notice, Google Play monthly update, and pev.dev login-link messages.
+- BMESC keyword searches returned no recent mail.
+- VESC/pev.dev matches were login links, community summaries, and Refloat 1.3 announcements; not cooperation or business inquiries.
+- Controller-specific searches for motor/BLE/e-bike/skateboard/scooter controller terms returned no relevant mail.
+- Wrote this run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-01 - Run daily Gmail cooperation summary
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- Search prioritized recent unread inbox and recent inbox mail, then broader recent all-mail and 30-day targeted keyword queries.
+- Queries covered BMESC, BMESC app, VESC, VESC Tool, pev.dev/Refloat, controller hardware, BLE controller, electric skateboard/e-bike/scooter controller terms, plus English and Chinese cooperation/business keywords.
+
+**Confirmed decisions and preferences**
+- Gmail access stayed read-only. No replies, drafts, labels, archiving, deletion, or mailbox modifications were performed.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- Recent unread/recent inbox contained Ollama welcome mail and pev.dev login-link messages.
+- Broader business-keyword matches were service/notification/newsletter messages such as AIHubMix service notice, Google Search Console floatw.com guidance, NYTimes/Isha/Astroline mail.
+- VESC/pev.dev matches were login links, community summaries, and Refloat announcements, not cooperation or business inquiries.
+- Created and wrote this run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-06-30 - Run daily Gmail cooperation summary
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- Search prioritized recent unread inbox and recent inbox mail after the previous run window, then broader recent all-mail and `newer_than:7d` queries.
+- Queries covered BMESC, VESC, VESC Tool, controller hardware, BLE controller, electric skateboard/e-bike/scooter controller terms, plus English and Chinese cooperation/business keywords.
+
+**Confirmed decisions and preferences**
+- Gmail access stayed read-only. No replies, drafts, labels, archiving, deletion, or mailbox modifications were performed.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- Recent inbox sample contained only pev.dev login-link messages.
+- Broader recent all-mail matches were service/notification messages such as AIHubMix service notice and Google Search Console floatw.com guidance, not cooperation or business inquiries.
+- Wrote this run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-06-29 - Run daily Gmail cooperation summary
+
+**User request**
+- Run the `daily-bmesc-vesc-gmail-cooperation-summary` automation to check Gmail for BMESC/VESC-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration inquiries.
+
+**Key context**
+- Search prioritized recent unread inbox and inbox mail after the previous run date, then broader recent all-mail queries.
+- Queries covered BMESC, VESC, BMESC app, VESC Tool, controller hardware, BLE controller, electric skateboard/e-bike/scooter controller terms, plus English and Chinese cooperation/business keywords.
+
+**Confirmed decisions and preferences**
+- Read-only Gmail scan only; do not reply, draft, archive, label, delete, or otherwise modify emails.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- Non-demand matches included Anthropic privacy-policy notice, AIHubMix service notice, Google Terms notice, Google Play Console developer/app registration verification notice, Google Search Console floatw.com notice, pev.dev VESC/Refloat community announcements, Google account/security notices, and unrelated newsletter/promotional mail.
+- Wrote the run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-06-28 - Run daily Gmail cooperation summary
+
+**User request**
+- Run the `daily-bmesc-vesc-gmail-cooperation-summary` automation to check Gmail for BMESC/VESC-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration inquiries.
+
+**Key context**
+- Search prioritized recent unread inbox, recent inbox since the previous run, broader recent all-mail, and latest inbox sampling.
+- Queries covered BMESC, VESC, BMESC app, VESC Tool, BLE/controller/electric vehicle controller terms, plus English and Chinese cooperation/business keywords.
+
+**Confirmed decisions and preferences**
+- Read-only Gmail scan only; do not reply, draft, archive, label, delete, or otherwise modify emails.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- Non-demand matches included AIHubMix service notice, Anthropic privacy-policy notice, Google Terms notice, Google Play Console developer verification/app registration reminder, pev.dev VESC/Refloat community announcements, Google Search Console floatw.com notice, and unrelated newsletter/promotional mail.
+- Wrote the run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-06-27 - Run daily Gmail cooperation summary
+
+**User request**
+- Run the `daily-bmesc-vesc-gmail-cooperation-summary` automation to check Gmail for BMESC/VESC-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration inquiries.
+
+**Key context**
+- Search prioritized recent unread inbox and recent inbox mail, then broader recent all-mail queries.
+- Queries covered BMESC, VESC, BMESC app, VESC Tool, controller hardware, BLE controller, electric skateboard/e-bike/scooter controller terms, plus English and Chinese cooperation/business keywords.
+
+**Confirmed decisions and preferences**
+- Read-only Gmail scan only; do not reply, draft, archive, label, delete, or otherwise modify emails.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- Non-demand matches included AIHubMix service notice, Google Terms update, Google Play Console app registration/developer verification notices, Google account/security/payment notices, Google Search Console floatw.com notice, and unrelated subscription/promotional emails.
+- Wrote the run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-06-24 - Run daily Gmail cooperation summary
+
+**User request**
+- Run the `daily-bmesc-vesc-gmail-cooperation-summary` automation to check Gmail for BMESC/VESC-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration inquiries.
+
+**Key context**
+- Search prioritized recent unread inbox and recent inbox mail, then broader recent all-mail searches.
+- Queries covered BMESC, VESC, BMESC app, VESC Tool, controller hardware, BLE controller, electric skateboard/e-bike/scooter controller terms, plus English and Chinese cooperation/business keywords.
+
+**Confirmed decisions and preferences**
+- Read-only Gmail scan only; do not reply, archive, label, delete, or otherwise modify emails.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- Non-demand matches included pev.dev VESC/Refloat community announcements, VESC Project role/order notices, Google developer/Search Console/account notices, and Design.com MicroEV marketing emails.
+- Wrote the run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-06-24 - Prepare Google Play developer public details materials
+
+**User request**
+- Prepare materials for the Google Play Console developer public details page after the developer icon had already been uploaded.
+
+**Key context**
+- The public-facing brand remains `BM` / `BMESC`.
+- Existing project materials use support email `op727142092@gmail.com`, support URL `https://bmyyqzs.github.io/BMESC_APP/app-store/support.html`, and privacy policy URL `https://bmyyqzs.github.io/BMESC_APP/app-store/privacy-policy.html`.
+- `floatw.com` has been verified previously but no final public web page for Google Play developer profile was confirmed in this turn.
+
+**Confirmed decisions and preferences**
+- Keep developer public copy focused on local Bluetooth device management for compatible BMESC hardware.
+- Do not use the VESC trademark in public profile text unless a compatibility or open-source attribution field specifically requires it.
+
+**Actions and results**
+- Added `/Users/a202603/Documents/BMESC_APP/docs/google-play/developer-profile-public-details.md` with copy-ready English and Chinese developer profile fields, tagline, links, featured-app guidance, and items requiring legal/account confirmation.
+- Generated `/Users/a202603/Documents/BMESC_APP/docs/google-play/bmesc-google-play-developer-header.png` and `/Users/a202603/Documents/BMESC_APP/docs/google-play/bmesc-google-play-developer-header.jpg` as 4096 x 2304 BM header image assets; the JPG is recommended for upload.
+
+**Unresolved items**
+- Confirm the legal developer name, public address, public phone number if requested by Google, and whether to use the temporary GitHub Pages support URL or a future `floatw.com` page as the public website.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-06 - Run daily Gmail cooperation summary
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- Search prioritized recent unread inbox and recent inbox mail, then broader recent all-mail keyword searches.
+- Queries covered mail after 2026-07-04, BMESC, BMESC app, VESC, VESC Tool, pev.dev/Refloat, controller hardware, BLE/motor/FOC/speed controller, electric skateboard/e-bike/scooter controller terms, plus English cooperation/business keywords.
+
+**Confirmed decisions and preferences**
+- Gmail access stayed read-only. No replies, drafts, labels, archiving, deletion, or mailbox modifications were performed.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- No mail was found after 2026-07-04.
+- Recent unread/recent inbox contained Google Search Console floatw.com indexing notice, OpenAI subscription-feedback survey, Cloudflare AI bot controls notice, Ollama updates, AIHubMix access/API endpoint notices, Google Play monthly update, and pev.dev login-link messages.
+- VESC/pev.dev matches were login links, Refloat 1.3 announcement, and community summaries; not cooperation or business inquiries.
+- Controller-specific searches for electric skateboard/e-bike/scooter/motor/BLE/FOC/speed controller terms returned no relevant cooperation mail.
+- Wrote this run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-06-24 - Create daily Gmail cooperation summary automation
+
+**User request**
+- Set up an automation to check Google/Gmail every morning at 3:00 and summarize whether there are emails about BMESC or VESC cooperation needs.
+
+**Key context**
+- Automation should focus on BMESC/VESC-related partnership, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration inquiries.
+- Schedule was interpreted in the current project environment timezone, `Asia/Shanghai`.
+
+**Confirmed decisions and preferences**
+- Create a recurring automation only; do not modify Gmail messages or send replies.
+
+**Actions and results**
+- Created active cron automation `daily-bmesc-vesc-gmail-cooperation-summary` for daily 03:00 checks.
+- The automation prompt asks for sender, date, subject, concise Chinese summary, urgency, suggested next action, and an explicit note when no relevant emails are found.
+
+**Unresolved items**
+- None.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-06-24 - Verify floatw.com domain ownership for Google developer setup
+
+**User request**
+- Operate Chrome and Aliyun DNS Console to verify `floatw.com` domain ownership for Google developer account setup.
+
+**Key context**
+- Chrome was already logged in to Aliyun DNS Console and Google Search Console.
+- Google required DNS TXT verification for `floatw.com`.
+
+**Confirmed decisions and preferences**
+- User explicitly confirmed submitting the Aliyun DNS change before the record was saved.
+- Keep this as a browser/account configuration task; no project source code changes were requested.
+
+**Actions and results**
+- Added a root-domain (`@`) TXT DNS record in Aliyun Cloud DNS for `floatw.com` using the Google Search Console verification value.
+- Confirmed Aliyun reported the DNS operation succeeded and showed the new TXT record.
+- Returned to Google Search Console and clicked Verify.
+- Google Search Console reported ownership verification completed using the domain provider method.
+
+**Unresolved items**
+- Do not remove the Google DNS TXT record, or the verified ownership state may be lost.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. The full Google verification token was not recorded in public memory.
+
+### 2026-06-22 - Build and install BMESC 1.0.0 to iPhone
+
+**User request**
+- Compile the current BMESC app and install it on the connected phone for testing.
+
+**Key context**
+- Work stayed in `/Users/a202603/Documents/BMESC_APP` on branch `BMESC_APP`.
+- Target device was `邱增顺的iPhone` (`DC6A5BAD-BD5E-5492-B8A5-05F5DC8992A7`).
+- Build used Xcode 26.4.1, iOS SDK 26.4, Qt 5.15.2 iOS qmake, Team ID `U3Y884TV63`, bundle id `com.bmesc.app`, and Apple Development signing.
+
+**Confirmed decisions and preferences**
+- This was a development-device install/test, not an App Store distribution archive.
+- Preserve existing source changes and keep protocol behavior untouched.
+
+**Actions and results**
+- Regenerated `build/ios/BMESC.xcodeproj` from `vesc_tool.pro`.
+- First signed Release build hit the known Qt generated-resource race for `qrc_res_qml.cpp` and `qrc_res_original.cpp`; repeated identical build succeeded.
+- Signed `build/ios/Release-iphoneos/BMESC.app` with `Apple Development: 727142092@qq.com (6YG8V46248)` and `iOS Team Provisioning Profile: com.bmesc.app`.
+- Verified the built app reports `CFBundleDisplayName=BMESC`, `CFBundleIdentifier=com.bmesc.app`, `CFBundleShortVersionString=1.0.0`, `CFBundleVersion=1`, and only Bluetooth usage permission keys.
+- Verified entitlements/profile application identifier is `U3Y884TV63.com.bmesc.app`.
+- Installed the app successfully to `/private/var/containers/Bundle/Application/8442A993-109A-4A2E-8272-0C44D2F112C9/BMESC.app/`.
+- Confirmed the device app list contains `BMESC / com.bmesc.app / Version 1.0.0 / Bundle Version 1`.
+
+**Unresolved items**
+- Command-line launch was denied by iOS security because the development profile/developer app has not been explicitly trusted on the phone. The device should trust the developer certificate in `Settings -> General -> VPN & Device Management -> Developer App -> Trust`, then `xcrun devicectl device process launch --device DC6A5BAD-BD5E-5492-B8A5-05F5DC8992A7 com.bmesc.app` can be retried.
+- No on-device BLE scan/connect smoke test was completed after the launch denial.
+
+**Sensitive information**
+- None. Existing private memory was read per workflow but not changed.
+
+### 2026-06-23 - Open source iOS Info.plist
+
+**User request**
+- Open the BMESC iOS `Info.plist` file.
+
+**Key context**
+- Source plist path is `/Users/a202603/Documents/BMESC_APP/ios/Info.plist`.
+- Current source plist values checked before opening: `CFBundleDisplayName=BMESC`, `CFBundleShortVersionString=1.0.0`, `CFBundleVersion=1`, `CFBundleIdentifier=$(PRODUCT_BUNDLE_IDENTIFIER)`.
+- The source plist currently contains Bluetooth usage descriptions and no location permission usage key.
+
+**Confirmed decisions and preferences**
+- Open the file for manual inspection only; no plist values were edited.
+
+**Actions and results**
+- Opened `/Users/a202603/Documents/BMESC_APP/ios/Info.plist` in Xcode.
+
+**Unresolved items**
+- If preparing a replacement App Store build, align the final archive's version/build values with the intended App Store Connect version page before upload.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-06-23 - Tighten Android bottom navigation and reinstall
+
+**User request**
+- Implement the planned Android bottom navigation spacing fix, then compile and install the app to the connected Android phone for testing.
+
+**Key context**
+- Target Android device was PKR110 with adb serial `3fb621`.
+- The issue was in `/Users/a202603/Documents/BMESC_APP/mobile/main.qml`: the footer used a tall fixed base height plus Android safe-area bottom margin, while the tab icon and label were anchored near the top, causing uneven vertical spacing.
+- Existing unrelated uncommitted project changes were preserved.
+
+**Confirmed decisions and preferences**
+- Limit the code change to QML/UI layout for the commercial MVP bottom navigation.
+- Do not alter BLE, protocol, product models, branding assets, tab count, icon resources, or navigation behavior.
+
+**Actions and results**
+- Changed the bottom footer base height from `92 + notchBot` to `80 + notchBot`.
+- Added a fixed 80 px visual navigation content area and vertically centered the `TabBar` inside it.
+- Reduced `TabBar` and `TabButton` height to 64 px.
+- Replaced the manually top-anchored icon/label layout with a centered `Column` using consistent spacing.
+- Rebuilt the Android arm64-v8a debug APK with Qt 5.15.2 Android tooling and Gradle.
+- Generated `/Users/a202603/Documents/BMESC_APP/build/android/apk/BMESC_mobile_debug.apk`.
+- Verified APK metadata: package `com.bmesc.app`, label `BMESC`, versionName `1.00`, versionCode `191`, minSdk `23`, targetSdk `35`.
+- Installed successfully on PKR110; `pm install -r -t` returned `Success`, and `lastUpdateTime=2026-06-23 15:08:20`.
+- Launched `com.bmesc.app/org.qtproject.qt5.android.bindings.QtActivity`; it became the focused top resumed activity with process PID `22987`.
+- Captured screenshot `/Users/a202603/Documents/BMESC_APP/build/android/screenshots/BMESC_android_nav_20260623_150840.png`, confirming the bottom navigation is more compact and the icon/label group is vertically centered.
+- Checked recent logcat for BMESC/Qt fatal errors, crashes, exceptions, or AndroidRuntime failures; none were found.
+
+**Unresolved items**
+- No BLE device connection or live telemetry hardware test was performed.
+- Gradle emitted existing legacy and duplicate-permission warnings; they did not block the debug build.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-06-23 - Rebuild and install Android app to PKR110
+
+**User request**
+- Compile the current Android app and install it to the connected Android phone for testing.
+
+**Key context**
+- Connected Android test device: PKR110, adb serial `3fb621`.
+- Current build included the latest QML UI cleanup work for home spacing, BLE row divider removal, and dashboard metric inner-border cleanup.
+- Existing unrelated uncommitted project changes were preserved.
+
+**Confirmed decisions and preferences**
+- Treat this as platform/build verification only.
+- Do not change BLE/protocol behavior, product models, branding assets, or Google Play release setup.
+
+**Actions and results**
+- Rebuilt the Android arm64-v8a debug APK with Qt 5.15.2 Android tooling and Gradle.
+- Generated `/Users/a202603/Documents/BMESC_APP/build/android/apk/BMESC_mobile_debug.apk`.
+- Verified APK metadata: package `com.bmesc.app`, label `BMESC`, versionName `1.00`, versionCode `191`, minSdk `23`, targetSdk `35`.
+- Installed the APK on PKR110. ColorOS/OPlus package installer showed an install-finish activity and left the install command waiting, but package metadata confirmed installation with `lastUpdateTime=2026-06-23 14:19:14`.
+- Launched `com.bmesc.app/org.qtproject.qt5.android.bindings.QtActivity`; the app process was running and focused.
+- Captured screenshot `/Users/a202603/Documents/BMESC_APP/build/android/screenshots/BMESC_android_20260623_141951.png`; the BMESC home page rendered normally.
+- Checked recent logcat for BMESC/Qt fatal errors, crashes, exceptions, or AndroidRuntime failures; none were found.
+
+**Unresolved items**
+- No BLE hardware connection or riding telemetry test was performed.
+- Gradle emitted expected legacy warnings and duplicate permission warnings; these did not block the debug build.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-06-23 - Explain changing iOS version and build
+
+**User request**
+- Ask how to change the iOS app version and build number.
+
+**Key context**
+- Current source `/Users/a202603/Documents/BMESC_APP/ios/Info.plist` contains `CFBundleShortVersionString=1.0.0` and `CFBundleVersion=1`.
+- Generated `/Users/a202603/Documents/BMESC_APP/build/ios/BMESC.xcodeproj/project.pbxproj` currently contains `MARKETING_VERSION=1.1` and `CURRENT_PROJECT_VERSION=1` in some generated build settings, while qmake-derived full/short version settings remain `1.0.0`/`1.0`.
+- App Store Connect reads the uploaded binary's final `CFBundleShortVersionString` and `CFBundleVersion`.
+
+**Confirmed decisions and preferences**
+- Provide guidance only; no version/build files were edited in this turn.
+
+**Actions and results**
+- Rechecked the current plist and generated Xcode project values.
+- Explained that the safest project workflow is to edit the source plist values and verify the archived app bundle before upload.
+
+**Unresolved items**
+- If replacing the currently submitted App Store build, choose the intended marketing version and increment the build number before archiving.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-06-22 - Fix iOS foreground restore white flash
+
+**User request**
+- Fix the bug where reopening the app from the background briefly shows a white background before the Home page appears.
+
+**Key context**
+- Work stayed in `/Users/a202603/Documents/BMESC_APP`.
+- The issue was treated as an iOS/Qt Quick visual restore problem, not a BLE, protocol, or product-model behavior change.
+- Existing broad uncommitted workspace changes were preserved.
+
+**Confirmed decisions and preferences**
+- Keep the fix small and limited to the mobile UI/window background path.
+- Preserve communication/protocol behavior and commercial MVP navigation.
+
+**Actions and results**
+- Read public and private project memory per workflow.
+- Inspected the mobile Qt/QML startup path: `main.cpp`, `mobile/qmlui.cpp`, `mobile/main.qml`, `mobile/BMTheme.qml`, and `mobile/BMBackground.qml`.
+- Set the native `QQuickWindow` clear color to BM dark background after loading `mobile/main.qml`.
+- Set `ApplicationWindow.color` to the same BM dark background.
+- Added an immediate dark `Rectangle` fallback behind the `BMBackground` Canvas gradient so delayed Canvas repaint cannot expose white.
+- Verified with `xcodebuild -project build/ios/BMESC.xcodeproj -scheme BMESC -configuration Release -sdk iphoneos CODE_SIGNING_ALLOWED=NO build`; build succeeded.
+
+**Unresolved items**
+- No physical-device foreground/background visual smoke test was performed in this turn.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-06-22 - Prepare App Store metadata entry from screenshots
+
+**User request**
+- Continue the active App Store submission goal: use the screenshots and screen recording files to fill the relevant App Store Connect information for BMESC.
+
+**Key context**
+- App Store Connect is open to `BMESC` app id `6782801007`, iOS version `1.0`, status `Prepare for Submission`, under `Beijing Floating Wheel Technology Co., Ltd`.
+- The current version page still shows Keywords as `BMESC, Bluetooth, telemetry, device, mobility, controller,VESC,VESC Tool`; the `VESC` terms should be removed before saving because they conflict with the branding/trademark rule.
+- The local screenshot assets under `/Users/a202603/Desktop/BMESC APP上传图片/AppStore-1284x2778/` were verified as 1284x2778 PNGs.
+- The screen recording `/Users/a202603/Desktop/BMESC APP上传图片/连接硬件截屏.MP4` was verified as MP4, 1170x2532, 27.59 seconds.
+
+**Confirmed decisions and preferences**
+- Continue using the metadata draft in `docs/app-store/app-store-metadata.md`.
+- Do not click final App Review submission without a separate confirmation.
+
+**Actions and results**
+- Re-read public and private project memory per workflow.
+- Rechecked the current App Store Connect page state with Computer Use.
+- Prepared the exact fields/assets to enter, but did not modify Apple’s form because writing public metadata and uploading files to Apple requires explicit action-time confirmation.
+
+**Unresolved items**
+- User confirmation is still required before entering/saving public App Store metadata or uploading screenshots/review attachments.
+- After confirmation, fill the version page, select the processed build, upload screenshots, save the draft, then verify the persisted page state.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No private values were recorded.
+
+### 2026-06-22 - Mark App Store metadata upload blocked by confirmation
+
+**User request**
+- Continue the active goal to fill App Store Connect information using the supplied screenshots and screen recording.
+
+**Key context**
+- App Store Connect is still open on the `BMESC` iOS version `1.0` metadata page.
+- The page continues to show the unsaved Keywords value containing `VESC,VESC Tool`, and the Support URL, Copyright, build selection, review notes, and screenshots are still unfinished.
+- The available screenshot/video assets and metadata draft remain unchanged from the prior entries.
+
+**Confirmed decisions and preferences**
+- Because uploading screenshots and saving metadata transmits information to Apple, proceed only after explicit user confirmation.
+
+**Actions and results**
+- Re-read project memory and private memory per workflow.
+
+### 2026-06-24 - Export standalone BM app icon image
+
+**User request**
+- Output an app icon image as JPEG or opaque 24-bit PNG, 512 x 512 pixels, under 1 MB.
+
+**Key context**
+- The repository already contained a BM 512 x 512 RGB PNG app icon in `ios/Images.xcassets/AppIcon.appiconset/512.png`.
+
+**Confirmed decisions and preferences**
+- Use the existing BM branded icon rather than generating a new random mark.
+
+**Actions and results**
+- Copied the existing compliant icon to `exports/bm_app_icon_512.png`.
+- Verified the exported file is PNG, 512 x 512 pixels, no alpha channel, 8-bit/color RGB, and about 36 KB.
+
+**Unresolved items**
+- None.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+- Rechecked App Store Connect with Computer Use and confirmed no page changes have been made.
+- The same confirmation blocker has repeated across consecutive continuation turns, so the active goal is being marked blocked until the user confirms.
+
+**Unresolved items**
+- User should reply with `确认，继续填写并上传到 Apple` to resume filling and uploading.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No private values were recorded.
+
+### 2026-06-22 - Await confirmation for App Store form upload
+
+**User request**
+- Continue the active goal to fill App Store Connect information using the supplied screenshots and screen recording.
+
+**Key context**
+- App Store Connect remains open on the `BMESC` iOS version `1.0` metadata page.
+- The page still has the known unsaved keyword issue: `VESC,VESC Tool` must be removed before saving.
+- Uploading screenshots or entering/saving public App Store metadata would transmit information to Apple.
+
+**Confirmed decisions and preferences**
+- Do not upload files, save metadata, or submit for review without explicit user confirmation.
+
+**Actions and results**
+- Re-read project memory and private memory per workflow.
+- Rechecked the current App Store Connect page state; no Apple form changes were made in this continuation.
+
+**Unresolved items**
+- Waiting for the user to confirm: `确认，继续填写并上传到 Apple`.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No private values were recorded.
+
+### 2026-06-22 - Implement BMESC App Store release hardening
+
+**User request**
+- Implement the App Store submission plan for BMESC: first release should be direct App Review, worldwide, commercial MVP-only, with public legal/support pages and existing Gmail support contact.
+
+**Key context**
+- Work stayed in `/Users/a202603/Documents/BMESC_APP` on branch `BMESC_APP`.
+- Existing broad rename/UI/icon/product-model changes were already present and were preserved.
+- The current machine has Xcode 26.4.1, iOS SDK 26.4, Qt 5.15.2 iOS qmake, and only an Apple Development signing identity/profile for `com.bmesc.app`; no Apple Distribution identity or App Store provisioning profile was found.
+
+**Confirmed decisions and preferences**
+- Public iOS version is `1.0.0` with build `1`.
+- First App Store MVP does not request location, photo library, file sharing, document browser, or background modes.
+- Public legal/support URLs are planned under GitHub Pages from `docs/`, using `https://bmyyqzs.github.io/BMESC_APP/app-store/...`.
+- Support contact remains `op727142092@gmail.com`.
+
+**Actions and results**
+- Updated `BMESC_APP.pro` to use `VT_VERSION = 1.00` and exclude `HAS_POS` on iOS.
+- Updated `ios/Info.plist` to `CFBundleShortVersionString=1.0.0`, `CFBundleVersion=1`, BMESC Bluetooth usage strings, and removed non-MVP permission/background/file-sharing keys.
+- Updated BM product legal/support entries in QML to open public Privacy Policy, User Agreement, Support, and Open Source URLs.
+- Added `docs/app-store/` HTML drafts for privacy policy, user agreement, support, and open-source licenses, plus an App Store metadata draft and `docs/.nojekyll`.
+- Regenerated `build/ios/BMESC.xcodeproj` and verified Release iPhoneOS compile with `CODE_SIGNING_ALLOWED=NO`; first build hit the known Qt generated-resource race, second identical build succeeded.
+- Verified built app `Info.plist` reports display name `BMESC`, bundle id `com.bmesc.app`, version `1.0.0`, build `1`, and only Bluetooth permission usage keys.
+- Verified scans for removed permission keys, `example.com`, `Not configured`, and old `6.06.2` release version return no matches in release-relevant files.
+
+**Unresolved items**
+- App Store signed archive/upload was not completed because this machine currently lacks Apple Distribution signing and an App Store provisioning profile for `com.bmesc.app`.
+- GitHub Pages must be enabled with `docs/` as the Pages source before the planned legal/support URLs are public.
+- Final screenshots, App Store Connect record entry, privacy questionnaire submission, and hardware smoke test still need to be completed outside the local code patch.
+
+**Sensitive information**
+- None. Existing private memory was read per workflow but not changed.
+
+### 2026-06-22 - Codex plugin availability inventory
+
+**User request**
+- List the plugins available in the current workflow, including free and paid categories.
+
+**Key context**
+- The inventory was based on the active Codex skill/plugin context plus local plugin cache metadata under `/Users/a202603/.codex/plugins/cache`.
+- Local plugin manifests expose names, versions, descriptions, authors, and licenses, but no definitive pricing table.
+
+**Confirmed decisions and preferences**
+- Treat “free/paid” as best-effort from local metadata and known dependency boundaries, not as a billing guarantee.
+- No project source or product behavior changes were requested.
+
+**Actions and results**
+- Read project memory and private memory per workflow.
+- Inspected installed cached plugin manifests and available local skills.
+
+### 2026-06-23 - Fix Android startup white flash
+
+**User request**
+- Implement the plan to remove the brief white background shown when opening the Android app before the BMESC home page appears.
+
+**Key context**
+- Work stayed in `/Users/a202603/Documents/BMESC_APP`.
+- The issue was isolated to the Android Activity startup window before Qt/QML first paint, not BLE, protocol, product models, or QML page behavior.
+- Existing broad uncommitted workspace changes were preserved.
+
+**Confirmed decisions and preferences**
+- Use the existing Android splash/window theme as the native Activity startup background.
+- Align the Android splash fallback color with the BM dark QML background `#050609`.
+- Leave QML, BLE/protocol logic, product models, and navigation unchanged.
+
+**Actions and results**
+- Added `android:theme="@style/splashScreenTheme"` to the BMESC `QtActivity` in both `android/AndroidManifest.xml.in` and generated `android/AndroidManifest.xml`.
+- Changed all Android splash drawable fallback backgrounds from `#262626` to `#050609`.
+- Ran qmake, C++ build, `make install`, and `androiddeployqt` packaging preparation; C++ compile and generated Android package directory succeeded.
+- Verified `build/android/build/AndroidManifest.xml` contains the Activity splash theme and generated splash drawables contain `#050609`.
+
+**Unresolved items**
+- Final Gradle APK build, install, cold-launch visual check, rotation/background smoke test, and logcat check were not completed because macOS could not locate a usable Java Runtime/JDK for Gradle.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+- Prepared a categorized list of directly available plugins, project-specific skills, and externally account-dependent capabilities.
+
+**Unresolved items**
+- Exact marketplace pricing or subscription gating was not verified from an official live catalog in this turn.
+
+**Sensitive information**
+- None.
+
+### 2026-06-23 - Explain App Store Connect versus Xcode version fields
+
+**User request**
+- User asked where App Store Connect build/version numbers are changed and how they relate to Xcode values, with screenshots showing App Store Connect build `5` version `1.0.0` and Xcode fields `Version 1.1`, `Build 2`.
+
+**Key context**
+- Current generated Xcode build settings report `MARKETING_VERSION=1.1`, `CURRENT_PROJECT_VERSION=1`, and `PRODUCT_BUNDLE_IDENTIFIER=com.floatingwheel.bmesc`.
+- Current `ios/Info.plist` still contains `CFBundleShortVersionString=1.0.0` and `CFBundleVersion=1`.
+- App Store Connect build rows reflect the uploaded binary's `CFBundleShortVersionString` and `CFBundleVersion`; those are not edited directly in App Store Connect.
+
+**Confirmed decisions and preferences**
+- Provide explanation and guidance only; no file or App Store Connect changes were requested.
+
+**Actions and results**
+- Inspected Xcode build settings, `ios/Info.plist`, and generated project version settings.
+- Identified a current mismatch risk between Xcode General fields/build settings and source `Info.plist` literals.
+
+**Unresolved items**
+- Before archiving the next upload, align the actual archive `Info.plist` values with the intended App Store Connect version page, and increment the build number.
+
+**Sensitive information**
+- None.
+
+### 2026-06-23 - Advise replacing build while Waiting for Review
+
+**User request**
+- App is already submitted and waiting for review; user compiled another app build and asked whether it can be uploaded again and how to proceed.
+
+**Key context**
+- Apple Developer Help indicates a submitted version in `Waiting for Review` can have the item/build removed from review, and that each platform can have one app version submission under review at a time.
+- App Store Connect publishing workflow requires choosing the build associated with the submitted app version.
+
+**Confirmed decisions and preferences**
+- Provide guidance only; do not operate App Store Connect or upload a new build in this turn.
+
+**Actions and results**
+- Checked current official Apple Developer Help references for removing a submission/build from review and app/submission statuses.
+- Recommended uploading the new binary with the same marketing version only if the build number is increased, then removing the current version from review, selecting the new processed build, and resubmitting.
+
+**Unresolved items**
+- User must decide whether the new build is worth resetting review queue position; if the current submitted build is acceptable, waiting may be better.
+
+**Sensitive information**
+- None.
+
+### 2026-06-23 - Fill App Store accessibility information
+
+**User request**
+- After logging into App Store Connect, fill the BMESC App Accessibility page at `/apps/6782801007/distribution/accessibility`.
+
+**Key context**
+- Work used the Codex in-app browser on App Store Connect for app id `6782801007`.
+- The page is localized in Chinese and titled `App 辅助功能`.
+- BMESC currently has not been fully verified for VoiceOver, Voice Control, 200% Dynamic Type, Reduce Motion, captions, audio descriptions, or other Apple accessibility nutrition label support criteria.
+
+**Confirmed decisions and preferences**
+- Fill the accessibility page conservatively and truthfully.
+- Do not click final App Review submission.
+
+**Actions and results**
+- Opened the Accessibility questionnaire.
+- Selected device family `iPhone` only.
+- Answered that the app does not support any listed accessibility features on iPhone.
+- Confirmed and saved the accessibility draft.
+- Verified the confirmation dialog closed and the page now shows `草稿 (1)` with `对 iPhone 的支持` and the text `开发者已表明此 App 不支持部分辅助功能`.
+- The `发布` button remains disabled, which the page explains is because accessibility support can be published for App Store-released app versions.
+
+**Unresolved items**
+- If BMESC later implements and verifies accessibility support, update this page before or after release to declare the supported features accurately.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-06-23 - Suppress firmware mismatch dialogs
+
+**User request**
+- Cancel the firmware mismatch prompt.
+
+**Key context**
+- Work stayed in `/Users/a202603/Documents/BMESC_APP`.
+- The relevant prompt path was in `VescInterface::fwVersionReceived` and `VescInterface::mcconfUpdated`, which are C++ backend/user-notification paths.
+- Protocol-facing `BleUart`, `Packet`, `Commands`, and firmware compatibility state handling were not changed.
+
+**Confirmed decisions and preferences**
+- Keep the commercial/product connection flow non-modal for firmware compatibility notices.
+- Preserve limited communication mode, disconnect behavior for unsupported firmware, firmware version recording, and config/cache loading behavior.
+
+**Actions and results**
+- Removed connection-time modal dialogs for newer, old-compatible, unsupported, known-issue, and test firmware cases.
+- Replaced unsupported/too-old firmware modal errors with non-modal status messages while preserving disconnect behavior.
+- Removed the motor configuration loaded-from-different-firmware modal warning.
+- Verified with `xcodebuild -project build/ios/BMESC.xcodeproj -scheme BMESC -configuration Release -sdk iphoneos CODE_SIGNING_ALLOWED=NO build`; build succeeded.
+
+**Unresolved items**
+- Firmware upload safety warnings for wrong hardware/firmware selection were intentionally left unchanged.
+- No physical-device BLE connect smoke test was performed in this turn.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-06-23 - Identify remaining App Review blockers
+
+**User request**
+- User shared an App Store Connect error screenshot and asked what information is still missing.
+
+**Key context**
+- Screenshot shows `Unable to Add for Review`.
+- Current visible required blockers are primary category selection and copyright information.
+- App Store Connect app is BMESC under `Beijing Floating Wheel Technology Co., Ltd`.
+
+**Confirmed decisions and preferences**
+- Provide manual filling guidance only; do not modify App Store Connect.
+
+**Actions and results**
+- Identified the remaining visible missing fields as Primary Category and Copyright.
+- Recommended `Utilities` as the primary category and `© 2026 Beijing Floating Wheel Technology Co., Ltd.` as the copyright value.
+
+**Unresolved items**
+- User must enter and save these values in App Store Connect, then retry Add for Review to reveal any remaining hidden blockers.
+
+**Sensitive information**
+- None.
+
+### 2026-06-22 - Prepare App Store review required fields
+
+**User request**
+- Prepare the required App Store Connect fields needed to start App Review: App Privacy URL/practices, primary category, age rating questions, build selection, Description, Keywords, and Support URL.
+
+**Key context**
+- Current App Store Connect app id is `6782801007`.
+- Current company App Store bundle id is `com.floatingwheel.bmesc`.
+- `xcodebuild -showBuildSettings` reports `BMESC`, `PRODUCT_BUNDLE_IDENTIFIER=com.floatingwheel.bmesc`, `MARKETING_VERSION=1.0`, and `CURRENT_PROJECT_VERSION=1`.
+- Metadata draft exists at `docs/app-store/app-store-metadata.md`.
+
+**Confirmed decisions and preferences**
+- Provide manual copy/fill guidance only; do not enter or save data in App Store Connect in this turn.
+- Avoid `VESC` in keywords and public App Store metadata.
+
+**Actions and results**
+- Re-read project memory and private memory per workflow.
+- Inspected `docs/app-store/app-store-metadata.md` and the public legal/support HTML pages.
+- Prepared manual values for Privacy Policy URL, Support URL, Description, Keywords, category, build selection, App Privacy answers, age rating answers, and review notes.
+
+**Unresolved items**
+- User/admin must manually enter and save the App Privacy questionnaire, age rating questionnaire, primary category, metadata, and build selection in App Store Connect.
+
+**Sensitive information**
+- None.
+
+### 2026-06-22 - Advise manual Xcode App Store fields
+
+**User request**
+- User wants to submit manually and asked how to fill the Xcode General target fields shown in screenshots.
+
+**Key context**
+- Current generated Xcode project is `/Users/a202603/Documents/BMESC_APP/build/ios/BMESC.xcodeproj`.
+- Current App Store/company Bundle ID decision is `com.floatingwheel.bmesc`; earlier `com.bmesc.app` entries are superseded for company App Store distribution.
+- `xcodebuild -showBuildSettings` reports `PRODUCT_BUNDLE_IDENTIFIER=com.floatingwheel.bmesc`, `MARKETING_VERSION=1.0`, `CURRENT_PROJECT_VERSION=1`, `IPHONEOS_DEPLOYMENT_TARGET=12.0`, `TARGETED_DEVICE_FAMILY=1`, `ASSETCATALOG_COMPILER_APPICON_NAME=AppIcon`, and display name `BMESC`.
+
+**Confirmed decisions and preferences**
+- Provide manual filling guidance only; do not edit source or Xcode project settings in this turn.
+
+**Actions and results**
+- Inspected `ios/Info.plist`, qmake project settings, and generated `build/ios/BMESC.xcodeproj/project.pbxproj`.
+- Confirmed screenshot values are mostly aligned with the current company App Store submission path.
+- Noted that App Store Connect upload association depends on the bundle ID and version number in the uploaded app bundle, per Apple Developer Help.
+
+**Unresolved items**
+- User should ensure App Store Connect version record and binary marketing version match before archive upload; current Xcode build setting shows `1.0` while source `ios/Info.plist` still contains `1.0.0`.
+
+**Sensitive information**
+- None.
+
+### 2026-06-22 - Confirm current iOS Xcode project path
+
+**User request**
+- Ask where the current iOS Xcode project file is located.
+
+**Key context**
+- Work stayed in `/Users/a202603/Documents/BMESC_APP`.
+- The generated iOS Xcode project is under `build/ios/`.
+
+**Confirmed decisions and preferences**
+- This was an informational query only; no source or build behavior changes were requested.
+
+**Actions and results**
+- Verified the current Xcode project path is `/Users/a202603/Documents/BMESC_APP/build/ios/BMESC.xcodeproj`.
+- Verified `xcodebuild -list` reports project `BMESC`, scheme `BMESC`, targets `BMESC` and `Qt Preprocess`, and configurations `Debug` and `Release`.
+
+**Unresolved items**
+- None.
+
+**Sensitive information**
+- None.
+
+### 2026-06-22 - Switch BMESC to company Bundle ID for App Store
+
+**User request**
+- Replace the blocked/personal-team Bundle ID with a company-owned Bundle ID for App Store submission.
+
+**Key context**
+- Work stayed in `/Users/a202603/Documents/BMESC_APP` on branch `BMESC_APP`.
+- Company Apple Developer Team is `Beijing Floating Wheel Technology Co., Ltd` with Team ID `R2QUAAM332`.
+- The prior `com.bmesc.app` identifier could not be used by the company Team, so the iOS/macOS Bundle ID was changed to `com.floatingwheel.bmesc`.
+
+**Confirmed decisions and preferences**
+- Keep the visible app name as `BMESC`.
+- Keep Android package naming out of this iOS App Store signing change.
+- Preserve BLE, Packet, Commands, VescInterface, and product protocol behavior.
+
+**Actions and results**
+- Updated iOS/macOS qmake bundle settings and App Store metadata draft to use `com.floatingwheel.bmesc`.
+- Regenerated/used `build/ios/BMESC.xcodeproj` with `PRODUCT_BUNDLE_IDENTIFIER=com.floatingwheel.bmesc`.
+- Verified a company-Team Release iPhoneOS build succeeds and reports `BMESC / com.floatingwheel.bmesc / 1.0.0 / build 1`.
+- Created `/tmp/BMESC-AppStore-FloatingWheel.xcarchive`.
+- Exported App Store Connect IPA to `/tmp/BMESC-floatingwheel-export/BMESC.ipa`.
+- Verified final IPA entitlements use `R2QUAAM332.com.floatingwheel.bmesc`, `get-task-allow=false`, Cloud Managed Apple Distribution signing, and `iOS Team Store Provisioning Profile: com.floatingwheel.bmesc`.
+- Opened App Store Connect Apps page for creating the missing app record.
+
+**Unresolved items**
+- Direct upload failed because App Store Connect has no app record for `com.floatingwheel.bmesc` yet; logs show `missingApp(bundleId: "com.floatingwheel.bmesc")`.
+- After the user creates the App Store Connect app record, rerun the upload export step and continue metadata/screenshots/App Review submission.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were added to public memory.
+
+### 2026-06-22 - Create BMESC App Store Connect record and upload build
+
+**User request**
+- Use Computer Use to create the BMESC app record in App Store Connect.
+
+**Key context**
+- Work stayed in `/Users/a202603/Documents/BMESC_APP` on branch `BMESC_APP`.
+- The App Store Connect app record uses company Team `Beijing Floating Wheel Technology Co., Ltd` and Bundle ID `com.floatingwheel.bmesc`.
+
+**Confirmed decisions and preferences**
+- App name remains `BMESC`.
+- The iOS App Store record is for version `1.0`.
+- No product protocol or app source behavior changes were requested.
+
+**Actions and results**
+- Used Computer Use in Chrome to create/open the App Store Connect app record for `BMESC`.
+- App Store Connect assigned app id `6782801007`.
+- Confirmed the app page shows `BMESC` and `iOS App Version 1.0` in `Prepare for Submission`.
+- Re-ran the Xcode upload export command after the app record existed.
+- Upload of `/tmp/BMESC-floatingwheel-export/BMESC.ipa` succeeded; App Store Connect reported the uploaded package is processing.
+
+**Unresolved items**
+- Wait for App Store Connect build processing to finish, then select build `1.0.0 (1)` on the version page.
+- Metadata, screenshots, App Privacy, pricing/availability, review notes, and final App Review submission still need completion.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No passwords, codes, or private account values were recorded.
+
+### 2026-06-22 - Render legal pages as normal HTML
+
+**User request**
+- The legal/support pages opened as visible HTML source; fix them until they display as normal rendered web pages.
+
+**Key context**
+- `gcore.jsdelivr.net` served the HTML files as `text/plain`, which made Safari show source-like content instead of a rendered page.
+- GitHub Pages from `gh-pages` serves the same files as `text/html; charset=utf-8`.
+
+**Confirmed decisions and preferences**
+- Use GitHub Pages URLs for the in-app legal/support entries so browsers render the pages normally.
+- Keep the change scoped to URL targets, metadata, publishing, build/install, and verification.
+
+**Actions and results**
+- Replaced the `gcore.jsdelivr.net` legal/support URLs in `mobile/BMMinePage.qml`, `mobile/BMSettingsPage.qml`, `mobile/main.qml`, and `docs/app-store/app-store-metadata.md` with `https://bmyyqzs.github.io/BMESC_APP/app-store/...` URLs.
+- Pushed the final URL update to remote `main` in commit `09da726`.
+- Verified with installed Chrome/Playwright that Privacy Policy, User Agreement, Support, and Open Source pages each return HTTP 200 with `text/html; charset=utf-8`, have the expected BMESC title/H1, have no visible raw HTML, and render normally.
+- Rebuilt, signed, installed, and launched `BMESC / com.bmesc.app / 1.0.0 / build 1` on `邱增顺的iPhone`.
+- Launched iPhone Safari with the final Privacy Policy GitHub Pages URL through `devicectl`.
+
+**Unresolved items**
+- Mac command-line `curl` to `github.io` can still show occasional connection resets from the current network, but browser rendering verification succeeded and the response type is correct for normal page display.
+
+**Sensitive information**
+- None.
+
+### 2026-06-22 - Fix public legal and support links
+
+**User request**
+- Fix the Support, Privacy Policy, User Agreement, and Open Source License links until the pages can be opened.
+
+**Key context**
+- The original `github.io` URLs were not reliably reachable in the current network even after publishing `docs/app-store/`.
+- The app link entries are in `mobile/BMMinePage.qml`, `mobile/BMSettingsPage.qml`, and `mobile/main.qml`.
+- App Store metadata references are in `docs/app-store/app-store-metadata.md`.
+
+**Confirmed decisions and preferences**
+- Keep the fix limited to public URL publishing and QML URL targets.
+- Do not change BLE, packet, command, or product protocol behavior.
+
+**Actions and results**
+- Published local `docs/app-store/` pages to remote `main` in commit `29a88a1`.
+- Created remote `gh-pages` branch commit `26ad866` with the same static pages for future GitHub Pages use.
+- Replaced the app and metadata legal/support links with stable `https://gcore.jsdelivr.net/gh/bmyyqzs/BMESC_APP@main/docs/app-store/...` URLs.
+- Pushed the final URL change to remote `main` in commit `f50d325`.
+- Verified all four final URLs returned HTTP 200 for three consecutive passes and exposed the expected BMESC page titles.
+- Verified `qmllint` and `git diff --check` for the touched QML/metadata files.
+- Rebuilt, signed, installed, and launched `BMESC / com.bmesc.app / 1.0.0 / build 1` on `邱增顺的iPhone`.
+- Launched iPhone Safari with the final Privacy Policy URL through `devicectl` to verify the phone can open the URL target.
+
+**Unresolved items**
+- `gcore.jsdelivr.net` serves these files as `text/plain`; this is stable and readable, but a branded first-party domain should replace it before final App Store marketing polish if available.
+
+**Sensitive information**
+- None.
+
+### 2026-06-22 - Diagnose legal and support URL failures
+
+**User request**
+- Check why the in-app Support, Privacy Policy, User Agreement, and Open Source License entries do not open web pages.
+
+**Key context**
+- The QML entries in `mobile/BMMinePage.qml`, `mobile/BMSettingsPage.qml`, and `mobile/main.qml` call `Qt.openUrlExternally(...)` with planned GitHub Pages URLs under `https://bmyyqzs.github.io/BMESC_APP/app-store/`.
+- Local HTML drafts exist under `docs/app-store/`, but `docs/` is currently untracked in the local dirty working tree.
+
+**Confirmed decisions and preferences**
+- This turn was diagnostic only; no protocol, BLE, build, or UI behavior changes were made.
+
+**Actions and results**
+- Verified the four local HTML files exist: privacy policy, user agreement, support, and open-source licenses.
+- Verified `origin/main` exists, but its tree does not contain `docs/app-store/`.
+- Verified `https://github.com/bmyyqzs/BMESC_APP/tree/main/docs/app-store` returns 404.
+- Attempted the planned GitHub Pages URLs and received connection failures from `bmyyqzs.github.io`, consistent with the pages not being published/enabled.
+
+**Unresolved items**
+- Publish `docs/app-store/` to the remote repository and enable GitHub Pages from the `main` branch `/docs` folder, or replace the app URLs with another already reachable public site before App Review.
+
+**Sensitive information**
+- None.
+
+### 2026-06-22 - Build install and launch BMESC with new bundle id
+
+**User request**
+- Compile the current app, install it on the connected phone, and test launch.
+
+**Key context**
+- Current generated iOS project is `build/ios/BMESC.xcodeproj` with scheme `BMESC`.
+- Target device was `邱增顺的iPhone` (`DC6A5BAD-BD5E-5492-B8A5-05F5DC8992A7`).
+- New intended bundle id is `com.bmesc.app`; previous installed test bundle `com.microev.bm` remains on the phone.
+
+**Confirmed decisions and preferences**
+- Keep this turn limited to platform/build/install work.
+- Preserve existing uncommitted source changes and avoid protocol or UI behavior edits.
+
+**Actions and results**
+- Re-read project memory and used the `microev-ios` workflow.
+- Confirmed Xcode 26.4.1, iOS SDK 26.4, Qt 5.15.2 iOS qmake, a valid Apple Development signing identity, Team ID `U3Y884TV63`, and the paired iPhone.
+- Regenerated `build/ios` from `vesc_tool.pro`; first build hit the known Qt/Xcode moc generation race for two generated files, then the repeated build succeeded.
+- Built signed Release for `iphoneos` with scheme `BMESC`, `DEVELOPMENT_TEAM=U3Y884TV63`, `PRODUCT_BUNDLE_IDENTIFIER=com.bmesc.app`, and automatic signing.
+- Xcode created/used `iOS Team Provisioning Profile: com.bmesc.app`.
+- Verified the built app display name `BMESC`, bundle id `com.bmesc.app`, team identifier `U3Y884TV63`, and application identifier `U3Y884TV63.com.bmesc.app`.
+- Installed BMESC to `/private/var/containers/Bundle/Application/669F22C4-4120-4310-83D6-F6C797C0714B/BMESC.app/`.
+- Launched `com.bmesc.app` successfully with `devicectl`.
+- Confirmed the device app list contains `BMESC / com.bmesc.app` version `6.06.2`.
+
+**Unresolved items**
+- No manual on-device visual verification or BLE/CAN hardware test was performed after launch.
+- `devicectl` still prints the existing provisioning parameter list warning, but build, install, and launch succeeded.
+
+**Sensitive information**
+- None.
+
+### 2026-06-22 - Attempt GitHub-side repository rename
+
+**User request**
+- Complete the GitHub website-side repository rename from `bmyyqzs/MicroEV2` to `bmyyqzs/BMESC_APP`.
+
+**Key context**
+- Local repository is already in `/Users/a202603/Documents/BMESC_APP` on branch `BMESC_APP`.
+- Local `origin` already points to `git@github.com:bmyyqzs/BMESC_APP.git`.
+
+**Confirmed decisions and preferences**
+- Target GitHub repository name remains `bmyyqzs/BMESC_APP`.
+
+**Actions and results**
+- Confirmed through the GitHub connector that `bmyyqzs/MicroEV2` exists, is public, and the connected account has `admin: true`.
+- Confirmed through the GitHub connector that `bmyyqzs/BMESC_APP` still returns 404 and has not been created/renamed yet.
+- Tried to authenticate `gh` for repository rename, but `gh` has no stored GitHub login.
+- Tried the web/device login path, but the GitHub login endpoint timed out from the local network.
+- Verified SSH `git ls-remote` still reaches `bmyyqzs/MicroEV2` and `bmyyqzs/BMESC_APP` still returns `Repository not found`.
+
+**Unresolved items**
+- Repository rename is still blocked until GitHub authentication is available through `gh auth login`, a temporary PAT, or explicit approval to operate the already logged-in browser UI.
+
+**Sensitive information**
+- No token or private credential was provided or recorded.
+
+### 2026-06-22 - Push sanitized BMESC APP snapshot to new GitHub repository
+
+**User request**
+- Upload the current BMESC APP code to the manually created GitHub repository `git@github.com:bmyyqzs/BMESC_APP.git`, without uploading project memory files or local password-related files.
+
+**Key context**
+- The target repository was reachable over SSH and initially had no `HEAD`.
+- The local working tree contains many uncommitted BMESC APP rename, UI, icon, iOS, Android, and product model changes.
+- To avoid uploading historical memory content from the existing Git repository, upload used a temporary clean snapshot repository instead of pushing the existing Git history.
+
+**Confirmed decisions and preferences**
+- Upload a snapshot to the new repository `main` branch.
+- Exclude `PROJECT_MEMORY.md`, `PROJECT_MEMORY_PRIVATE.md`, `.env*`, certificate/key/provisioning files, keystores, `.git`, build output, and local Pinegrow backup/info folders from the uploaded snapshot.
+- Add `/PROJECT_MEMORY.md` to `.gitignore` alongside the existing private memory ignore rule so future commits avoid memory files.
+
+**Actions and results**
+- Created a temporary sanitized snapshot repository under `/tmp`.
+- Committed the snapshot as `9b021db77bb8c9da2d05e835966f0c21c95a32b5` with message `Initial BMESC APP snapshot`.
+- Pushed `main` to `git@github.com:bmyyqzs/BMESC_APP.git`.
+- Verified remote `HEAD` and `refs/heads/main` point to `9b021db77bb8c9da2d05e835966f0c21c95a32b5`.
+- Verified the remote tree has no paths matching project memory files, `.env`, certificate/key/provisioning files, or keystore names.
+
+**Unresolved items**
+- The original local repository still has its existing dirty working tree and historical Git history; only the sanitized snapshot was uploaded to the new GitHub repository.
+
+**Sensitive information**
+- No private token, password, or local credential file was uploaded or recorded.
+
+### 2026-06-22 - Explain GitHub CLI login options
+
+**User request**
+- Ask how to log in to GitHub CLI so the GitHub-side repository rename can proceed.
+
+### 2026-06-22 - Attempt BMESC App Store archive and export
+
+**User request**
+- Implement the BMESC App Store submission plan: archive `BMESC` / `com.bmesc.app`, upload to App Store Connect, and prepare direct App Review submission.
+
+**Key context**
+- Work stayed in `/Users/a202603/Documents/BMESC_APP` on branch `BMESC_APP`.
+- Xcode 26.4.1, iOS SDK 26.4, and Qt 5.15.2 iOS qmake are available.
+- The connected device remains `邱增顺的iPhone`, but this turn focused on App Store distribution rather than device install.
+
+**Confirmed decisions and preferences**
+- Continue with direct App Review rather than TestFlight-first.
+- Use Xcode/manual Apple account configuration when credentials or two-factor prompts are required.
+- Preserve protocol/BLE behavior and avoid source changes beyond required memory logging.
+
+**Actions and results**
+- Verified `ios/Info.plist` reports `BMESC`, `com.bmesc.app`, version `1.0.0`, build `1`, Bluetooth-only usage strings, and `ITSAppUsesNonExemptEncryption=false`.
+- Verified local signing state still has only `Apple Development: 727142092@qq.com (6YG8V46248)` and development provisioning profiles for `com.bmesc.app` and `com.microev.bm`.
+- Created a Release iOS archive successfully at `/tmp/BMESC-AppStore.xcarchive` and copied it to `/Users/a202603/Library/Developer/Xcode/Archives/2026-06-22/BMESC-AppStore-1.0.0-1.xcarchive`.
+- Verified the archive app is `BMESC`, bundle id `com.bmesc.app`, version `1.0.0`, build `1`, but it is signed with Apple Development and has `get-task-allow=true`.
+- Attempted App Store Connect export with automatic signing and Team ID `U3Y884TV63`; export failed because Team `Zengshun Qiu` does not have permission to create `iOS App Store` provisioning profiles and no App Store profile for `com.bmesc.app` was found.
+- Opened Xcode with `build/ios/BMESC.xcodeproj` and opened the created archive for manual account/signing follow-up.
+
+**Unresolved items**
+- User must log into or switch to an Apple Developer Program account/team with App Store distribution permissions, or have an Account Holder/Admin create/download an App Store provisioning profile for `com.bmesc.app`.
+- After distribution signing is available, rerun export/upload, confirm the build appears in App Store Connect, add screenshots/review notes/privacy answers, and submit for review.
+- Public GitHub Pages legal/support URLs still showed `curl` connection resets from the current Mac network in this turn and should be browser-verified again before final submission.
+
+**Sensitive information**
+- No Apple ID password, two-factor code, token, certificate private key, or provisioning secret was provided or recorded.
+
+### 2026-06-22 - Open Apple Developer account pages
+
+**User request**
+- Open the account-changing page after Xcode reported that `Zengshun Qiu (Personal Team)` is not enrolled in the Apple Developer Program.
+
+**Key context**
+- The App Store export remains blocked by Apple Developer Program enrollment/team permissions, not by BMESC code.
+
+**Confirmed decisions and preferences**
+- User will handle any Apple ID password, two-factor verification, or enrollment/account-sensitive input directly.
+
+**Actions and results**
+- Opened `https://developer.apple.com/account/` and `https://developer.apple.com/programs/enroll/` in the browser.
+- Activated Xcode and opened its Settings window, then attempted to navigate to the Accounts tab for adding or switching the developer account/team.
+
+**Unresolved items**
+- User still needs to sign in with an enrolled Apple Developer Program account/team or complete enrollment, then rerun distribution signing/export.
+
+**Sensitive information**
+- No Apple ID password, two-factor code, payment detail, or account secret was provided or recorded.
+
+### 2026-06-22 - Verify company Apple Developer team login
+
+**User request**
+- Check whether the Apple Developer account is logged in and help operate it if needed.
+
+**Key context**
+- Xcode Accounts now shows `Beijing Floating Wheel Technology Co., Ltd` as a Developer Team with role `Admin`.
+- Local Xcode preferences identify the company Team ID as `R2QUAAM332`; the personal team remains `U3Y884TV63`.
+
+**Confirmed decisions and preferences**
+- Do not enter, read, or record Apple ID passwords or two-factor codes.
+- Do not silently change the public Bundle ID or delete/reassign identifiers without user confirmation.
+
+**Actions and results**
+- Verified the user is logged into an enrolled company Apple Developer team in Xcode.
+- Tried archiving BMESC with `DEVELOPMENT_TEAM=R2QUAAM332` and `PRODUCT_BUNDLE_IDENTIFIER=com.bmesc.app`.
+- The company-team archive failed because `com.bmesc.app` cannot be registered to the company team: Xcode reported the identifier is not available and no matching company provisioning profile exists.
+
+**Unresolved items**
+- User must choose whether to free/transfer/delete the old `com.bmesc.app` identifier from the personal team if possible, or change BMESC to a new company-owned Bundle ID before App Store distribution.
+- After the Bundle ID decision, rerun company-team archive/export/upload.
+
+**Sensitive information**
+- No Apple ID password, two-factor code, token, certificate private key, or provisioning secret was provided or recorded.
+
+### 2026-06-22 - Try preserving Bundle ID com.bmesc.app
+
+**User request**
+- Choose option 1 from the Bundle ID decision: keep `com.bmesc.app` if possible by freeing or transferring the old identifier.
+
+**Key context**
+- Browser Apple Developer team menu only exposed the company Team `Beijing Floating Wheel Technology Co., Ltd - R2QUAAM332`; the Personal Team was not manageable from the Certificates, Identifiers & Profiles page.
+- Company Team can use Xcode automatic signing and now has a wildcard development provisioning profile.
+
+**Confirmed decisions and preferences**
+- Preserve `com.bmesc.app` for App Store submission if it can be released.
+- Do not click final delete/remove actions in Apple Developer without explicit confirmation.
+
+**Actions and results**
+- Opened Apple Developer Identifiers and support/contact pages.
+- Backed up and removed the local Personal Team `com.bmesc.app` development profile from Xcode's provisioning profile cache.
+- Registered the connected iPhone with the company Team through Xcode automatic provisioning and successfully built BMESC with company Team ID `R2QUAAM332`.
+- Created a company-team archive at `/tmp/BMESC-AppStore-Company.xcarchive`; archive still used development signing, as expected for the generated Xcode project.
+- Re-tried App Store Connect export with company Team `R2QUAAM332`; export failed because Apple still refuses explicit App ID registration for `com.bmesc.app`.
+- Distribution logs show Apple returned: `An App ID with Identifier 'com.bmesc.app' is not available. Please enter a different string.`
+- Current local signing state has Apple Development identities only and no Apple Distribution identity or App Store provisioning profile for `com.bmesc.app`.
+
+**Unresolved items**
+- To keep `com.bmesc.app`, Apple Developer Support or the original identifier owner must release/transfer the identifier; this cannot be completed through local Xcode automation.
+- Fastest technical alternative remains changing to a new company-owned Bundle ID, then recreating the archive/export/upload path.
+
+**Sensitive information**
+- No Apple ID password, two-factor code, token, certificate private key, or provisioning secret was provided or recorded.
+
+**Key context**
+- `gh` is installed at `/Users/a202603/.local/bin/gh` but has no stored GitHub login.
+- The previous `gh auth login` browser/device flow timed out while contacting GitHub login endpoints from the local network.
+
+**Confirmed decisions and preferences**
+- Prefer browser/device login when the GitHub login endpoint is reachable.
+- Use a temporary GitHub personal access token only if the browser/device login path remains blocked.
+
+**Actions and results**
+- Explained the `gh auth login` browser flow and a fallback `gh auth login --with-token` flow.
+
+**Unresolved items**
+- User still needs to complete one GitHub authentication method before repository rename can continue.
+
+**Sensitive information**
+- No token or private credential was provided or recorded.
+
+### 2026-06-22 - Install GitHub CLI
+
+**User request**
+- Install the `gh` CLI so GitHub repository operations can be performed locally.
+
+**Key context**
+- Homebrew was not available in the current shell, so installation used the official GitHub CLI release archive.
+- The machine architecture is macOS arm64.
+
+**Confirmed decisions and preferences**
+- Install `gh` without requiring Homebrew or system-wide write access.
+- Make `gh` available from new interactive zsh shells through the user PATH.
+
+**Actions and results**
+- Downloaded GitHub CLI `v2.95.0` official `macOS_arm64.zip` release.
+- Installed the binary at `/Users/a202603/.local/bin/gh`.
+- Updated `/Users/a202603/.zshrc` to add `/Users/a202603/.local/bin` to `PATH` when present.
+- Verified `zsh -ic 'command -v gh && gh --version'` resolves `gh` and reports version `2.95.0`.
+- Verified `gh auth status` reports no GitHub login yet.
+
+**Unresolved items**
+- GitHub authentication still needs to be completed with `gh auth login` before using `gh` for repository rename or other authenticated GitHub operations.
+
+**Sensitive information**
+- None.
+
+### 2026-06-22 - Complete BMESC APP rename verification after local folder move
+
+**User request**
+- Continue implementing the BMESC APP rename plan after merging `main` and checking out branch `BMESC_APP`.
+
+**Key context**
+- Work continued in the renamed local folder `/Users/a202603/Documents/BMESC_APP` on branch `BMESC_APP`.
+- The local Git remote is set to `git@github.com:bmyyqzs/BMESC_APP.git`.
+- Pre-existing uncommitted UI, icon, Info.plist, and product model changes remain preserved.
+
+**Confirmed decisions and preferences**
+- Keep the generated app display name as `BMESC`.
+- Keep the project identity as `BMESC APP`, qmake entry file `BMESC_APP.pro`, and app identifiers `com.bmesc.app`.
+
+**Actions and results**
+- Confirmed the regenerated new-path iOS project `build/ios/BMESC.xcodeproj` builds for iPhoneOS Release with `CODE_SIGNING_ALLOWED=NO`.
+- Verified the built app Info.plist reports `CFBundleDisplayName=BMESC`, `CFBundleName=BMESC`, and `CFBundleIdentifier=com.bmesc.app`.
+- Verified `git diff --check` passes.
+- Verified scans for obsolete current-build references to `microev.pro`, `com.microev.bm`, `com.bm.microev`, old Android package paths, and old local absolute project path return no matches outside excluded history/private/build files.
+- Confirmed `git@github.com:bmyyqzs/BMESC_APP.git` still returns `Repository not found`, while `git@github.com:bmyyqzs/MicroEV2.git` remains reachable.
+
+**Unresolved items**
+- GitHub-side repository rename is still not completed; the local `gh` CLI is not installed, so this turn could not rename the remote repository through GitHub.
+- Signed iOS install was not attempted because the new bundle id `com.bmesc.app` needs a matching Apple provisioning profile.
+- Android full build was not run in this turn.
+
+**Sensitive information**
+- None.
+
+### 2026-06-22 - Rename project identity to BMESC APP
+
+**User request**
+- Implement the BMESC APP project rename plan: merge/check branch baseline, create/use branch `BMESC_APP`, rename the local project/repository identity, rename the qmake project file, migrate app identifiers to `com.bmesc.app`, keep the generated app display name as `BMESC`, and update GitHub/local repository naming.
+
+**Key context**
+- Work was performed on branch `BMESC_APP` after confirming `main` was already merged/up to date with the current branch commit.
+- Existing uncommitted UI, icon, Info.plist, Android, and product model changes were preserved and not reverted.
+- The source qmake entry is now `BMESC_APP.pro`; `vesc_tool.pro` remains as a compatibility symlink.
+
+**Confirmed decisions and preferences**
+- Use `BMESC_APP.pro` for the project file.
+- Use `bmyyqzs/BMESC_APP` as the target GitHub repository name/remote.
+- Use `com.bmesc.app` for iOS bundle id and Android package id.
+- Keep user-visible app name/display name as `BMESC`.
+
+**Actions and results**
+- Renamed `microev.pro` to `BMESC_APP.pro` and updated `vesc_tool.pro` to point to it.
+- Migrated Android package/source paths from `com.bm.microev` to `com.bmesc.app`, including manifest service names, Java package declarations, qmake Android source paths, and C++ JNI `Utils` lookups.
+- Updated Android native library/app artifact naming in build scripts from `vesc_tool` to `BMESC`.
+- Set qmake iOS/macOS target naming to `BMESC` and generated Xcode `PRODUCT_BUNDLE_IDENTIFIER` to `com.bmesc.app`; macOS Info.plist was aligned to `com.bmesc.app`.
+- Updated active docs and Pinegrow project path references from `MicroEV2`/`microev.pro` to `BMESC APP`/`BMESC_APP.pro`; historical `PROJECT_MEMORY.md` entries were not rewritten.
+- Regenerated `build/ios/BMESC.xcodeproj`; verified scheme/target `BMESC`.
+- Verified iPhoneOS Release build succeeds with `CODE_SIGNING_ALLOWED=NO`.
+- Verified built app Info.plist reports `CFBundleDisplayName=BMESC`, `CFBundleName=BMESC`, and `CFBundleIdentifier=com.bmesc.app`.
+- Updated local `origin` to `git@github.com:bmyyqzs/BMESC_APP.git`.
+
+**Unresolved items**
+- `git ls-remote` for `git@github.com:bmyyqzs/BMESC_APP.git` returned `Repository not found`; the old `git@github.com:bmyyqzs/MicroEV2.git` remains reachable, so GitHub-side repository rename still needs to be completed through GitHub settings/API with appropriate permissions.
+- Signed iOS install was not attempted because `com.bmesc.app` needs a matching Apple provisioning profile.
+- Android full build was not run in this turn; manifest/package consistency was checked by source scan.
+
+**Sensitive information**
+- None.
+
 ### 2026-06-16 - Qt to native iOS or uni-app migration assessment
 
 **User request**
@@ -24,6 +1789,624 @@ This Git-tracked file is the chronological memory for project conversations and 
 **Unresolved items**
 - Need a product decision on whether the priority is fastest iOS MVP shipping, long-term native iOS quality, or cross-platform app reuse.
 - A real migration plan would need BLE acceptance tests, protocol documentation, and a screen/API inventory before implementation.
+
+**Sensitive information**
+- None.
+
+### 2026-06-22 - Update About BMESC page copy
+
+**User request**
+- Replace the About BMESC page content with new Chinese brand, hardware-device, app, ecosystem, and contact copy.
+
+**Key context**
+- The affected commercial MVP surface is the Mine page `关于 BMESC` info popup in `mobile/BMMinePage.qml`.
+- Existing workspace had unrelated uncommitted changes; this task was limited to the About BMESC popup body text.
+
+**Confirmed decisions and preferences**
+- Keep the change QML/UI-only.
+- Preserve protocol, BLE, product model behavior, and build settings.
+- Use the provided Chinese copy as the user-facing Chinese text and update the English fallback to match the new meaning.
+
+**Actions and results**
+- Updated the `关于 BMESC` popup content in `mobile/BMMinePage.qml`.
+- Verified `/Users/a202603/Qt/5.15.2/ios/bin/qmllint mobile/BMMinePage.qml` passes.
+- Verified `git diff --check -- mobile/BMMinePage.qml` passes.
+
+**Unresolved items**
+- No iOS rebuild, install, launch, or on-device visual verification was performed for this copy-only change.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Verify scrollable Fault Logs popup on mirrored iPhone
+
+**User request**
+- Design the Fault Logs popup so logs can be displayed by sliding, then test through iPhone mirroring until sliding display works.
+
+**Key context**
+- The affected commercial MVP surface is the Mine page Fault Logs popup in `mobile/BMMinePage.qml`.
+- Current generated iOS project is `build/ios/BMESC.xcodeproj` with scheme `BMESC`.
+- Target device was `邱增顺的iPhone` (`DC6A5BAD-BD5E-5492-B8A5-05F5DC8992A7`), bundle id `com.microev.bm`, and team id `U3Y884TV63`.
+
+**Confirmed decisions and preferences**
+- Keep the user-facing layout change QML/UI-focused.
+- Use a launch-argument-only test seed path to create enough local fault log rows for mirrored verification without exposing a visible normal-user test button.
+- Preserve existing fault logs when seeding; only add enough test rows to reach the test count.
+
+**Actions and results**
+- Replaced the Fault Logs popup list area with an explicit vertical `Flickable` plus a visible vertical `ScrollBar`, while keeping the action buttons anchored at the popup bottom.
+- Added `ProductDeviceModel::seedFaultLogsForTesting()` and a `--bm-seed-fault-logs` launch argument hook in `mobile/main.qml` for mirrored test setup.
+- Verified `/Users/a202603/Qt/5.15.2/ios/bin/qmllint mobile/BMMinePage.qml mobile/main.qml` passes.
+- Verified `git diff --check -- mobile/BMMinePage.qml mobile/main.qml product/productdevicemodel.cpp product/productdevicemodel.h PROJECT_MEMORY.md` passes.
+- Built signed Release for `iphoneos` with scheme `BMESC`, `DEVELOPMENT_TEAM=U3Y884TV63`, `PRODUCT_BUNDLE_IDENTIFIER=com.microev.bm`, and automatic signing.
+- Installed BMESC to `/private/var/containers/Bundle/Application/D4BD21CC-DDE1-43F1-A3BF-033DECE0B3B6/BMESC.app/`.
+- Launched `com.microev.bm --bm-seed-fault-logs` successfully with `devicectl`.
+- Used iPhone Mirroring to open BMESC, navigate to `我的`, confirm `故障日志` showed `16 条`, open the Fault Logs popup, and perform an upward drag in the log list.
+- Mirrored verification showed the list moved from the newest 16:40/16:35 entries to later visible 16:19/16:14 entries while `清除日志` and `完成` remained fixed at the bottom.
+
+**Unresolved items**
+- BLE/CAN hardware behavior was not retested because this task was limited to Fault Logs UI scrolling.
+- Test seed rows may remain in the local fault log store on the test phone and can be removed with `清除日志`.
+- `devicectl` still prints the existing provisioning parameter list warning, but build, install, launch, and mirrored UI verification succeeded.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Build, install, and launch BMESC after Fault Logs popup layout fix
+
+**User request**
+- Install the current app build to the connected phone for testing after fixing the Fault Logs popup bottom action layout.
+
+**Key context**
+- Current generated iOS project is `build/ios/BMESC.xcodeproj` with scheme `BMESC`.
+- Target device was `邱增顺的iPhone` (`DC6A5BAD-BD5E-5492-B8A5-05F5DC8992A7`), bundle id `com.microev.bm`, and team id `U3Y884TV63`.
+- The build included the `mobile/BMMinePage.qml` Fault Logs popup anchored-action-row fix.
+
+**Confirmed decisions and preferences**
+- Reuse the existing generated BMESC Xcode project and command-line signing overrides.
+- Preserve existing uncommitted workspace changes and include the current working tree in the local build.
+
+**Actions and results**
+- Re-read project memory and used the `microev-ios` workflow.
+- Confirmed Xcode 26.4.1, iOS SDK 26.4, Qt 5.15.2 iOS qmake, a valid Apple Development signing identity, and the paired iPhone.
+- Verified `git diff --check -- mobile/BMMinePage.qml PROJECT_MEMORY.md`.
+- Built signed Release for `iphoneos` with scheme `BMESC`, `DEVELOPMENT_TEAM=U3Y884TV63`, `PRODUCT_BUNDLE_IDENTIFIER=com.microev.bm`, and automatic signing.
+- Verified the built app display name `BMESC`, bundle id `com.microev.bm`, version `6.06.2`, codesign identifier `com.microev.bm`, team identifier `U3Y884TV63`, and application identifier `U3Y884TV63.com.microev.bm`.
+- Installed BMESC to `/private/var/containers/Bundle/Application/5A14508E-5324-4E34-BA2B-00AF622E844A/BMESC.app/`.
+- Confirmed the device app list contains `BMESC / com.microev.bm` version `6.06.2`.
+- Launched `com.microev.bm` successfully with `devicectl`.
+
+**Unresolved items**
+- No manual on-device visual confirmation of the Fault Logs popup, screenshot comparison, or BLE/CAN hardware test was performed by Codex after launch.
+- `devicectl` still prints the existing provisioning parameter list warning, but build, install, and launch succeeded.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Fix Fault Logs popup bottom actions
+
+**User request**
+- Fix an intermittent Mine page Fault Logs popup layout issue where the `清除日志` and `完成` buttons were not fixed at the bottom of the panel.
+
+**Key context**
+- The affected surface is the product-facing QML Mine page fault log popup in `mobile/BMMinePage.qml`.
+- The existing popup used a `ColumnLayout` with a fill-height body area, which could leave the action row positioned above the visual bottom in some states.
+
+**Confirmed decisions and preferences**
+- Keep the change UI-only and narrowly scoped.
+- Do not touch BLE, protocol, telemetry, product model behavior, or fault log data semantics.
+
+**Actions and results**
+- Changed the Fault Logs popup content from a height-negotiating `ColumnLayout` to an anchored `Item` layout.
+- Anchored the header and divider at the top, the action row at the popup bottom, and the scroll/empty body between them.
+- Verified `/Users/a202603/Qt/5.15.2/ios/bin/qmllint mobile/BMMinePage.qml` passes.
+- Verified `git diff --check -- mobile/BMMinePage.qml` passes.
+
+**Unresolved items**
+- No on-device visual verification, screenshot comparison, or full iOS rebuild was performed in this turn.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Build and install BMESC after speed display fix
+
+**User request**
+- Compile the current app and install it on the phone after fixing bidirectional speed display.
+
+**Key context**
+- Existing generated iOS project is `build/ios/BMESC.xcodeproj` with scheme `BMESC`.
+- Target device was `邱增顺的iPhone` (`DC6A5BAD-BD5E-5492-B8A5-05F5DC8992A7`), bundle id `com.microev.bm`, and team id `U3Y884TV63`.
+- The current dirty working tree, including the `ProductDeviceModel` speed magnitude fix, was included in the build.
+
+**Confirmed decisions and preferences**
+- Reuse the existing generated BMESC Xcode project.
+- Build and install only; do not launch unless requested.
+
+**Actions and results**
+- Re-read project memory and used the `microev-ios` workflow.
+- Confirmed Xcode 26.4.1, the `BMESC` scheme, a valid Apple Development signing identity, and the paired iPhone.
+- Verified `git diff --check`.
+- Built signed Release for `iphoneos` with scheme `BMESC`, `DEVELOPMENT_TEAM=U3Y884TV63`, `PRODUCT_BUNDLE_IDENTIFIER=com.microev.bm`, and automatic signing.
+- Verified the built app display name `BMESC`, bundle id `com.microev.bm`, version `6.06.2`, codesign identifier `com.microev.bm`, team identifier `U3Y884TV63`, and application identifier `U3Y884TV63.com.microev.bm`.
+- Installed BMESC to `/private/var/containers/Bundle/Application/C40C41B3-F0CB-45BD-A14C-F602AE621D95/BMESC.app/`.
+- Confirmed the device app list contains `BMESC / com.microev.bm` version `6.06.2`.
+
+**Unresolved items**
+- The app was installed but not launched in this turn.
+- No manual on-device visual verification or BLE/CAN hardware test was performed.
+- `devicectl` still prints the existing provisioning parameter list warning, but build and install succeeded.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Fix product speed display for both motor directions
+
+**User request**
+- Fix a testing bug where motor speed displayed in one rotation direction but not the other.
+
+**Key context**
+- Product-facing Home and Realtime speed displays consume `ProductDeviceModel.speedMetersPerSecond`.
+- The incoming controller telemetry speed can be signed by direction; `BMRingGauge` clamps negative display values to zero.
+
+**Confirmed decisions and preferences**
+- Preserve protocol and raw communication behavior.
+- Treat the commercial MVP speed readout as speed magnitude, not signed direction.
+
+**Actions and results**
+- Updated `ProductDeviceModel::applyTelemetry()` to store `qAbs(values.speed)` for product-facing speed.
+- Left BLE, Packet, Commands, and control/protocol semantics unchanged.
+- Verified `git diff --check`.
+- Verified signed Release iPhoneOS build succeeds for `build/ios/BMESC.xcodeproj` scheme `BMESC`, bundle id `com.microev.bm`, team `U3Y884TV63`, and automatic signing.
+
+**Unresolved items**
+- No install, launch, or live hardware retest was performed in this turn.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Build and install BMESC after language switch
+
+**User request**
+- Compile the current app and install it on the phone.
+
+**Key context**
+- Current source includes the Home top-left Chinese/English switch and MVP bilingual product UI changes.
+- Existing generated iOS project is `build/ios/BMESC.xcodeproj` with scheme `BMESC`.
+- Target device was `邱增顺的iPhone` (`DC6A5BAD-BD5E-5492-B8A5-05F5DC8992A7`), bundle id `com.microev.bm`, and team id `U3Y884TV63`.
+
+**Confirmed decisions and preferences**
+- Reuse the existing generated BMESC Xcode project.
+- Use the current dirty working tree for the build and preserve unrelated existing changes.
+
+**Actions and results**
+- Re-read project memory and used the `microev-ios` workflow.
+- Confirmed Xcode 26.4.1, a valid Apple Development signing identity, and the paired iPhone.
+- Verified `git diff --check`.
+- Built signed Release for `iphoneos` with scheme `BMESC`, `DEVELOPMENT_TEAM=U3Y884TV63`, `PRODUCT_BUNDLE_IDENTIFIER=com.microev.bm`, and automatic signing.
+- Verified the built app display name `BMESC`, bundle id `com.microev.bm`, version `6.06.2`, codesign identifier `com.microev.bm`, team identifier `U3Y884TV63`, and application identifier `U3Y884TV63.com.microev.bm`.
+- Installed BMESC to `/private/var/containers/Bundle/Application/9E2CF294-CA08-45A0-B3EA-C17F10E59439/BMESC.app/`.
+- Confirmed the device app list contains `BMESC / com.microev.bm` version `6.06.2`.
+
+**Unresolved items**
+- The app was installed but not launched in this turn.
+- No manual on-device visual verification or BLE/CAN hardware test was performed.
+- `devicectl` still prints the existing provisioning parameter list warning, but build and install succeeded.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Add Home language switch and MVP bilingual product UI
+
+**User request**
+- Implement the planned Home top-left Chinese/English switch and make the commercial MVP product pages switch language globally.
+
+**Key context**
+- The affected user-facing surfaces are the mobile product shell and MVP pages: Home, Device, Realtime, Mine, speed gauge labels, product-model status text, node labels, and fault text.
+- The project still has no app-wide `.ts/.qm` translation pipeline, so this implementation keeps scope to the commercial MVP mobile product UI rather than legacy engineering pages.
+
+**Confirmed decisions and preferences**
+- Default language is Chinese and the switch persists `product/language` as `zh` or `en` through `QSettings`.
+- Brand name `BMESC` remains untranslated.
+- Protocol, BLE, Commands, Packet, and engineering configuration semantics remain unchanged.
+
+**Actions and results**
+- Added `languageCode`, `isEnglish`, `toggleLanguage()`, and `faultTextForCode()` to `ProductDeviceModel`.
+- Added a Home-only top-left `中 / EN` pill switch in `mobile/main.qml` and bound header, connection status, and bottom tabs to the product language state.
+- Updated `mobile/BMHomePage.qml`, `mobile/BMDevicePage.qml`, `mobile/BMRealtimePage.qml`, `mobile/BMMinePage.qml`, and `mobile/BMRingGauge.qml` so MVP-visible copy switches between Chinese and English.
+- Updated product-model-generated user text for fallback device names, local/node labels, node availability, Bluetooth unavailable/timeout messages, and user-facing fault descriptions.
+- Fault logs now prefer current-language text from `faultCode`, falling back to saved legacy text only when a code is unavailable.
+- Verified `git diff --check`.
+- Verified `qmllint` passes for the modified QML files.
+- Verified signed Release iPhoneOS build succeeds with scheme `BMESC`, bundle id `com.microev.bm`, team `U3Y884TV63`, and automatic signing.
+
+**Unresolved items**
+- No install, launch, mirrored visual inspection, or BLE/CAN hardware regression test was performed in this turn.
+- Legacy engineering pages and phase-two/non-MVP pages were intentionally not translated.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Build and install BMESC after Mine about copy revision
+
+**User request**
+- Compile the current app and install it on the phone.
+
+**Key context**
+- The current source changes include the revised `关于 BMESC` copy on the Mine page and the generic Device page empty BLE copy.
+- Existing generated iOS project is `build/ios/BMESC.xcodeproj` with scheme `BMESC`.
+- Target device was `邱增顺的iPhone` (`DC6A5BAD-BD5E-5492-B8A5-05F5DC8992A7`), bundle id `com.microev.bm`, and team id `U3Y884TV63`.
+
+**Confirmed decisions and preferences**
+- Reuse the existing generated BMESC Xcode project because this turn only needed QML/source rebuild and install.
+- Use the current working tree for the build.
+
+**Actions and results**
+- Re-read project memory and used the `microev-ios` workflow.
+- Confirmed the paired iPhone, `BMESC` Xcode scheme, and Apple Development signing identity.
+- Verified `git diff --check`.
+- Built Release for `iphoneos` with scheme `BMESC`, `DEVELOPMENT_TEAM=U3Y884TV63`, `PRODUCT_BUNDLE_IDENTIFIER=com.microev.bm`, and automatic signing.
+- Verified the built app display name `BMESC`, bundle id `com.microev.bm`, version `6.06.2`, valid codesign, team identifier `U3Y884TV63`, and application identifier `U3Y884TV63.com.microev.bm`.
+- Installed BMESC to `/private/var/containers/Bundle/Application/128F5CC4-6128-4AAE-BF69-03D2ACBEE126/BMESC.app/`.
+- Confirmed the device app list contains `BMESC / com.microev.bm` version `6.06.2`.
+
+**Unresolved items**
+- The app was installed but not launched in this turn.
+- No manual on-device visual confirmation or BLE/CAN hardware test was performed.
+- `devicectl` still prints the existing provisioning parameter list warning, but build and install succeeded.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Revise BMESC about text on Mine page
+
+**User request**
+- Replace the Mine page `关于 BMESC` text with a new Chinese description.
+
+**Key context**
+- The affected surface is the `关于 BMESC` info popup in `mobile/BMMinePage.qml`.
+- The new copy positions BMESC as a mobile app compatible with the VESC ecosystem, focused on ordinary users monitoring running status and common device information.
+
+**Confirmed decisions and preferences**
+- Use the user's provided wording, including the contact email.
+- Keep this as a QML/UI text-only change.
+
+**Actions and results**
+- Replaced the previous BMESC about text with the new five-part Chinese copy.
+- Verified the new text is present and the previous tuning-disclaimer wording is no longer present in `mobile/BMMinePage.qml`.
+- Verified `git diff --check`.
+
+**Unresolved items**
+- No rebuild, install, QML runtime visual check, or on-device verification was performed in this turn.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Remove BMESC from Device page empty BLE copy
+
+**User request**
+- Remove `BMESC` from the Device page text highlighted in the screenshot.
+
+**Key context**
+- The screenshot pointed to the BLE devices empty-state subtitle on `mobile/BMDevicePage.qml`.
+- This is a QML/UI copy change only.
+
+**Confirmed decisions and preferences**
+- Use the generic wording `点击重新扫描开始查找附近设备` on the Device page.
+
+**Actions and results**
+- Updated the BLE empty-state subtitle from the branded wording to `点击重新扫描开始查找附近设备`.
+- Verified the Device page now has two matching generic rescan subtitles and no `附近 BMESC 设备` match in `mobile/BMDevicePage.qml`.
+- Verified `git diff --check`.
+
+**Unresolved items**
+- No rebuild, install, or on-device visual verification was performed in this turn.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Build and install BMESC to connected iPhone
+
+**User request**
+- Compile the current app and install it on the phone.
+
+**Key context**
+- Recent branding changes renamed the iOS/macOS qmake target and app display name to `BMESC`.
+- The previous generated iOS project was stale (`BM.xcodeproj`), so the iOS project needed regeneration.
+- Target device was `邱增顺的iPhone` (`DC6A5BAD-BD5E-5492-B8A5-05F5DC8992A7`), bundle id `com.microev.bm`, and team id `U3Y884TV63`.
+
+**Confirmed decisions and preferences**
+- Use the current working tree for the build.
+- Regenerate the iOS Xcode project so the target/scheme/app bundle path become `BMESC`.
+
+**Actions and results**
+- Re-read project memory and used the `microev-ios` workflow.
+- Confirmed Xcode 26.4.1, iOS SDK 26.4, Qt 5.15.2 iOS qmake, one Apple Development signing identity, and the paired iPhone.
+- Verified `git diff --check`.
+- Regenerated `build/ios/BMESC.xcodeproj` with qmake.
+- Built Release for `iphoneos` with scheme `BMESC`, `DEVELOPMENT_TEAM=U3Y884TV63`, `PRODUCT_BUNDLE_IDENTIFIER=com.microev.bm`, and automatic signing. The first build hit the known generated moc race for `moc_QmlHighlighter.cpp` and `moc_QXMLHighlighter.cpp`; a retry succeeded after those files were generated.
+- Verified the built app display name `BMESC`, bundle id `com.microev.bm`, version `6.06.2`, codesign identifier `com.microev.bm`, team identifier `U3Y884TV63`, and application identifier `U3Y884TV63.com.microev.bm`.
+- Installed BMESC to `/private/var/containers/Bundle/Application/1EF5FC04-7EE2-4CC0-A034-DC2C2F3E55F4/BMESC.app/`.
+- Confirmed the device app list contains `BMESC / com.microev.bm` version `6.06.2`.
+
+**Unresolved items**
+- The app was installed but not launched in this turn.
+- No manual on-device visual confirmation or BLE/CAN hardware test was performed.
+- `devicectl` still prints the existing provisioning parameter list warning, but build and install succeeded.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Update BMESC about text on Mine page
+
+**User request**
+- Replace the BMESC introduction on the Mine page with the provided Chinese product description.
+
+**Key context**
+- The affected user-facing surface is the `关于 BMESC` info popup in `mobile/BMMinePage.qml`.
+- The new copy describes BMESC as a mobile app for ordinary users of VESC controller devices, focused on viewing and monitoring operating parameters, not professional parameter tuning.
+
+**Confirmed decisions and preferences**
+- Use the user's provided wording verbatim, including the technical support and business cooperation email.
+- Keep this as a UI text-only change.
+
+**Actions and results**
+- Replaced the old short `BMESC 首版聚焦...` about text with the four-paragraph Chinese description provided by the user.
+- Verified the target text is present and the old short introduction no longer matches in `mobile/BMMinePage.qml`.
+- Verified `git diff --check`.
+
+**Unresolved items**
+- No QML runtime visual check, rebuild, install, or on-device verification was performed in this turn.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Replace remaining user-visible BM text with BMESC
+
+**User request**
+- Change all app text related to `BM` to `BMESC`.
+
+**Key context**
+- The previous turn changed the app display/build target name to `BMESC` but intentionally kept some `BM device` hardware-facing copy unchanged.
+- This turn expanded the scope to user-visible product text in app screens and product model fallback names.
+- Internal identifiers such as QML module `BM.Product`, file names, class names, `BMS`, `LispBM`, and hardware strings like `BMI160` were not treated as user-visible app branding.
+
+**Confirmed decisions and preferences**
+- Replace remaining user-visible `BM` brand copy with `BMESC`.
+- Preserve protocol, BLE, CAN, bundle/package identifiers, and internal engineering identifiers.
+
+**Actions and results**
+- Updated fallback product device names from `BM Device` to `BMESC Device`.
+- Updated live data, privacy, device scan, changelog, and realtime setup labels from `BM`/`BM device`/`BM 设备` to `BMESC` equivalents.
+- Verified with a targeted user-visible string search; the only remaining matched `BM` item is internal QML registration `BM.Product`.
+- Verified `git diff --check`, `plutil -lint` for iOS/macOS plists, and XML parsing for the Android manifest.
+
+**Unresolved items**
+- Bitmap artwork such as the existing app icon/logo was not regenerated in this text-only pass.
+- No full rebuild, install, or on-device visual verification was performed in this turn.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Rename app display name to BMESC
+
+**User request**
+- Change the app name to `BMESC`.
+
+**Key context**
+- Previous app display naming was `BM` for iOS and Android product surfaces, while macOS still had `VESC Tool` display/executable naming.
+- This task was branding/display-name scope only; bundle/package identifiers and protocol-facing code were intentionally left unchanged.
+
+**Confirmed decisions and preferences**
+- Use `BMESC` as the app display/build target name.
+- Keep `BM` where it refers to BM devices/hardware rather than the app name.
+
+**Actions and results**
+- Updated iOS `CFBundleDisplayName`, `CFBundleName`, and permission usage strings to `BMESC`.
+- Updated QMake iOS/macOS targets in `microev.pro` and `vesc_tool.pro` to `BMESC`.
+- Updated macOS display/executable naming and permission descriptions to `BMESC`.
+- Updated Android launcher labels and foreground service notification text to `BMESC`.
+- Updated QML window title, About labels, version footer, and settings restart copy to `BMESC`.
+- Verified `ios/Info.plist` and `macos/Info.plist` with `plutil -lint`, Android manifest XML with `xmllint`, and whitespace with `git diff --check`.
+
+**Unresolved items**
+- No full rebuild, generated Xcode project regeneration, install, or on-device visual verification was performed in this turn.
+- Existing unrelated dirty changes for icons, launch screen, speed gauge/product model, and prior project memory entries remain in the working tree and were not reverted.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Remove BM logo from iOS launch screen again
+
+**User request**
+- Remove the logo from the app launch screen.
+
+**Key context**
+- The previous turn had added the provided BM logo to both the app icon and iOS launch screen.
+- This turn only removed the launch-screen logo; the app icon BM logo and dark icon background were left unchanged.
+- Target device remained `邱增顺的iPhone` (`DC6A5BAD-BD5E-5492-B8A5-05F5DC8992A7`), bundle id `com.microev.bm`, and team id `U3Y884TV63`.
+
+**Confirmed decisions and preferences**
+- Preserve the launch screen's existing dark background color.
+- Remove only the centered launch image view and storyboard image resource reference.
+
+**Actions and results**
+- Updated `ios/MyLaunchScreen.storyboard` to remove the centered `LaunchImage.png` image view, its constraints, and the storyboard resource reference.
+- Verified the storyboard with `xmllint` and `ibtool`.
+- Verified `git diff --check`.
+- Used the `microev-ios` workflow to build signed Release for `iphoneos` with `DEVELOPMENT_TEAM=U3Y884TV63`, `PRODUCT_BUNDLE_IDENTIFIER=com.microev.bm`, and automatic signing.
+- Verified the built app bundle id `com.microev.bm`, display name `BM`, launch storyboard `MyLaunchScreen`, codesign identifier, and entitlements application identifier `U3Y884TV63.com.microev.bm`.
+- Installed BM to `/private/var/containers/Bundle/Application/7E9AF69E-76F8-41FC-9E3E-55C8E66C0E9A/BM.app/` and relaunched `com.microev.bm` with `--terminate-existing`.
+
+**Unresolved items**
+- No mirrored visual inspection or BLE/CAN hardware regression test was performed after launch.
+- `devicectl` still prints the existing provisioning parameter list warning, but install and launch succeeded.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Replace BM iOS app icon and launch logo
+
+**User request**
+- Replace the app icon logo with the provided BM logo while keeping the existing icon background color unchanged, update the launch screen to use the same logo, then compile and restart the app.
+
+**Key context**
+- The provided source image was a JPEG with a baked-in light checkerboard background rather than true transparency.
+- The affected layers were iOS assets/branding and the iOS launch storyboard only; protocol, BLE/CAN, product model, and QML app behavior were not changed.
+- Target device remained `邱增顺的iPhone` (`DC6A5BAD-BD5E-5492-B8A5-05F5DC8992A7`), bundle id `com.microev.bm`, and team id `U3Y884TV63`.
+
+**Confirmed decisions and preferences**
+- Preserve the existing dark app icon background color and replace only the logo artwork.
+- Preserve the launch screen background color and show the new BM logo centered on it.
+
+**Actions and results**
+- Regenerated all PNGs in `ios/Images.xcassets/AppIcon.appiconset/` using the existing icon background color sampled as RGB `10,15,15` and the extracted gold BM logo.
+- Replaced `ios/LaunchImage.png` with a transparent BM logo PNG and updated `ios/MyLaunchScreen.storyboard` to display it centered at the launch screen.
+- Verified the storyboard with `xmllint` and `ibtool`; verified app icon PNGs have no alpha and `LaunchImage.png` has alpha.
+- Built signed Release for `iphoneos` with `DEVELOPMENT_TEAM=U3Y884TV63`, `PRODUCT_BUNDLE_IDENTIFIER=com.microev.bm`, and automatic signing. The first build attempt hit an Xcode build database lock; a retry succeeded.
+- Verified the built app bundle id `com.microev.bm`, display name `BM`, launch storyboard `MyLaunchScreen`, package `LaunchImage.png`, codesign identifier, and entitlements application identifier `U3Y884TV63.com.microev.bm`.
+- Installed BM to `/private/var/containers/Bundle/Application/953CC07E-6880-4EA6-993B-9EBD33F9B484/BM.app/` and relaunched `com.microev.bm` with `--terminate-existing`.
+
+**Unresolved items**
+- No mirrored visual inspection or BLE/CAN hardware regression test was performed after launch.
+- `devicectl` still prints the existing provisioning parameter list warning, but install and launch succeeded.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Remove Home gauge range caption
+
+**User request**
+- Remove the small caption under the Home realtime speed dial, shown in the screenshot as `量程 30 KM/H`.
+
+**Key context**
+- The affected surface is the Home realtime speed gauge component.
+- The request is visual-only and should not change telemetry, speed range calculation, BLE, CAN, protocol, or product model semantics.
+
+**Confirmed decisions and preferences**
+- Remove the visible range/default-range text from the gauge.
+- Keep the dynamic gauge range behavior and numeric tick labels unchanged.
+
+**Actions and results**
+- Removed the bottom `Text` element from `mobile/BMRingGauge.qml` that displayed `量程 ...` or `默认量程 ...`.
+- Verified `git diff --check`.
+- Verified a Release iPhoneOS build succeeds with `CODE_SIGNING_ALLOWED=NO`.
+
+**Unresolved items**
+- No signed install or on-device visual verification was performed in this turn.
+- Existing dirty icon, launch image, launch storyboard, product model, Home page, and project memory changes remain in the working tree and were not reverted.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Install BM after original-style speed gauge range update
+
+**User request**
+- Install the current BM build to the connected iPhone after implementing the original-style theoretical speed gauge range calculation.
+
+**Key context**
+- Target device remained `邱增顺的iPhone` (`DC6A5BAD-BD5E-5492-B8A5-05F5DC8992A7`).
+- Current iOS project is `build/ios/BM.xcodeproj`, scheme `BM`, bundle id `com.microev.bm`, team id `U3Y884TV63`.
+
+**Confirmed decisions and preferences**
+- Use the current working tree, including the speed-gauge product model and QML changes, for the signed device build.
+- Do not change source files as part of the install task except for this memory entry.
+
+**Actions and results**
+- Re-read project memory and used the `microev-ios` workflow.
+- Confirmed paired iPhone availability, Xcode 26.4.1, iOS SDK 26.4, Qt 5.15.2 iOS qmake, and one Apple Development signing identity.
+- Verified `git diff --check`.
+- Built signed Release for `iphoneos` with `DEVELOPMENT_TEAM=U3Y884TV63`, `PRODUCT_BUNDLE_IDENTIFIER=com.microev.bm`, and automatic signing.
+- Verified app bundle display name `BM`, bundle id `com.microev.bm`, version `6.06.2`, codesign identifier `com.microev.bm`, team identifier `U3Y884TV63`, and application identifier `U3Y884TV63.com.microev.bm`.
+- Installed BM to `/private/var/containers/Bundle/Application/CF4FB00B-3158-415B-B4E6-4A3C300D0B47/BM.app/`.
+- Confirmed the device app list contains `BM / com.microev.bm` version `6.06.2`.
+
+**Unresolved items**
+- The app was installed but not launched in this turn.
+- No manual on-device visual confirmation or BLE/CAN hardware test was performed.
+- `devicectl` still prints the existing provisioning parameter list warning, but build and install succeeded.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Use original theoretical speed estimate for Home gauge range
+
+**User request**
+- Implement the Home realtime speed gauge maximum range using the original VESC Tool theoretical top-speed estimation method.
+
+**Key context**
+- The affected commercial MVP surface is the Home realtime speed card.
+- The user confirmed the intended behavior is the original default `60 km/h` range, then automatic updates such as `30 km/h` after connection when device parameters and voltage estimate that range.
+- The change should preserve product-layer isolation: Home QML must read a product model field rather than calling `Commands` or `ConfigParams` directly.
+
+**Confirmed decisions and preferences**
+- Do not use `sessionMaxSpeedMetersPerSecond` for the gauge range.
+- Estimate the theoretical top speed from realtime input voltage plus motor flux linkage, motor poles, gear ratio, and wheel diameter.
+- Round the estimated range up to a multiple of `10 km/h` and apply the original expansion/shrink hysteresis rule.
+
+**Actions and results**
+- Added `ProductDeviceModel::speedGaugeMaximumMetersPerSecond` with a default of `60 km/h`.
+- Updated `ProductDeviceModel::applyTelemetry()` to estimate theoretical gauge range from `values.v_in`, `foc_motor_flux_linkage`, `si_motor_poles`, `si_gear_ratio`, and `si_wheel_diameter`.
+- Kept the original-style range update rule: update when the new rounded range is above the current range or below `60%` of it; otherwise hold the range to avoid visual jumping.
+- Updated `mobile/BMHomePage.qml` to bind the gauge range to the product model field instead of session max speed.
+- Updated `mobile/BMRingGauge.qml` to default to `60`, keep the animated polar tick dial, and use original-style automatic major tick spacing.
+- Verified `git diff --check`.
+- Verified a Release iPhoneOS build succeeds with `CODE_SIGNING_ALLOWED=NO`.
+
+**Unresolved items**
+- No signed install or on-device visual verification was performed in this turn.
+- `ios/MyLaunchScreen.storyboard` and previous project memory edits were already dirty and were not part of this requested speed-gauge logic change.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Recheck BM install on connected iPhone
+
+**User request**
+- Install BM on the phone and take a look after the Home speed dial range/tick changes.
+
+**Key context**
+- Target device remained `邱增顺的iPhone` (`DC6A5BAD-BD5E-5492-B8A5-05F5DC8992A7`).
+- The current built app bundle is `build/ios/Release-iphoneos/BM.app` with bundle id `com.microev.bm` and display name `BM`.
+
+**Confirmed decisions and preferences**
+- Use the existing signed BM build and device install state for this verification turn.
+
+**Actions and results**
+- Confirmed the connected iPhone is available and paired.
+- Confirmed `BM / com.microev.bm` is present in the device app list with version `6.06.2`.
+- Verified the built app `Info.plist` still reports display name `BM` and bundle id `com.microev.bm`.
+- Tried to launch `com.microev.bm` with `devicectl`, but iOS denied the launch because the phone was locked.
+
+**Unresolved items**
+- Unlock the iPhone and rerun the launch command to visually inspect the Home speed dial on device.
+- The existing `devicectl` provisioning parameter warning still appears, but it did not affect app presence verification.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Remove VESC logo from iOS launch screen
+
+**User request**
+- Remove the logo from the brief page shown immediately after opening the app, shown in the screenshot as the iOS startup screen with a centered VESC Tool logo.
+
+**Key context**
+- The flashing page is the iOS launch screen, not a QML product page.
+- `microev.pro` packages `ios/MyLaunchScreen.storyboard` and `ios/LaunchImage.png` into the app bundle.
+- The storyboard directly displayed `LaunchImage.png` in a centered image view over the dark launch background.
+
+**Confirmed decisions and preferences**
+- Make the smallest branding-safe patch by removing only the launch-screen image view and image resource reference.
+- Preserve the existing dark launch-screen background.
+- Do not touch QML, C++ backend, BLE/CAN, protocol, or product model behavior.
+
+**Actions and results**
+- Updated `ios/MyLaunchScreen.storyboard` to remove the centered launch image view, its constraints, and the `LaunchImage.png` storyboard resource reference.
+- Verified the storyboard with `xmllint` and `ibtool`.
+- Verified `git diff --check` for the storyboard file.
+
+**Unresolved items**
+- No signed rebuild/install or on-device visual verification was performed in this turn.
+- `ios/LaunchImage.png` remains in the repository and may still be bundled by the qmake rule, but it is no longer referenced by the launch screen UI.
 
 **Sensitive information**
 - None.
@@ -3377,3 +5760,913 @@ This Git-tracked file is the chronological memory for project conversations and 
 
 **Sensitive information**
 - None.
+
+### 2026-06-18 - Add animated Home realtime speed dial
+
+**User request**
+- Implement the planned dynamic realtime speed dial animation for the Home page, using the selected rotating dial design and stepped dynamic speed range.
+
+**Key context**
+- The affected commercial MVP surface is the Home page realtime speed card.
+- Existing telemetry already comes through `ProductDeviceModel.speedMetersPerSecond`; the task did not require backend, BLE, CAN, or protocol changes.
+- The selected visual direction was the simple BM-themed rotating dial, with stepped range expansion from a default 60 km/h.
+
+**Confirmed decisions and preferences**
+- Keep the change QML/UI-only.
+- Use the rotating dial as the default design; keep the other two concepts as design alternatives only.
+- Use stepped range thresholds based on km/h: 60, 80, 100, 120, 150, and 180, expanding when speed exceeds about 85% of the current tier.
+
+**Actions and results**
+- Reworked `mobile/BMRingGauge.qml` into a lightweight animated Canvas dial with rotating outer ticks, a gold progress arc, a subtle blue accent arc, eased value/range animation, and explicit `hasData` handling.
+- Updated `mobile/BMHomePage.qml` to compute the stepped gauge range from realtime km/h speed, convert the range for mph display when needed, and pass `hasData` to the gauge.
+- Ensured telemetry-valid zero speed displays as `0.0` instead of `--`, while disconnected/no-data state still shows `--`.
+- Verified `git diff --check`.
+- Verified a Release iPhoneOS build succeeds with `CODE_SIGNING_ALLOWED=NO`.
+
+**Unresolved items**
+- No signed install or on-device visual verification was performed in this turn.
+- `qmllint` and `qmlscene` were not available in the local shell environment.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Build, install, and launch BM after animated speed dial
+
+**User request**
+- Compile the app and install it on the phone after the animated realtime speed dial change.
+
+**Key context**
+- Current generated iOS project is `build/ios/BM.xcodeproj` with scheme `BM`.
+- Target device remained `邱增顺的iPhone` (`DC6A5BAD-BD5E-5492-B8A5-05F5DC8992A7`) with bundle id `com.microev.bm` and team id `U3Y884TV63`.
+
+**Confirmed decisions and preferences**
+- Use the existing generated BM Xcode project and command-line signing settings.
+- No source changes were made in this turn beyond this memory entry.
+
+**Actions and results**
+- Re-read project memory and used the `microev-ios` workflow.
+- Confirmed the repository, Xcode 26.4.1, Qt 5.15.2 iOS qmake, one Apple Development signing identity, and the paired iPhone.
+- Verified the relevant diffs with `git diff --check`.
+- Built signed Release for `iphoneos` with `DEVELOPMENT_TEAM=U3Y884TV63`, `PRODUCT_BUNDLE_IDENTIFIER=com.microev.bm`, and automatic signing.
+- Verified the built app bundle id `com.microev.bm`, display name `BM`, codesign identifier `com.microev.bm`, team identifier `U3Y884TV63`, and application identifier `U3Y884TV63.com.microev.bm`.
+- Installed BM to `/private/var/containers/Bundle/Application/F12BBB97-067F-40A4-A5A5-E188A6F594D7/BM.app/`.
+- Launched `com.microev.bm` successfully with `devicectl`.
+
+**Unresolved items**
+- No manual on-device visual confirmation or BLE/CAN hardware test was performed after launch.
+- `devicectl` still prints the existing provisioning parameter list warning, but build, install, and launch succeeded.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Change Home speed dial to max-speed based 5 km/h ticks
+
+**User request**
+- Implement the planned Home realtime speed dial adjustment: default range 45 km/h, dynamic max range from recorded max speed rounded up to a multiple of 5, and numeric labels at long tick marks using polar layout.
+
+**Key context**
+- The affected surface is the BM Home page realtime speed gauge.
+- The existing product-facing source for max speed is `ProductDeviceModel.sessionMaxSpeedMetersPerSecond`, already exposed to `mobile/BMHomePage.qml`.
+- The task remained UI/QML-only and did not require BLE, CAN, protocol, or product model changes.
+
+**Confirmed decisions and preferences**
+- Use 45 km/h only as the no-data or zero-max-speed default range.
+- When a positive max speed is available, use `ceil(maxSpeedKph / 5) * 5`, so 34 km/h maps to 35 km/h.
+- Draw long tick labels every 5 units and position ticks/labels with polar coordinates.
+
+**Actions and results**
+- Updated `mobile/BMHomePage.qml` so the gauge range is computed from `maxSpeedKph` instead of current realtime speed, with a 45 km/h fallback.
+- Updated `mobile/BMRingGauge.qml` so its default max range is 45, long ticks/labels are generated every 5 units, short ticks are inserted between long ticks, and all tick positions use polar mapping along the existing dial arc.
+- Kept the existing dark BM visual direction, gold progress arc, subtle blue accent arc, and center speed readout.
+- Verified `git diff --check`.
+- Verified a Release iPhoneOS build succeeds with `CODE_SIGNING_ALLOWED=NO`.
+
+**Unresolved items**
+- `qmllint` was not available in the local shell environment.
+- No signed install or on-device visual verification was performed in this turn.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Build, install, and launch BM after launch-screen logo removal
+
+**User request**
+- Compile the BM iOS app and install it on the connected phone.
+
+**Key context**
+- Current generated iOS project is `build/ios/BM.xcodeproj` with scheme `BM`.
+- Target device was `邱增顺的iPhone` (`DC6A5BAD-BD5E-5492-B8A5-05F5DC8992A7`), bundle id `com.microev.bm`, and team id `U3Y884TV63`.
+- The launch-screen storyboard change that removed the centered VESC logo was included in this build.
+
+**Confirmed decisions and preferences**
+- Use the existing generated BM Xcode project and explicit command-line signing settings.
+- Preserve existing uncommitted workspace changes and include them in the local build.
+
+**Actions and results**
+- Confirmed Xcode 26.4.1, iOS SDK 26.4, Qt 5.15.2 iOS qmake, one Apple Development signing identity, and the paired iPhone.
+- Built signed Release for `iphoneos` with `DEVELOPMENT_TEAM=U3Y884TV63`, `PRODUCT_BUNDLE_IDENTIFIER=com.microev.bm`, and automatic signing.
+- Verified the built app bundle id `com.microev.bm`, display name `BM`, codesign identifier `com.microev.bm`, team identifier `U3Y884TV63`, and application identifier `U3Y884TV63.com.microev.bm`.
+- Installed BM to `/private/var/containers/Bundle/Application/C2E7B713-32B5-40E4-B710-6E947BE0D94E/BM.app/`.
+- Launched `com.microev.bm` successfully with `devicectl`.
+
+**Unresolved items**
+- No manual on-device visual verification or BLE/CAN hardware test was performed after launch.
+- `devicectl` still prints the existing provisioning parameter list warning, but build, install, and launch succeeded.
+
+**Sensitive information**
+- None.
+
+### 2026-06-18 - Verify scrollable Fault Logs popup on mirrored iPhone
+
+**User request**
+- Design the Fault Logs popup so logs can be displayed by sliding, then test through iPhone mirroring until sliding display works.
+
+**Key context**
+- The affected commercial MVP surface is the Mine page Fault Logs popup in `mobile/BMMinePage.qml`.
+- Current generated iOS project is `build/ios/BMESC.xcodeproj` with scheme `BMESC`.
+- Target device was `邱增顺的iPhone` (`DC6A5BAD-BD5E-5492-B8A5-05F5DC8992A7`), bundle id `com.microev.bm`, and team id `U3Y884TV63`.
+
+**Confirmed decisions and preferences**
+- Keep the user-facing layout change QML/UI-focused.
+- Use a launch-argument-only test seed path to create enough local fault log rows for mirrored verification without exposing a visible normal-user test button.
+- Preserve existing fault logs when seeding; only add enough test rows to reach the test count.
+
+**Actions and results**
+- Replaced the Fault Logs popup list area with an explicit vertical `Flickable` plus a visible vertical `ScrollBar`, while keeping the action buttons anchored at the popup bottom.
+- Added `ProductDeviceModel::seedFaultLogsForTesting()` and a `--bm-seed-fault-logs` launch argument hook in `mobile/main.qml` for mirrored test setup.
+- Verified `/Users/a202603/Qt/5.15.2/ios/bin/qmllint mobile/BMMinePage.qml mobile/main.qml` passes.
+- Verified `git diff --check -- mobile/BMMinePage.qml mobile/main.qml product/productdevicemodel.cpp product/productdevicemodel.h PROJECT_MEMORY.md` passes.
+- Built signed Release for `iphoneos` with scheme `BMESC`, `DEVELOPMENT_TEAM=U3Y884TV63`, `PRODUCT_BUNDLE_IDENTIFIER=com.microev.bm`, and automatic signing.
+- Installed BMESC to `/private/var/containers/Bundle/Application/D4BD21CC-DDE1-43F1-A3BF-033DECE0B3B6/BMESC.app/`.
+- Launched `com.microev.bm --bm-seed-fault-logs` successfully with `devicectl`.
+- Used iPhone Mirroring to open BMESC, navigate to `我的`, confirm `故障日志` showed `16 条`, open the Fault Logs popup, and perform an upward drag in the log list.
+- Mirrored verification showed the list moved from the newest 16:40/16:35 entries to later visible 16:19/16:14 entries while `清除日志` and `完成` remained fixed at the bottom.
+
+**Unresolved items**
+- BLE/CAN hardware behavior was not retested because this task was limited to Fault Logs UI scrolling.
+- Test seed rows may remain in the local fault log store on the test phone and can be removed with `清除日志`.
+- `devicectl` still prints the existing provisioning parameter list warning, but build, install, launch, and mirrored UI verification succeeded.
+
+**Sensitive information**
+- None.
+
+### 2026-06-22 - Build and install BMESC after About page copy update
+
+**User request**
+- Compile the current app and install it on the connected phone.
+
+**Key context**
+- Current generated iOS project is `build/ios/BMESC.xcodeproj` with scheme `BMESC`.
+- Target device was `邱增顺的iPhone` (`DC6A5BAD-BD5E-5492-B8A5-05F5DC8992A7`), bundle id `com.microev.bm`, and team id `U3Y884TV63`.
+- The build included the updated `关于 BMESC` popup copy in `mobile/BMMinePage.qml` plus the existing dirty working tree.
+
+**Confirmed decisions and preferences**
+- Reuse the existing generated BMESC Xcode project.
+- Build and install only; do not launch unless requested.
+- Preserve existing uncommitted workspace changes.
+
+**Actions and results**
+- Re-read project memory and used the `microev-ios` workflow.
+- Confirmed Xcode 26.4.1, iOS SDK 26.4, Qt 5.15.2 iOS qmake, a valid Apple Development signing identity, and the paired iPhone.
+- Verified `qmllint` for modified MVP QML files and `git diff --check` pass.
+- Refreshed Qt resource and moc outputs under `build/ios`.
+- Built signed Release for `iphoneos` with scheme `BMESC`, `DEVELOPMENT_TEAM=U3Y884TV63`, `PRODUCT_BUNDLE_IDENTIFIER=com.microev.bm`, and automatic signing.
+- Verified the built app display name `BMESC`, bundle id `com.microev.bm`, version `6.06.2`, codesign identifier `com.microev.bm`, team identifier `U3Y884TV63`, and application identifier `U3Y884TV63.com.microev.bm`.
+- Installed BMESC to `/private/var/containers/Bundle/Application/20EDD432-EEAF-47DA-9FF7-5A787FC85906/BMESC.app/`.
+- Confirmed the device app list contains `BMESC / com.microev.bm` version `6.06.2`.
+
+**Unresolved items**
+- The app was installed but not launched in this turn.
+- No manual on-device visual verification or BLE/CAN hardware test was performed.
+- `devicectl` still prints the existing provisioning parameter list warning, but build and install succeeded.
+
+**Sensitive information**
+- None.
+
+### 2026-06-22 - Build install and launch BMESC on Android test phone
+
+**User request**
+- Compile and install the app to an Android phone for testing.
+
+**Key context**
+- Work stayed in `/Users/a202603/Documents/BMESC_APP` on branch `BMESC_APP`.
+- Target Android device was `PKR110` (`3fb621`) running Android 16.
+- Build used Qt 5.15.2 Android qmake/androiddeployqt, Android SDK `/Users/a202603/Android/Latest/Sdk`, NDK `23.1.7779620`, Android platform 33, and Amazon Corretto 8.
+
+**Confirmed decisions and preferences**
+- Keep the turn limited to platform/build/install/launch verification.
+- Build the mobile Android variant first for commercial MVP testing.
+- Preserve protocol behavior and avoid source edits.
+
+**Actions and results**
+- Built an arm64-v8a debug mobile APK from `BMESC_APP.pro` with `CONFIG += release_android build_mobile`.
+- Generated APK at `build/android/apk/BMESC_mobile_debug.apk`, about 51 MB.
+- Verified APK metadata: package `com.bmesc.app`, label `BMESC`, versionName `1.00`, versionCode `191`, minSdk `23`, targetSdk `35`.
+- Standard `adb install -r` hung while the device remained responsive, so the APK was pushed to `/data/local/tmp/` and installed with `pm install -r -t`, which succeeded.
+- Verified installed package path, arm64 ABI, version, requested permissions, and that BLE scan/connect runtime permissions were granted.
+- Launched with a launcher-style `monkey` intent after `am start` did not bring the existing instance to the foreground.
+- Confirmed `com.bmesc.app/org.qtproject.qt5.android.bindings.QtActivity` became the top resumed/focused activity with process PID `11951`.
+- Captured screenshots showing the BMESC icon on the Android home screen and the BMESC Chinese Home page in the foreground.
+- Cleaned `/data/local/tmp/BMESC_mobile_debug.apk` from the device.
+
+**Unresolved items**
+- No BLE device discovery/connect hardware smoke test was completed.
+- Logcat showed Qt Android Controls style warnings from `LabelStyle.qml`/`ScrollViewStyle.qml`, but no crash or AndroidRuntime fatal error during launch.
+- `android/AndroidManifest.xml` was regenerated by qmake during the build; the source template was not manually changed.
+
+**Sensitive information**
+- None. Existing private memory was read per workflow but not changed.
+
+### 2026-06-22 - Regenerate clean BMESC app icons from uploaded logo
+
+**User request**
+- Current app icon logo background is not clean; use the uploaded transparent-logo reference to regenerate app icons.
+
+**Key context**
+- Work stayed in `/Users/a202603/Documents/BMESC_APP`.
+- Uploaded source image was `/Users/a202603/Desktop/232ccdb5d27147f483af4cabae5d296e.jpeg~tplv-a9rns2rl98-image.jpeg`.
+- The uploaded file is a JPEG without an alpha channel, so the checkerboard transparency preview was baked into the pixels and had to be removed by extracting the gold logo strokes.
+
+**Confirmed decisions and preferences**
+- Keep the change in the assets/branding layer only.
+- Preserve Android package IDs, iOS bundle IDs, protocol behavior, BLE logic, product models, and QML navigation.
+- Use a clean solid dark app-icon background with the BM gold mark.
+
+**Actions and results**
+- Extracted the gold BM linework from the uploaded JPEG, removed the checkerboard/background pixels, recolored the mark to a uniform BM gold, and placed it on a pure dark background.
+- Regenerated Android launcher icons in `android/res/drawable-mdpi`, `drawable-hdpi`, `drawable-xhdpi`, `drawable-xxhdpi`, and `drawable-xxxhdpi`.
+- Regenerated all PNGs under `ios/Images.xcassets/AppIcon.appiconset` with matching existing dimensions.
+- Verified Android icon sizes are 48, 72, 96, 144, and 192 px, with no alpha channel.
+- Verified iOS `1024.png` is 1024x1024 with no alpha channel.
+- Verified icon background corner pixels are consistently `RGB(11,14,20)`.
+- Created local previews under `build/icon-preview/` for visual inspection.
+
+**Unresolved items**
+- The source JPEG still has minor edge artifacts visible at very large 1024 px inspection because it was not a true vector/transparent PNG; the generated launcher-size preview is clean enough for device display.
+- No Android/iOS rebuild or reinstall was performed after regenerating the icon assets in this turn.
+
+**Sensitive information**
+- None. Existing private memory was read per workflow but not changed.
+
+### 2026-06-22 - Rebuild and reinstall Android BMESC after icon update
+
+**User request**
+- Recompile and install the app to the phone after regenerating the app icons.
+
+**Key context**
+- Work stayed in `/Users/a202603/Documents/BMESC_APP`.
+- Target Android device was `PKR110` (`3fb621`) running Android 16.
+- An iPhone was also connected, but this turn targeted Android because the immediately preceding icon verification and install flow were Android-focused.
+- Build used Qt 5.15.2 Android qmake/androiddeployqt, Android SDK `/Users/a202603/Android/Latest/Sdk`, NDK `23.1.7779620`, Android platform 33, and Amazon Corretto 8.
+
+**Confirmed decisions and preferences**
+- Rebuild the Android mobile MVP debug APK with the newly generated launcher icons.
+- Preserve app data during reinstall.
+- Do not change BLE/protocol/business logic or QML navigation.
+
+**Actions and results**
+- Rebuilt the arm64-v8a mobile debug APK from `BMESC_APP.pro` with `CONFIG += release_android build_mobile`.
+- Generated `build/android/apk/BMESC_mobile_debug.apk`, about 51 MB.
+- Verified APK metadata: package `com.bmesc.app`, label `BMESC`, versionName `1.00`, versionCode `191`, minSdk `23`, targetSdk `35`.
+- Verified the APK contains updated launcher icon resources for mdpi, hdpi, xhdpi, xxhdpi, and xxxhdpi.
+- Installed by pushing the APK to `/data/local/tmp/` and running `pm install -r -t`, then removed the temporary APK.
+- Verified installed package path, arm64 ABI, `lastUpdateTime=2026-06-22 15:11:21`, and BLE scan/connect runtime permissions granted.
+- Captured an Android home-screen screenshot showing the updated clean BMESC icon on the device.
+
+**Unresolved items**
+- The app process could be started, but the device foreground was later occupied by a WeChat video activity, so no final in-app foreground screenshot was captured in this turn.
+- No BLE discovery/connect hardware smoke test was performed.
+- Gradle emitted existing duplicate-permission and old-toolchain warnings, but the build and install succeeded.
+
+**Sensitive information**
+- None. Existing private memory was read per workflow but not changed.
+
+### 2026-06-23 - Rebuild install and launch Android BMESC
+
+**User request**
+- Compile and install the app to the Android phone.
+
+**Key context**
+- Work stayed in `/Users/a202603/Documents/BMESC_APP`.
+- Target Android device was `PKR110` (`3fb621`) running Android 16.
+- Build used Qt 5.15.2 Android qmake/androiddeployqt, Android SDK `/Users/a202603/Android/Latest/Sdk`, NDK `23.1.7779620`, Android platform 33, and Amazon Corretto 8.
+- Existing package on device was `com.bmesc.app`.
+
+**Confirmed decisions and preferences**
+- Build the Android mobile debug APK for device testing.
+- Preserve app data during reinstall.
+- Keep protocol/BLE/business logic unchanged.
+
+**Actions and results**
+- Rebuilt arm64-v8a mobile debug APK from `BMESC_APP.pro` with `CONFIG += release_android build_mobile`.
+- Generated `build/android/apk/BMESC_mobile_debug.apk`, about 51 MB.
+- Verified APK metadata: package `com.bmesc.app`, label `BMESC`, versionName `1.00`, versionCode `191`, minSdk `23`, targetSdk `35`.
+- Verified APK contains launcher icon resources for mdpi, hdpi, xhdpi, xxhdpi, and xxxhdpi.
+- Installed by pushing the APK to `/data/local/tmp/` and running `pm install -r -t`, then removed the temporary APK.
+- Launched BMESC with a launcher intent; confirmed `com.bmesc.app/org.qtproject.qt5.android.bindings.QtActivity` became the top resumed/focused activity with process PID `4328`.
+- Captured `build/android/screenshots/BMESC_android_20260623_reinstall.png`, showing the BMESC Home page in the foreground.
+
+**Unresolved items**
+- No BLE discovery/connect hardware smoke test was performed.
+- Gradle emitted existing duplicate-permission, old-toolchain, and SDK XML schema warnings, but build/install/launch succeeded.
+
+**Sensitive information**
+- None. Existing private memory was read per workflow but not changed.
+
+### 2026-06-23 - Tighten home bottom navigation spacing
+
+**User request**
+- Adjust the excessive vertical gap above the bottom tab icons shown in the supplied screenshot so it visually matches the lower spacing.
+
+**Key context**
+- The screenshot corresponds to the commercial MVP QML home UI, mainly `/Users/a202603/Documents/BMESC_APP/mobile/BMHomePage.qml`.
+- Existing unrelated uncommitted changes were already present in `mobile/BMHomePage.qml` and `mobile/main.qml`; they were preserved.
+
+**Confirmed decisions and preferences**
+- Treat this as a QML/UI spacing-only adjustment.
+- Do not touch BLE, protocol, product model, navigation structure, or branding assets.
+
+**Actions and results**
+- Reduced the trailing bottom spacer in `BMHomePage.qml` from `72` to `24`, shrinking the blank space between the home card and bottom navigation icons.
+- Did not modify the shared footer/tab bar internals in `mobile/main.qml`, avoiding a global nav touch-target or safe-area change.
+
+**Unresolved items**
+- No full iOS build or device screenshot verification was run for this small QML spacing tweak.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-06-23 - Tighten home top header spacing
+
+**User request**
+- Adjust the excessive top spacing shown in the supplied screenshot so the top visual gap matches the lower spacing.
+
+**Key context**
+- The screenshot corresponds to the commercial MVP top header in `/Users/a202603/Documents/BMESC_APP/mobile/main.qml`.
+- The header uses the iOS safe-area top inset plus an additional fixed height before the Home title, language switch, and connection status pill.
+- Existing unrelated uncommitted changes were present and were preserved.
+
+**Confirmed decisions and preferences**
+- Treat this as a QML/UI spacing-only adjustment.
+- Do not touch BLE, protocol, product model, branding assets, or bottom navigation behavior.
+
+**Actions and results**
+- Reduced `headerBar.height` from `notchTop + 76` to `notchTop + 52`.
+- Reduced the bottom margins for the Home title, language switch, and connection status pill so the top controls move upward together and remain aligned.
+
+**Unresolved items**
+- No full iOS build or device screenshot verification was run for this small QML spacing tweak.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-06-23 - Remove BLE row bottom divider
+
+**User request**
+- Remove the extra horizontal line under the BLE device list item shown in the supplied screenshot and make the text's top and bottom spacing consistent.
+
+**Key context**
+- The screenshot corresponds to the BLE device list in `/Users/a202603/Documents/BMESC_APP/mobile/BMDevicePage.qml`.
+- The BLE list item used a `DeviceRow` with a 1 px bottom divider and a row height smaller than the surrounding surface's minimum height.
+- Existing unrelated uncommitted QML changes were present and were preserved.
+
+**Confirmed decisions and preferences**
+- Treat this as a QML/UI-only adjustment.
+- Do not touch BLE discovery, connection behavior, protocol code, product model logic, or navigation.
+
+**Actions and results**
+- Removed the `DeviceRow` bottom divider rectangle.
+- Increased `DeviceRow.height` from `78` to `92` so a single BLE row matches the card's minimum height and the text block is vertically centered with equal top/bottom spacing.
+
+**Unresolved items**
+- No full app build or device screenshot verification was run for this small UI tweak.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-06-23 - Remove dashboard metric inner square corners
+
+**User request**
+- Remove the four visible right-angle artifacts at the corners of the dashboard metric grid shown in the supplied screenshot.
+
+**Key context**
+- The screenshot corresponds to the KPI/status metric grid in `/Users/a202603/Documents/BMESC_APP/mobile/BMHomePage.qml`.
+- The artifacts were caused by the child `Kpi` and `StatusRow` components drawing their own full rectangular borders inside the parent rounded metric container.
+- Existing unrelated uncommitted QML changes were present and were preserved.
+
+**Confirmed decisions and preferences**
+- Treat this as a QML/UI-only visual cleanup.
+- Preserve telemetry display, product model data access, BLE/protocol behavior, and navigation.
+
+**Actions and results**
+- Removed full borders from the internal `Kpi` and `StatusRow` components.
+- Added three explicit divider lines inside the rounded metric container: two vertical dividers for the KPI columns and one horizontal divider above the device-status row.
+- The outer rounded metric border remains the only border at the four corners.
+
+**Unresolved items**
+- No full app build or device screenshot verification was run for this small UI tweak.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-06-23 - Fix Android splash icon white background
+
+**User request**
+- Startup background is now dark, but the Android launch icon stage still shows a white background; fix it.
+
+**Key context**
+- Work stayed in `/Users/a202603/Documents/BMESC_APP`.
+- The remaining white flash was treated as the Android 12+ system splash icon phase, separate from Qt/QML first paint.
+- Test phone PKR110 reports Android SDK 36, so Android 12+ splash attributes apply.
+
+**Confirmed decisions and preferences**
+- Keep the startup icon, but make all native splash/icon-stage backgrounds BM dark.
+- Preserve QML, BLE/protocol logic, product models, and navigation.
+
+**Actions and results**
+- Added `android/res/values-v31/splashscreentheme.xml` with `windowSplashScreenBackground`, `windowSplashScreenAnimatedIcon`, and `windowSplashScreenIconBackgroundColor` set for the Android 12+ splash path.
+- Expanded the base Android splash/app themes with dark window, status bar, and navigation bar colors.
+- Rebuilt `/Users/a202603/Documents/BMESC_APP/build/android/apk/BMESC_mobile_debug.apk` successfully with Qt 5.15.2 Android tooling, Corretto 8, and Gradle.
+- Installed the APK on PKR110; package `com.bmesc.app` version `1.00`/code `191` updated successfully.
+- Launched the app, confirmed `QtActivity` became the top resumed activity, checked logcat for fatal/resource/theme errors, and captured startup frames showing a dark BM icon stage followed by the dark home page.
+- Verified the APK resource table contains the v31 splash background and icon background colors as `#ff050609`.
+
+**Unresolved items**
+- No BLE hardware connection or live telemetry test was performed.
+- Startup visual verification used adb screenshots rather than direct manual observation by the user.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-06-25 - Prepare BMESC Google Play release AAB
+
+**User request**
+- Implement the BMESC Google Play listing plan: prepare a release upload package, reduce sensitive Android permissions where possible, create/store upload signing material safely, and prepare Play Console listing/compliance copy.
+
+**Key context**
+- Work stayed in `/Users/a202603/Documents/BMESC_APP`.
+- Google Play app target remains `BMESC`, package `com.bmesc.app`, versionName `1.00`, versionCode `191`, targetSdk `35`.
+- First Play release scope remains local BLE discovery/connection, telemetry, device information, settings, support/privacy/legal/open-source access; no accounts, cloud binding, ads, payments, social features, or firmware update in this release.
+
+**Confirmed decisions and preferences**
+- Use a new Google Play upload key for Google Play App Signing.
+- Avoid background location for the release manifest where not required for BLE scanning.
+- Keep protocol-facing logic stable and do not modify `BleUart`, `Packet`, `Commands`, or `VescInterface`.
+
+**Actions and results**
+- Added a local upload keystore at `keystores/bmesc-upload-key.jks` and stored its credentials only in private memory reference `PRIVATE-20260625-001`.
+- Added `build_android_play_release`, an executable release script that builds an `arm64-v8a` release Android App Bundle and signs it with the upload key.
+- Generated and verified `build/android-play-release/artifacts/BMESC_mobile_release.aab` as the Google Play upload artifact.
+- Updated Android release permissions to remove `ACCESS_BACKGROUND_LOCATION` and `FOREGROUND_SERVICE_LOCATION`, limit coarse/fine location to Android 11 and earlier, mark `BLUETOOTH_SCAN` with `neverForLocation`, and use foreground service type `connectedDevice`.
+- Added `docs/google-play/play-release-materials.md` with store listing, release notes, review notes, data safety answers, app content answers, and permission declaration copy.
+- Opened the Play Console create-app page in Chrome, but left it as a handoff because Google Play Console page inspection timed out and final account/policy submission should be confirmed in the logged-in browser.
+
+**Unresolved items**
+- Complete Play Console manual fields, upload the signed AAB, screenshots, and submit the production draft for review from the open Chrome tab.
+- If Google asks for location or connected-device permission details, use the prepared text in `docs/google-play/play-release-materials.md`.
+
+**Sensitive information**
+- Upload keystore credentials were recorded only in `PROJECT_MEMORY_PRIVATE.md` under `PRIVATE-20260625-001`; no secret values were written to public memory.
+
+### 2026-06-25 - Continue Play Console setup blocked by Chrome Apple Events setting
+
+**User request**
+- Continue the BMESC Google Play Console app creation and release upload workflow.
+
+**Key context**
+- Work stayed in `/Users/a202603/Documents/BMESC_APP`.
+- Chrome had the Play Console create-app tab available, but page automation repeatedly timed out on Google Play Console.
+- The user approved enabling Chrome's `Allow JavaScript from Apple Events` setting so AppleScript could inspect/fill the page.
+
+**Confirmed decisions and preferences**
+- It is acceptable to enable the Chrome Apple Events JavaScript setting for this Play Console workflow.
+
+**Actions and results**
+- Set the `com.google.Chrome AppleScriptEnabled` preference to true and attempted to toggle the Chrome menu item `显示 > 开发者 > 允许 Apple 事件中的 JavaScript`.
+- Chrome continued reporting AppleScript JavaScript execution as disabled, and the menu item did not show as checked, indicating a manual Chrome security confirmation/click is required.
+
+**Unresolved items**
+- User needs to manually enable `显示 > 开发者 > 允许 Apple 事件中的 JavaScript` in Chrome, then the Play Console automation can continue.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-06-25 - Continue BMESC Google Play listing setup
+
+**User request**
+- Continue listing the already built/tested BMESC Android app in Google Play Console after Chrome JavaScript-from-Apple-Events permission was enabled.
+
+**Key context**
+- Work continued in the existing Play Console app `4972135932071185249` for package `com.bmesc.app`.
+- Store listing materials use app name `BMESC`, short description `Bluetooth device dashboard`, support email `op727142092@gmail.com`, support URL `https://bmyyqzs.github.io/BMESC_APP/app-store/support.html`, and privacy policy URL `https://bmyyqzs.github.io/BMESC_APP/app-store/privacy-policy.html`.
+
+**Confirmed decisions and preferences**
+- Keep the Google Play category as Tools.
+- Use existing generated release/store assets and avoid changing BLE/protocol code.
+
+**Actions and results**
+- Closed the saved app-category dialog; confirmed category remains App / Tools.
+- Filled and saved store contact details: support email and support website; phone left blank.
+- Created/opened the default English (United States) main store listing.
+- Filled and saved draft store listing text: app name, short description, and full description.
+- Generated Play-specific public assets under `/Users/a202603/Documents/BMESC_APP/build/android-play-release/store-assets/`: copied 512x512 app icon, generated 1024x500 feature graphic, and generated 1296x2304 9:16 phone screenshots from existing Android screenshots.
+- Uploaded `feature-graphic-1024x500.jpg` into the Play Console asset library, but Play Console showed it as needing crop/selection and automation could not complete the final asset selection/crop confirmation.
+
+**Unresolved items**
+- In Play Console, manually confirm/crop/select the uploaded feature graphic, then upload/select the 512x512 app icon and 2-8 phone screenshots from `build/android-play-release/store-assets/`.
+- After store listing assets are complete, create the production release, upload `build/android-play-release/artifacts/BMESC_mobile_release.aab`, add release notes, and submit only after final review confirmation.
+
+**Sensitive information**
+- Existing private upload-keystore memory was read per workflow but not changed. No secret values were written to public memory or responses.
+
+### 2026-06-25 - Continue Play release AAB upload blocked by macOS Accessibility
+
+**User request**
+- Continue the BMESC Google Play production release draft from the open Play Console page.
+
+**Key context**
+- Work stayed in `/Users/a202603/Documents/BMESC_APP`.
+- Current Play Console page is the BMESC production release draft at `/app/4972135932071185249/tracks/4697356694783579177/releases/1/prepare`.
+- Signed AAB remains available at `/Users/a202603/Documents/BMESC_APP/build/android-play-release/artifacts/BMESC_mobile_release.aab`.
+
+**Confirmed decisions and preferences**
+- Continue using the prepared signed AAB and existing Play Console listing/compliance setup.
+- Do not submit final review without explicit user confirmation.
+
+**Actions and results**
+- Reconfirmed the release draft page has one hidden `.aab` file input, default release notes text, and disabled Save/Next buttons while no AAB is attached.
+- Tried Chrome AppleScript page clicks and visible upload-button clicks; the AAB was not attached.
+- Discovered the failed native-click path was due to macOS denying `osascript` Accessibility permission, so System Events clicks did not execute.
+- Tried the Chrome extension file chooser path with a longer timeout, but the extension browser session became unavailable before the AAB could be selected.
+
+**Unresolved items**
+- Grant Accessibility permission to `osascript`/the controlling app, or manually click Play Console's Upload button and choose `/Users/a202603/Documents/BMESC_APP/build/android-play-release/artifacts/BMESC_mobile_release.aab`; then continue with release notes, save draft, preview, and final confirmation before submission.
+
+**Sensitive information**
+- Existing private upload-keystore memory was read per workflow but not changed. No secret values were written to public memory or responses.
+
+### 2026-06-25 - Resolve BMESC Google Play production review blockers
+
+**User request**
+- Continue checking Google Play release blockers and modify content until the BMESC app can proceed toward normal listing/review.
+
+**Key context**
+- Work continued in `/Users/a202603/Documents/BMESC_APP` and the logged-in Play Console app `4972135932071185249`.
+- The previous production draft still contained a rejected `BMESC_mobile_release.aab` upload with versionCode `191`.
+- The rebuilt local Play upload artifact was `build/android-play-release/artifacts/BMESC_mobile_release.aab`, versionCode `192`.
+
+**Confirmed decisions and preferences**
+- User confirmed removing the failed 191 upload item and uploading the new AAB.
+- Final Google Play submission should still require explicit confirmation before clicking the submit-for-review button.
+
+**Actions and results**
+- Removed the rejected versionCode `191` AAB from the Play Console production draft.
+- Uploaded the new versionCode `192` AAB; Play Console accepted it as `192 (1.00)`, min API `23+`, target SDK `35`, ABI `arm64-v8a`.
+- Saved the production release draft and entered the review page.
+- Confirmed the prior foreground service declaration blocker was gone.
+- Acknowledged the Play Console 16 KB memory page-size item for this release; it changed to ignored for the release and no longer blocked saving.
+- Found and fixed the remaining publish-overview blocker: completed the Advertising ID declaration as "No" because BMESC does not use ads or advertising ID.
+- Returned to Publishing overview, where the submit-for-review button became available while Google's quick checks continued.
+
+**Unresolved items**
+- Do not click `提交 10 项更改以供审核` until the user explicitly confirms final submission to Google review.
+- Google's quick checks may continue briefly before the already-available submit action is processed.
+
+**Sensitive information**
+- Existing private upload-keystore memory was read per workflow but not changed. No secret values were written to public memory or responses.
+
+### 2026-06-25 - Pause before final Google Play submission confirmation
+
+**User request**
+- Continue the active Google Play listing goal after the release blockers were resolved.
+
+**Key context**
+- Play Console Publishing overview had the submit-for-review button available after the production release draft, Advertising ID declaration, app content, store listing, and category changes were saved.
+- The final action is `提交 10 项更改以供审核`, which sends BMESC changes to Google review.
+
+**Confirmed decisions and preferences**
+- Continue requiring explicit user confirmation before final submission to Google review.
+
+**Actions and results**
+- No further Play Console changes were made because the next available action is final submission.
+- Reiterated that the user should reply `确认提交审核` to authorize the submit-for-review click.
+
+**Unresolved items**
+- Waiting for explicit final submission confirmation from the user.
+
+**Sensitive information**
+- Existing private upload-keystore memory was read per workflow but not changed. No secret values were written to public memory or responses.
+
+### 2026-06-26 - Run daily Gmail cooperation summary
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- Previous same automation run reported no cooperation-demand emails.
+- This run searched recent unread inbox first, then recent inbox, then broader recent all-mail queries and a recent inbox sanity check.
+
+**Confirmed decisions and preferences**
+- Gmail access was read-only. No replies, labels, archiving, deletion, or mailbox modifications were performed.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- Recent inbox mostly contained Google Play Console/developer verification notices, Google account/Search Console notices, Isha/NYT subscription or promotional mail, and other non-cooperation items.
+- Broader recent all-mail search found an older pev.dev Refloat announcement, but it was a community/software announcement rather than a cooperation request.
+- Wrote this result to `/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None.
+
+**Sensitive information**
+- Existing private project memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-06-26 - Correct Gmail automation memory path
+
+**User request**
+- Correction for the same daily Gmail cooperation summary run recorded earlier today.
+
+**Key context**
+- The prior public memory entry incorrectly recorded the automation memory path because `CODEX_HOME` was not set in the shell during the first write attempt.
+
+**Confirmed decisions and preferences**
+- Historical memory entries are append-only, so the correction is recorded as a new entry rather than editing the previous entry.
+
+**Actions and results**
+- The actual automation memory was written to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+- The Gmail scan result remains unchanged: no matching cooperation-demand emails were found.
+- Triggered a system beep after the initial `afplay` sound command failed with a macOS AudioQueue error.
+
+**Unresolved items**
+- None.
+
+**Sensitive information**
+- No sensitive values were recorded.
+
+### 2026-06-29 - Assess Refloat pedal status and speed limit integration
+
+**User request**
+- Ask whether BMESC can directly read Refloat pedal/footpad status and show it on the Home page, and whether BMESC can directly modify Refloat speed limit parameters.
+
+**Key context**
+- Current BM Home data flows through `ProductDeviceModel` into `mobile/BMHomePage.qml`; product-facing QML should keep using narrow product model properties instead of calling `Commands` directly.
+- Upstream Refloat command docs on `main` document `COMM_CUSTOM_APP_DATA` payloads with package interface id `101`; public `REALTIME_DATA` command id `33` exposes `state_flags`, including `footpad_state`, and selectable fields including `adc_left`/`adc_right`.
+- Refloat `src/conf/settings.xml` on `main` includes custom config field `tiltback_speed` / `Speed Threshold`, integer range `0..100`, default `0`, suffix `km/h`, and notes that `0` disables speed pushback.
+- This repo already has `Commands::sendCustomAppData`, `customAppDataReceived`, and custom config read/write support via `customConfigGet(0, ...)` / `customConfigSet(0, ...)`.
+
+**Confirmed decisions and preferences**
+- No code changes were requested or made.
+- Recommended implementation remains a guarded product/admin facade: expose read-only footpad status on Home if desired, and avoid exposing raw Refloat/VESC engineering parameters directly in the commercial MVP.
+
+**Actions and results**
+- Inspected local `ProductDeviceModel`, `BMHomePage`, `Commands`, and `VescInterface` paths.
+- Checked upstream Refloat docs/source metadata from GitHub because Refloat can change by version; stable tags include `v1.2.2` and newer `v1.3.0` pre-release tags.
+- Concluded that footpad status is feasible through Refloat realtime app-data, and speed threshold writes are feasible through custom config index `0`, but both need version detection, command parsing/serialization, guarded UI, and hardware validation before release use.
+
+**Unresolved items**
+- Implementation still needs a target Refloat version decision, parser/serializer tests, and live device validation before enabling writes.
+
+**Sensitive information**
+- No sensitive values were provided or recorded.
+
+### 2026-07-05 - Run daily Gmail cooperation summary
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- Last automation run was `2026-07-03T19:12:20.401Z`.
+- This run searched recent unread inbox, recent inbox, recent BMESC/VESC/pev.dev/Refloat keyword mail, controller hardware/BLE/electric skateboard/e-bike/scooter terms, cooperation/business keywords, and 30-day topic-plus-business cross-checks.
+
+**Confirmed decisions and preferences**
+- Gmail access stayed read-only. No replies, drafts, labels, archiving, deletion, or mailbox modifications were performed.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- Recent unread/recent inbox contained Google Search Console floatw.com indexing notice, OpenAI subscription feedback request, Cloudflare AI bot controls notice, Ollama updates, AIHubMix access notices, Google Play monthly update, and pev.dev login-link messages.
+- BMESC/VESC/pev.dev matches were only pev.dev login links; controller-specific searches returned no relevant mail.
+- Broader cooperation/business keyword matches were service, platform, search-console, or newsletter messages, not partnership or business inquiries.
+- Wrote this run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-08 - Verify BMESC iPhone installation goal completion
+
+**User request**
+- Continue the active goal to install the app onto the phone using Xcode.
+
+**Key context**
+- Connected device remained `邱增顺的iPhone`, physical UDID `00008110-00012D403CE2401E`.
+- Built app bundle remained at `/Users/a202603/Documents/BMESC_APP/build/ios/Debug-iphoneos/BMESC.app` with bundle id `com.floatingwheel.bmesc` and Team ID `R2QUAAM332`.
+
+**Confirmed decisions and preferences**
+- Completion required current-state verification rather than relying only on prior memory.
+
+**Actions and results**
+- Verified the connected device, signed app bundle, bundle id, and code signing metadata.
+- Relaunched `com.floatingwheel.bmesc` on the physical iPhone with `devicectl`, confirming the installed app is runnable.
+- Marked the active Codex goal complete.
+
+**Unresolved items**
+- `devicectl` still prints a non-blocking CoreDevice provider warning, but launch succeeds.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+### 2026-07-10 - Explore three pedal UI directions
+
+**User request**
+- Optimize the pedal UI inside the Home `踏板与限速` card and provide three selectable design options.
+
+**Key context**
+- The current product UI uses a dark BM palette with champagne-gold accents and mint-green live states.
+- The existing product-facing card remains backed by `ProductDeviceModel`; this turn was visual exploration only.
+
+**Confirmed decisions and preferences**
+- Keep `踏板1` / `踏板2` as the only pedal labels and avoid redundant states such as “未按下” or “两侧”.
+- Preserve the speed-limit section as context and do not expose engineering controls.
+
+**Actions and results**
+- Inspected `mobile/BMHomePage.qml`, the BM theme, and the existing mobile Home screenshot.
+- Generated three independent 390 x 844 concepts: a detailed unified board silhouette, dual sensor tiles, and a compact live-status strip.
+- No application source or protocol behavior was changed; waiting for the user to choose a direction before implementation.
+
+**Unresolved items**
+- The preferred visual option and any requested refinements still need user selection.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-16 - Implement BMESC universal QR download page
+
+**User request**
+- Implement the approved one-QR iOS/Android download plan, including a branded landing page, channel configuration, signed Android APK output, QR assets, deployment tooling, validation, and publishing.
+
+**Key context**
+- The permanent QR target is `https://download.floatw.com/`; the existing GitHub Pages branch is the fallback host.
+- Public checks confirmed BMESC is live at Apple App Store id `6782801007` and Google Play package `com.bmesc.app`.
+
+**Confirmed decisions and preferences**
+- Keep the download implementation isolated from QML, BLE, product models, and protocol behavior.
+- Keep the direct Android APK disabled until a physical Android smoke test is completed; App Store and Google Play links are enabled.
+- Treat direct APK and Google Play as separate update channels until their signing certificates are confirmed compatible.
+
+**Actions and results**
+- Added `docs/download/` with a responsive BM-branded bilingual landing page, external release-status configuration, WeChat external-browser guidance, app icon, and H-error-correction SVG/1200px PNG QR assets.
+- Extended `build_android_play_release` to produce and verify both the Play AAB and signed `BMESC-1.00-192.apk`, plus SHA-256 and JSON release metadata; the APK checksum is recorded in the public download configuration.
+- Added `deploy_download_site` for credential-driven Aliyun OSS upload, APK MIME/attachment metadata, and cache policies without embedding credentials.
+- Published the page and staged APK to the `gh-pages` branch at `https://bmyyqzs.github.io/BMESC_APP/download/`; browser verification confirmed the public page title.
+- Verified the Android release build, APK v1/v2/v3 signatures, QR decode target, HTML, JSON, JavaScript syntax, mobile 390px layout without horizontal overflow, and Git diff whitespace.
+
+**Unresolved items**
+- `download.floatw.com` still has no DNS target; Aliyun OSS bucket/custom-domain/HTTPS setup requires a usable Aliyun console session or OSS credentials.
+- No Android device was connected, so direct APK installation/BLE smoke testing and activation remain pending.
+- Compare the Google Play App Signing certificate fingerprint with the direct APK certificate before allowing cross-channel updates.
+
+**Sensitive information**
+- Existing private signing credentials were used only through environment variables and were not copied to public memory, source, logs, or responses. Private memory was not changed.
+
+### 2026-07-16 - Activate reachable QR and direct Android download
+
+**User request**
+- Continue until users can scan the QR code, open the download page, and download the Android APK.
+
+**Key context**
+- `download.floatw.com` is still unresolved, so immediate availability uses the existing GitHub Pages fallback.
+- This entry supersedes the prior decision to keep the direct APK channel disabled pending a physical Android smoke test; the user prioritized a working download flow now.
+
+**Confirmed decisions and preferences**
+- Point the current QR code to `https://bmyyqzs.github.io/BMESC_APP/download/` so it is usable immediately.
+- Keep the versioned direct APK and Google Play as independent update channels until signing-certificate compatibility is confirmed.
+
+**Actions and results**
+- Enabled the direct Android channel and published page, configuration, QR assets, and `BMESC-1.00-192.apk` to remote `gh-pages` commit `8e6aac9`.
+- Confirmed the public page opens with title `下载 BMESC`; the remote configuration reports iOS, direct Android, and Google Play as `live`.
+- Verified the remote branch APK is exactly `49,163,610` bytes with SHA-256 `088e0b4e1082522d6d948c4e9d7d1099352ece3e6cc86aa15a89fd50cd0c57b7`, identical to the locally built release artifact.
+- Verified the APK JAR signature container successfully with OpenSSL; the signing-certificate SHA-256 fingerprint is `F7:43:58:A5:1B:CB:38:E6:CC:5A:9D:CB:F8:D9:CB:6A:D4:02:6C:50:19:F5:66:DA:81:2C:7E:EE:48:83:DE:42`.
+
+**Unresolved items**
+- Move the same site to `download.floatw.com` after DNS/OSS/HTTPS configuration is available, then regenerate the QR once for the permanent domain.
+- Physical WeChat scan, Android install/BLE smoke testing, and Play App Signing certificate comparison still require a real Android device or Play Console certificate export.
+
+**Sensitive information**
+- No sensitive values were added to public memory; private memory was not changed.
+
+### 2026-07-16 - Prepare APK upload to official floatw.com website
+
+**User request**
+- Put the signed Android APK on the official website.
+
+**Key context**
+- `floatw.com` is served through Alibaba Cloud CDN and an Alibaba Cloud `云·速成美站`/Wezhan site (`wezhan.cn`, site id `10374538`), not from the repository's GitHub Pages branch.
+- The intended official URL `https://floatw.com/download/releases/android/BMESC-1.00-192.apk` currently returns HTTP 404, while the same APK remains available on the GitHub Pages fallback.
+
+**Confirmed decisions and preferences**
+- Upload the existing signed `BMESC-1.00-192.apk` to the actual official website source rather than only linking to the GitHub Pages copy.
+- Preserve the current app, protocol, QML, and release artifact; this task concerns website hosting only.
+
+**Actions and results**
+- Resolved the official site's hosting/CDN chain and confirmed the website platform from its live HTML and static assets.
+- Confirmed there are no local Aliyun OSS CLI credentials or saved `ossutil` configuration available for direct upload.
+- Attempted the existing Aliyun/Chrome session, but page control repeatedly timed out before the management console could be reached.
+
+**Unresolved items**
+- The user needs to allow opening a fresh Chrome window and, if prompted, sign in to Alibaba Cloud so the APK can be uploaded through the `云·速成美站` management backend.
+- After upload, verify HTTP 200, APK MIME/attachment behavior, byte size `49,163,610`, and SHA-256 `088e0b4e1082522d6d948c4e9d7d1099352ece3e6cc86aa15a89fd50cd0c57b7` on the official domain.
+
+**Sensitive information**
+- Existing private memory was read per workflow and not changed. No sensitive values were added to public memory.
+
+### 2026-07-17 - Run daily Gmail cooperation summary
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for new or relevant BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- Search prioritized recent unread inbox and recent inbox mail, then all mail after 2026-07-16 and targeted 30-day searches for BMESC, VESC/VESC Tool, pev.dev/Refloat, controller hardware, BLE, electric skateboard/e-bike/scooter terms, and English/Chinese cooperation/business keywords.
+
+**Confirmed decisions and preferences**
+- Gmail access stayed read-only. No replies, drafts, labels, archiving, deletion, or mailbox modifications were performed.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- New/recent inbox mail showed an ElevenReader subscription reminder, not a BMESC/VESC/controller business inquiry.
+- Broader topic/business matches were non-cooperation items: IARC BMESC live rating notice, pev.dev summary, Google Play BMESC policy rejection, Ollama funding/update email, AIHubMix service notices, Google Play notices, and Google Search Console notices.
+- Wrote this run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None for cooperation-demand mail.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-17 - Show universal app download QR and install Kimi Code CLI
+
+**User request**
+- Help download the Android and iOS apps via QR code; mid-turn the user also pasted the official `curl -fsSL https://code.kimi.com/kimi-code/install.sh | bash` install command.
+
+**Key context**
+- The universal one-QR download flow from 2026-07-16 remains in place: QR asset `docs/download/assets/bmesc-download-qr.png` (1200px, H error correction) targets `https://bmyyqzs.github.io/BMESC_APP/download/`, with iOS App Store, direct APK, and Google Play channels all configured `live` in `docs/download/download-config.json`.
+
+**Confirmed decisions and preferences**
+- Reuse the existing universal QR and download page rather than generating new codes.
+
+**Actions and results**
+- Ran the pasted installer; Kimi Code CLI 0.26.0 installed to `/Users/a202603/.kimi-code/bin/kimi` and PATH was added to `.bashrc`; `kimi --version` prints `0.26.0`.
+- Surfaced the existing QR image and channel links to the user.
+- Could not re-verify live reachability of `bmyyqzs.github.io` this turn: local curl to github.io failed with connection reset (exit 35), and the fetch tool also failed. The page and APK were verified live on 2026-07-16.
+
+**Unresolved items**
+- `download.floatw.com` migration, physical WeChat scan/Android smoke test, and Play App Signing certificate comparison remain pending from earlier entries.
+
+**Sensitive information**
+- No sensitive values were provided or recorded; private memory was not changed.
+
+## 2026-07-17 - Migrate BMESC download hosting to download.floatw.com (progress)
+
+### User request
+- Move BMESC app download links/QR target from GitHub Pages to floatw.com infrastructure so mainland users can scan and download reliably.
+
+### Confirmed decisions
+- Route A: dedicated OSS bucket + subdomain `download.floatw.com`, no changes to the main site CDN (main site CDN belongs to a different Aliyun account; DescribeCdnDomainDetail says floatw.com does not belong to this account).
+
+### Actions and results (verified)
+- Installed tools into `build/tools/`: aliyun CLI 3.4.7, ossutil 2.1.2 (arm64).
+- RAM user `bmesc-download-deploy` created by user; AK stored in PROJECT_MEMORY_PRIVATE.md as PRIVATE-20260717-001; temp CSV deleted.
+- Created OSS bucket `bmesc-download` (cn-hangzhou), disabled bucket-level BlockPublicAccess, set bucket policy public GetObject, enabled static website hosting (index.html for index+error).
+- Uploaded `docs/download/` (5 files) and APK `releases/android/BMESC-1.00-192.apk` (49,163,610 B) with android content-type/disposition; cache headers: index+config no-cache, assets+APK immutable.
+- Learned: OSS default endpoints block public APK distribution (`ApkDownloadForbidden`); custom domain (CNAME) is required.
+- DNS via alidns API: added CNAME `download.floatw.com -> bmesc-download.oss-cn-hangzhou.aliyuncs.com` (RecordId 2077953501938012160) and TXT `_dnsauth.download` for ownership token; bound domain via ossutil `put-cname` with token.
+- Root path returned 403 AccessDenied until Bucket ACL was set to `public-read` (bucket policy alone is NOT enough for OSS static website logic). After ACL fix: `http://download.floatw.com/` 200 (title 下载 BMESC), config 200, APK full download verified size 49163610 and SHA-256 088e0b4e1082522d6d948c4e9d7d1099352ece3e6cc86aa15a89fd50cd0c57b7 (matches existing record), ~32 MB/s.
+- `oss-website-*.aliyuncs.com` zones do not exist in current Aliyun DNS; current docs flow is custom-domain binding + static website hosting (no separate website endpoint).
+
+### Unresolved
+- HTTPS: RAM user lacks cert permission (`yundun-cert:*` ImplicitDeny). User's earlier message about AliyunCASFullAccess was ambiguous; actual system policy needed is `AliyunYundunCertFullAccess`. Options given: (A) add that policy to RAM user for full automation, or (B) user clicks "证书托管/免费证书" in OSS console for download.floatw.com.
+- After cert: bind to OSS custom domain, verify HTTPS end-to-end, then switch `docs/download/download-config.json` canonicalUrl to `https://download.floatw.com/`, regenerate QR png/svg, commit+push gh-pages.
+
+### Sensitive information
+- AccessKey secret stored only in PROJECT_MEMORY_PRIVATE.md (PRIVATE-20260717-001). Never printed.
+
+## 2026-07-17 - download.floatw.com migration completed (HTTPS live, QR regenerated)
+
+### User request
+- Continue and finish the download hosting migration (user chose 方案A earlier; HTTPS + QR + canonical switch).
+
+### Actions and results (verified)
+- HTTPS cert: Aliyun CAS free-quota route abandoned (free quota requires console 0-yuan order; RAM CAS permission insufficient). Used acme.sh (`build/tools/acmesh/acme.sh` v3.1.3) + Let's Encrypt DNS-01 via alidns API; cert at `build/tools/acme_home/certs/download.floatw.com/` (fullchain.cer + .key). Bound to OSS custom domain via ossutil `put-cname` CertificateConfiguration (file://build/cname_cert.json, Force=true).
+- Verified end-to-end over HTTPS: `https://download.floatw.com/` 200 (title 下载 BMESC, 21208 B), config 200 application/json, QR 200, APK full download 49,163,610 B, SHA-256 088e0b4e1082522d6d948c4e9d7d1099352ece3e6cc86aa15a89fd50cd0c57b7, ~28 MB/s. HTTP also remains 200. Cert: Let's Encrypt YR2, valid 2026-07-17 to 2026-10-15 (90 days, must renew; renew via acme.sh then re-run put-cname).
+- `download-config.json` canonicalUrl switched to `https://download.floatw.com/` (updatedAt 2026-07-17).
+- QR regenerated to match original style: 1200x1200 RGBA, dark modules #080b10, gold #E0AE5B, centered rounded gold-frame BM icon (173px block, H error correction); PNG 20,127 B + plain SVG 1,885 B in `docs/download/assets/`. Old QR (59,112 B) recovered from OSS to /tmp for style reference only.
+- Re-uploaded config + QR png/svg to OSS. Gotcha: ossutil 2.x `cp` asks interactive overwrite confirm and silently skips when stdin is not a TTY ("Upload done:(0 objects)") - must pass `-f`.
+- Git: committed `docs/download/` on branch codex/focstrot and pushed; synced same files to gh-pages (commit b272dd4, pushed). Local curl to github.io fails (SSL exit 35) so gh-pages deploy could not be verified from this machine; push itself succeeded.
+- RAM permissions recap: OSS + alidns work; CDN none (Forbidden.RAM, abandoned); AliyunYundunCertFullAccess not needed anymore (acme.sh route) though harmless if added.
+
+### Unresolved
+- Physical WeChat/phone scan test of the new QR and Android install smoke test still pending (no QR decoder available locally).
+- Cert renewal before 2026-10-15 (acme.sh renew + put-cname re-bind).
+
+### Sensitive information
+- No new secrets; AK remains only in PROJECT_MEMORY_PRIVATE.md (PRIVATE-20260717-001).
