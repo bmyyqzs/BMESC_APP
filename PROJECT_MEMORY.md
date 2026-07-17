@@ -6670,3 +6670,20 @@ This Git-tracked file is the chronological memory for project conversations and 
 
 ### Sensitive information
 - No new secrets; AK remains only in PROJECT_MEMORY_PRIVATE.md (PRIVATE-20260717-001).
+
+## 2026-07-17 - download.floatw.com suspended by Aliyun (UserDisable / arrears suspected)
+
+### User request
+- User scanned the new QR in WeChat and saw an OSS XML error page instead of the download page; asked to investigate.
+
+### Diagnosis (verified)
+- WeChat screenshot shows OSS error: `UserDisable` (EC 0003-00000801) for host download.floatw.com.
+- Reproduced from local curl at ~14:42: `https://download.floatw.com/` and download-config.json both return HTTP 403 `UserDisable`. Site worked at ~13:31 same day, so suspension happened in between; not QR- or WeChat-specific (QR itself confirmed working - it opened the correct URL).
+- RAM sub-account cannot query balance (bssopenapi NotAuthorized, main account only), so exact cause unconfirmed by API. UserDisable per Aliyun docs = account overdue payment (欠费停机) or account-level security disable. Most likely: OSS pay-as-you-go charges with zero balance on new account 1130731997831020.
+- Note: OSS mainland custom domains also require ICP 备案; floatw.com filing exists under the other (main-site) account - keep in mind if suspension turns out to be security/ICP related.
+
+### Resolution path given to user
+- Log into main Aliyun console -> 费用中心 check 欠费 and messages; top up (service auto-restores in minutes) or open ticket if security-disabled. Then re-verify with curl.
+
+### Sensitive information
+- No new secrets; nothing changed in private memory.
