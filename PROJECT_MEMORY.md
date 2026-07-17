@@ -6687,3 +6687,28 @@ This Git-tracked file is the chronological memory for project conversations and 
 
 ### Sensitive information
 - No new secrets; nothing changed in private memory.
+
+## 2026-07-17 - Download domain changed to download.bmesc.floatw.com
+
+### User request
+- Change the download URL from download.floatw.com to download.bmesc.floatw.com.
+
+### Confirmed decisions
+- New canonical domain `download.bmesc.floatw.com`; old `download.floatw.com` stays bound to the same bucket as a working alias (no removal).
+
+### Actions and results (verified)
+- Between 14:42 and 14:55 the Aliyun account was restored (UserDisable cleared; user presumably topped up) - both domains serve again.
+- DNS (alidns): added TXT `_dnsauth.download.bmesc` (RecordId 2078009933626476544, OSS ownership token) and CNAME `download.bmesc -> bmesc-download.oss-cn-hangzhou.aliyuncs.com` (RecordId 2078009938659596288).
+- Bound domain to bucket via ossutil create-cname-token + put-cname; list-cname shows both domains Enabled.
+- acme.sh issued Let's Encrypt cert for download.bmesc.floatw.com (ECC, dns_ali), files at `build/tools/acme_home/certs/download.bmesc.floatw.com_ecc/`; bound via put-cname CertificateConfiguration (`build/cname_cert_bmesc.json`). Valid to 2026-10-15 (renew together with the old domain's cert).
+- Note: right after cert binding, some OSS frontends intermittently served the default `cn-hangzhou.oss.aliyuncs.com` cert (curl exit 60, ~1 in 6 requests); stabilized to 10/10 correct after ~5 minutes of propagation.
+- download-config.json canonicalUrl = `https://download.bmesc.floatw.com/` (verified live). QR PNG/SVG regenerated for the new URL in the same 1200px gold-frame style (PNG 20,139 B) and uploaded (remember `ossutil cp -f`).
+- APK re-verified over new domain: 49,163,610 B, SHA-256 088e0b4e1082522d6d948c4e9d7d1099352ece3e6cc86aa15a89fd50cd0c57b7, ~30 MB/s.
+- git: committed on codex/focstrot, synced and pushed gh-pages (commit 961b21a); github.io still unreachable from this machine for verification.
+
+### Unresolved
+- Physical phone/WeChat scan test of the new QR (points to https://download.bmesc.floatw.com/) still pending.
+- Cert renewal for BOTH download domains before 2026-10-15.
+
+### Sensitive information
+- No new secrets; AK remains only in PROJECT_MEMORY_PRIVATE.md (PRIVATE-20260717-001).
