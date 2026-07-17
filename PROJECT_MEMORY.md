@@ -6755,3 +6755,16 @@ This Git-tracked file is the chronological memory for project conversations and 
 
 ### Sensitive information
 - RAM AccessKey (PRIVATE-20260717-001) was used from private memory for the OSS upload; no secrets printed or newly recorded.
+
+## 2026-07-17 - WeChat corner hint: rounded ring replaced with arrow, published
+
+### User request
+- Replace the rounded box in the download page's top-right corner (WeChat-only hint) with an arrow, and publish.
+
+### Actions and results (verified)
+- Edited `docs/download/index.html`: removed `.corner-ring` (pulsing gold rounded square) and `corner-pulse` keyframes; added inline SVG gold arrow (curves up-right toward WeChat's "···" menu, `#f0c87f`, 3rem) with new `corner-bob` float animation; label "点右上角「···」" unchanged.
+- Published to OSS (`index.html`, no-cache) and verified live: page 200, served HTML contains `corner-arrow`, zero `corner-ring` remnants.
+- git: committed on codex/focstrot, synced and pushed gh-pages (d41f420). Note gh-pages had meanwhile gained commit 616cc1d ("two-step browser-open guide, CN-only copy, APK channel first") from outside this session; diff applied cleanly on top (13+/10- = this change only).
+
+### Sensitive information
+- None.
