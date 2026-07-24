@@ -6984,3 +6984,24 @@ This Git-tracked file is the chronological memory for project conversations and 
 
 **Sensitive information**
 - None.
+
+## 2026-07-24 - Switch distributed APK to BMESC_mobile_debug.apk
+
+### User request
+- Change the distributed (pushed) APK to `build/android/apk/BMESC_mobile_debug.apk`.
+
+### Actions and results (verified)
+- Local artifact: 53,182,650 B (~50.7 MB), SHA-256 `afa06b4aff14efe1d69ab7d35357b99be7af96b7737be128010924601a645d32`.
+- Uploaded to OSS `oss://bmesc-download/releases/android/BMESC_mobile_debug.apk` with android content-type/disposition (ossutil 2.x cp uses `--content-type` / `--content-disposition`, not `--meta`).
+- Updated `docs/download/download-config.json` (url/fileSize/sha256) and the index.html fallbackConfig; re-uploaded both to OSS with no-cache.
+- Verified end-to-end over HTTPS: config points to the new APK; full download 53,182,650 B, SHA-256 matches exactly, ~29 MB/s.
+- Git: codex/focstrot commit `d21f60a` pushed; gh-pages rebased onto remote `d41f420` and pushed as `9acedfa` (APK also added to gh-pages; GitHub warned 50.72 MB > 50 MB recommended but accepted).
+- Note: remote branches had advanced via another session (ced5534 / d41f420 "animated arrow"); diff confirmed nothing was clobbered - my gh-pages commit equals d41f420 content + APK fallback line change.
+- Old `BMESC-1.00-192.apk` left in place on both hosts (harmless).
+
+### Unresolved
+- Debug APK signature differs from the release build: devices with the old release APK installed must uninstall before installing this one (signature mismatch blocks in-place update).
+- Physical WeChat scan install smoke test still pending.
+
+### Sensitive information
+- RAM AccessKey (PRIVATE-20260717-001) used from private memory for OSS upload; no secrets printed or newly recorded.
