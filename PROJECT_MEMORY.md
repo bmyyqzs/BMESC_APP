@@ -6929,3 +6929,23 @@ This Git-tracked file is the chronological memory for project conversations and 
 
 **Sensitive information**
 - None.
+
+### 2026-07-24 - UI optimization round 1 implemented and verified on device
+
+**User request**
+- Implement three approved UI fixes from the design review: merge device-page empty states, brand-gold speed-limit slider, auto-scroll to pedal card after FOCSTrot connect.
+
+**Actions and results**
+- `mobile/BMDevicePage.qml`: BLE section (SectionTitle + Surface) now hidden when `!transportConnected && !scanning && !hasBleDevices`; status pill shows "待扫描" instead of "可连接".
+- `mobile/BMHomePage.qml`: speed-limit Slider got custom background/handle in brand gold (fill #c69c6e, handle #dfbd91, grey disabled); added `scrollView`/`homeColumn`/`pedalCard` ids, `focstrotCardVisible` property, 350 ms `pedalScrollTimer`, and `scrollToPedalCard()` using `mapToItem` to set `flick.contentY`.
+- qmllint passed on both files; `git diff --check` clean.
+- Rebuilt APK with full `make && make install INSTALL_ROOT=build && androiddeployqt` flow and installed on PKR110.
+- On-device verification (screenshots in `build/android/screenshots/`): home auto-scrolls to pedal/speed-limit card after connect (gold slider visible, 20 km/h); device page empty state merged to a single card with "待扫描" pill.
+- Committed `0d345ea` and pushed to origin `codex/focstrot`.
+
+**Unresolved items**
+- Remaining P1/P2 design backlog: dedupe language entry, mine-page grouping, status pill colors.
+- hwui SIGABRT crashes observed earlier were all on the stale .so; watch whether they reappear on the current build.
+
+**Sensitive information**
+- None.
