@@ -115,7 +115,7 @@ Item {
                                   : connectionState === "reading" ? root.t("识别中", "Reading")
                                   : root.scanning ? root.t("扫描中", "Scanning")
                                   : root.failed ? root.t("可重试", "Retry")
-                                  : root.t("可连接", "Ready")
+                                  : root.t("待扫描", "Idle")
                             mode: root.protocolReady ? "good"
                                   : root.failed ? "bad"
                                   : (root.scanning || root.connecting ? "gold" : "idle")
@@ -154,12 +154,12 @@ Item {
             }
 
             SectionTitle {
-                visible: !root.transportConnected
+                visible: !root.transportConnected && (root.scanning || root.hasBleDevices)
                 text: root.t("BLE 设备", "BLE Devices")
             }
 
             Surface {
-                visible: !root.transportConnected
+                visible: !root.transportConnected && (root.scanning || root.hasBleDevices)
                 Layout.fillWidth: true
                 Layout.leftMargin: root.pageMargin
                 Layout.rightMargin: root.pageMargin

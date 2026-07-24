@@ -58,6 +58,30 @@ Item {
 
     onModelSpeedLimitKphChanged: speedLimitDraftKph = modelSpeedLimitKph
 
+    readonly property bool focstrotCardVisible: deviceModel ? deviceModel.isFocstrotDevice : false
+
+    onFocstrotCardVisibleChanged: {
+        if (focstrotCardVisible) {
+            pedalScrollTimer.start()
+        }
+    }
+
+    Timer {
+        id: pedalScrollTimer
+        interval: 350
+        onTriggered: root.scrollToPedalCard()
+    }
+
+    function scrollToPedalCard() {
+        if (!focstrotCardVisible) {
+            return
+        }
+        var flick = scrollView.contentItem
+        var targetY = pedalCard.mapToItem(homeColumn, 0, 0).y - 12
+        var maxY = Math.max(0, flick.contentHeight - flick.height)
+        flick.contentY = Math.max(0, Math.min(targetY, maxY))
+    }
+
     Connections {
         target: root.deviceModel
         function onSpeedLimitChanged() {
@@ -68,12 +92,14 @@ Item {
     }
 
     ScrollView {
+        id: scrollView
         anchors.fill: parent
         contentWidth: availableWidth
         clip: true
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
         ColumnLayout {
+            id: homeColumn
             width: root.width
             spacing: 10
 
@@ -293,6 +319,7 @@ Item {
             }
 
             GlassCard {
+                id: pedalCard
                 visible: root.deviceModel && root.deviceModel.isFocstrotDevice
                 Layout.fillWidth: true
                 Layout.leftMargin: root.pageMargin
@@ -436,6 +463,7 @@ Item {
                             }
 
                             Slider {
+                                id: speedLimitSlider
                                 Layout.fillWidth: true
                                 from: 0
                                 to: 100
@@ -446,6 +474,34 @@ Item {
                                          !root.deviceModel.speedLimitSaving
                                 value: root.speedLimitDraftKph
                                 onMoved: root.speedLimitDraftKph = Math.round(value / 5) * 5
+
+                                background: Rectangle {
+                                    x: speedLimitSlider.leftPadding
+                                    y: speedLimitSlider.topPadding + speedLimitSlider.availableHeight / 2 - height / 2
+                                    width: speedLimitSlider.availableWidth
+                                    height: 6
+                                    radius: 3
+                                    color: "#202832"
+
+                                    Rectangle {
+                                        width: speedLimitSlider.visualPosition * parent.width
+                                        height: parent.height
+                                        radius: 3
+                                        color: speedLimitSlider.enabled ? "#c69c6e" : "#2a3034"
+                                    }
+                                }
+
+                                handle: Rectangle {
+                                    x: speedLimitSlider.leftPadding +
+                                       speedLimitSlider.visualPosition * (speedLimitSlider.availableWidth - width)
+                                    y: speedLimitSlider.topPadding + speedLimitSlider.availableHeight / 2 - height / 2
+                                    width: 22
+                                    height: 22
+                                    radius: 11
+                                    color: speedLimitSlider.enabled ? "#dfbd91" : "#3a4148"
+                                    border.width: 2
+                                    border.color: speedLimitSlider.enabled ? "#17120a" : "#20262c"
+                                }
                             }
 
                             Button {
