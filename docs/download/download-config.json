@@ -14,9 +14,9 @@
       "status": "live",
       "version": "1.00",
       "versionCode": 192,
-      "url": "releases/android/BMESC-1.00-192.apk",
-      "fileSize": "46.9 MB",
-      "sha256": "088e0b4e1082522d6d948c4e9d7d1099352ece3e6cc86aa15a89fd50cd0c57b7"
+      "url": "releases/android/BMESC_mobile_debug.apk",
+      "fileSize": "50.7 MB",
+      "sha256": "afa06b4aff14efe1d69ab7d35357b99be7af96b7737be128010924601a645d32"
     },
     "googlePlay": {
       "status": "live",
