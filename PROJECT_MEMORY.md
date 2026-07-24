@@ -6949,3 +6949,22 @@ This Git-tracked file is the chronological memory for project conversations and 
 
 **Sensitive information**
 - None.
+
+### 2026-07-24 - Revert UI optimization round 1 per user request
+
+**User request**
+- "改回到上一个提交版本" — roll back the UI optimization round (commit `0d345ea`).
+
+**Confirmed decisions and preferences**
+- User prefers the pre-optimization UI state (commit `91f56fe` code state) over the three changes (merged empty state, gold slider, auto-scroll).
+
+**Actions and results**
+- Reverted `0d345ea` with `git revert` (no history rewrite) as commit `c0ec848`; `mobile/BMHomePage.qml` and `mobile/BMDevicePage.qml` restored to `91f56fe` state.
+- Phone still has the optimized APK installed; not yet rebuilt/reinstalled with reverted code.
+
+**Unresolved items**
+- If the user wants the phone to match, rebuild APK and reinstall.
+- Design backlog items from this round (empty state, slider color, auto-scroll) are now explicitly rejected; do not re-propose without new direction.
+
+**Sensitive information**
+- None.
