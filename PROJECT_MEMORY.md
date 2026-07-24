@@ -6892,3 +6892,26 @@ This Git-tracked file is the chronological memory for project conversations and 
 
 **Sensitive information**
 - None.
+
+### 2026-07-24 - Commit current BM app version
+
+**User request**
+- Commit and save the current version before further UI optimization work.
+
+**Key context**
+- Working tree contained the full uncommitted changeset: BM branding (Android/iOS icons, splash, package rename, store/download assets), ProductDeviceModel FOCSTrot pedal/speed-limit feature, Android manifest BLE permission fix, docs and build scripts.
+- Branch: `codex/focstrot`. Build outputs and `PROJECT_MEMORY_PRIVATE.md` are gitignored and were excluded.
+
+**Confirmed decisions and preferences**
+- Single save-point commit acceptable to the user.
+
+**Actions and results**
+- Committed `7a1f043` "product: BM branded app with FOCSTrot pedal/speed-limit and Android BLE fix" — 98 files, +2400/-546. Working tree clean afterward.
+- Not pushed to origin yet.
+
+**Unresolved items**
+- Push `codex/focstrot` to origin (github.com:bmyyqzs/BMESC_APP) if remote backup is desired.
+- UI optimization backlog from design review: merge device-page empty states, gold slider color, auto-scroll to pedal card after connect, dedupe language entry, mine-page grouping.
+
+**Sensitive information**
+- None.
