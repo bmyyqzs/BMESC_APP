@@ -1,6 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <style name="appTheme">
+        <item name="android:windowBackground">@drawable/splashscreen</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:navigationBarColor">#050609</item>
+        <item name="android:statusBarColor">#050609</item>
+    </style>
+
     <style name="splashScreenTheme">
         <item name="android:windowBackground">@drawable/splashscreen</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:navigationBarColor">#050609</item>
+        <item name="android:statusBarColor">#050609</item>
     </style>
 </resources>

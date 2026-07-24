@@ -6768,3 +6768,127 @@ This Git-tracked file is the chronological memory for project conversations and 
 
 ### Sensitive information
 - None.
+
+### 2026-07-24 - Diagnose BLE Scan UnknownError popup after Android reinstall
+
+**User request**
+- Explain a popup seen after reinstalling the app on Android: "BLE Error — BLE Scan error: UnknownError..."
+
+**Key context**
+- Popup originates in `bleuart.cpp:240-255` (`BleUart::deviceScanError`), which surfaces Qt `QBluetoothDeviceDiscoveryAgent::Error`; the Android suffix about Android 10 bluetooth+location is hardcoded for `Q_OS_ANDROID`.
+- Manifest declares `BLUETOOTH_SCAN` (`neverForLocation`) and `BLUETOOTH_CONNECT`; `ACCESS_FINE_LOCATION` capped at SDK 30 (`android/AndroidManifest.xml:70-81`).
+- Reinstall resets runtime permissions, so missing "nearby devices" (Bluetooth) permission is the most likely cause.
+
+**Confirmed decisions and preferences**
+- None; support/diagnosis only, no code change requested.
+
+**Actions and results**
+- Read screenshot, traced error string to `bleuart.cpp`, reviewed Android manifest permissions.
+- Advised user to grant nearby-devices/Bluetooth permission, enable Bluetooth (and location on Android ≤ 11), then rescan.
+
+**Unresolved items**
+- Whether the app requests Bluetooth runtime permission properly on first launch (potential UX improvement: detect scan error and deep-link to app permission settings).
+
+**Sensitive information**
+- None.
+
+### 2026-07-24 - Root-cause Android 16 BLE UnknownError and revert manifest permission regression
+
+**User request**
+- Reported that on Android 16 the BLE scan popup persisted after all permission/bluetooth/location steps, while official VESC Tool worked on the same phone.
+
+**Key context**
+- Our Android APK is built with Qt 5.15.2 (per earlier build records); Qt 5.15 BLE internally gates scanning on location permission and does not understand Android 12+ `BLUETOOTH_SCAN`/`neverForLocation`.
+- Git forensics: upstream-imported manifest (`464b878`, matches official) had uncapped `ACCESS_FINE/COARSE_LOCATION` and plain `BLUETOOTH_SCAN`; uncommitted local changes had added `maxSdkVersion="30"` to location permissions and `usesPermissionFlags="neverForLocation"` to `BLUETOOTH_SCAN`, making the location permission impossible to hold on Android 16 -> Qt check fails -> `UnknownError`.
+
+**Confirmed decisions and preferences**
+- Fix by reverting only the permission lines to the upstream/Qt-5.15-compatible form; keep all branding changes. Long-term option: migrate Android build to Qt 6.x.
+
+**Actions and results**
+- Edited `android/AndroidManifest.xml` and `android/AndroidManifest.xml.in`: removed `android:maxSdkVersion="30"` from both location permissions and `android:usesPermissionFlags="neverForLocation"` from `BLUETOOTH_SCAN`.
+- Not yet verified on device; APK rebuild + install is the pending next step.
+
+**Unresolved items**
+- Rebuild Android APK and confirm BLE scan works on the Android 16 phone.
+- Qt 6 migration for Android remains open as the proper long-term fix.
+
+**Sensitive information**
+- None.
+
+### 2026-07-24 - Rebuild Android APK with reverted BLE permissions
+
+**User request**
+- Approved rebuilding and installing the APK to verify the BLE scan fix on Android 16.
+
+**Key context**
+- The machine's previously used JDK was gone; downloaded Amazon Corretto 8 (`1.8.0_502`) tarball to `build/tools/amazon-corretto-8.jdk` and used it as `JAVA_HOME` (old AGP 3.2.0 requires JDK 8).
+- Build recipe confirmed: `qmake ../../BMESC_APP.pro -spec android-clang CONFIG+=release_android CONFIG+=build_mobile ANDROID_ABIS=arm64-v8a` in `build/android`, then `make`, then `androiddeployqt --input android-BMESC-deployment-settings.json --output build --android-platform android-33 --gradle` with `ANDROID_NDK_ROOT`/`ANDROID_SDK_ROOT` set.
+
+**Confirmed decisions and preferences**
+- None new.
+
+**Actions and results**
+- qmake + incremental make succeeded; `libBMESC_arm64-v8a.so` relinked.
+- androiddeployqt + gradle produced `build/android/build/build/outputs/apk/debug/build-debug.apk`, copied to `build/android/apk/BMESC_mobile_debug.apk` (53.8 MB, package `com.bmesc.app`, versionCode 192).
+- Verified via aapt: `ACCESS_FINE/COARSE_LOCATION` present without `maxSdkVersion`, `BLUETOOTH_SCAN` without `neverForLocation` — the fix is in the APK.
+- Phone was not connected over adb, so install/verify is blocked on the user plugging in the device.
+
+**Unresolved items**
+- Install APK on the Android 16 phone (PKR110) and verify BLE scan no longer shows UnknownError and that the location permission prompt appears on first scan.
+- Consider committing the manifest fix (still uncommitted along with other branding changes).
+
+**Sensitive information**
+- None.
+
+### 2026-07-24 - Install fixed APK on PKR110 and verify BLE works on Android 16
+
+**User request**
+- Install the rebuilt APK to the Android 16 phone and verify.
+
+**Key context**
+- Phone PKR110 (`3fb621`) connected over USB after user re-plugged with a data cable and authorized USB debugging.
+- Install initially failed with `INSTALL_FAILED_UPDATE_INCOMPATIBLE` (existing app had a different signature from the user's own reinstall); resolved by `adb uninstall com.bmesc.app` then fresh install.
+- ColorOS blocks `pm grant` from shell, but the permission dump showed `ACCESS_FINE_LOCATION`, `BLUETOOTH_SCAN`, `BLUETOOTH_CONNECT` all `granted=true` (USER_SET) after launch.
+
+**Confirmed decisions and preferences**
+- None new.
+
+**Actions and results**
+- Installed `build/android/apk/BMESC_mobile_debug.apk` (versionCode 192, versionName 1.00) successfully.
+- Launched the app; screenshot `build/android/screenshots/BMESC_android_20260724_120351.png` shows the home page already **connected** to device "FOCSTrot V2" with live telemetry (speed 0.0 KM/H, odometer 2.3 km, status 正常) — BLE scan and connection work on Android 16, no `UnknownError` popup.
+- Manifest fix verified end-to-end.
+
+**Unresolved items**
+- Manifest permission fix is still uncommitted in the working tree along with other branding changes; consider committing.
+- Long-term Qt 6.x migration for Android remains open.
+
+**Sensitive information**
+- None.
+
+### 2026-07-24 - Root-cause missing pedal/speed-limit card: stale packaged .so since Jun 23
+
+**User request**
+- Asked to "add" the FOCSTrot V2/V3/V4 pedal-state and speed-limit features (referencing PROJECT_MEMORY.md and BMHomePage.qml:368).
+
+**Key context**
+- Both features were already implemented Jul 8-9 (`ProductDeviceModel` FOCSTrot detection + Refloat polling + speed limit read/write; `BMHomePage.qml` 踏板与限速 card with PedalSegment 踏板1/踏板2). Live hardware validation had still been pending.
+- Root cause of "not showing on phone": the packaging directory `build/android/build/libs/arm64-v8a/libBMESC_arm64-v8a.so` was stuck at Jun 23. Every incremental repackage since then silently shipped the Jun 23 binary (which predates the FOCSTrot feature). Manifest/Gradle-side changes still applied, which is why the BLE permission fix worked while C++/QML changes did not.
+- The missing step in the ad-hoc incremental flow was `make install INSTALL_ROOT=build/android/build` (present in the `build_android` clean-build script), which refreshes the lib in the packaging dir. Verified workaround: copy fresh `libBMESC_arm64-v8a.so` into `build/libs/arm64-v8a/` (plus clear gradle mergeJniLibs intermediates) before `androiddeployqt --gradle`.
+- Diagnostic file logging (temporary, later removed) proved detection works on hardware: identity `FOCSTrot V3.0 VESC 本机 Connected (BLE)...` -> `detected=1`.
+- Note: qDebug output does not reach logcat on this ColorOS/Android 16 build; file-based logging via run-as works for debugging (debug APK is debuggable).
+
+**Confirmed decisions and preferences**
+- Temporary diagnostics must be removed before the final package; verified final APK has no diag markers and contains the pedal QML/C++.
+
+**Actions and results**
+- Rebuilt with fresh .so properly staged, verified APK contents via zip+string markers.
+- Installed on PKR110; connected to real board "FOCSTrot V3.0"; home page now shows the 踏板与限速 card: 踏板1/踏板2 segments, Refloat live status "已连接", speed limit read from device (20 km/h) with slider/+/- and 保存 button.
+- Removed all diagnostic code, rebuilt, reinstalled final APK (pid confirmed running); deleted device-side diag log.
+
+**Unresolved items**
+- hwui SIGABRT crashes seen earlier today (5x, incl. old builds) were all produced with the stale Jun 23 binary; watch whether they recur on the fresh build before investigating further.
+- Consider a small build-note or guard so future incremental Android builds always stage the fresh .so (run `make install INSTALL_ROOT=...` or the manual copy).
+- Manifest permission fix + all branding changes remain uncommitted.
+
+**Sensitive information**
+- None.

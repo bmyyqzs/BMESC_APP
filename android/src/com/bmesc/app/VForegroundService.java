@@ -1,4 +1,4 @@
-package com.bm.microev;
+package com.bmesc.app;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -10,7 +10,7 @@ import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.IBinder;
 
-import com.bm.microev.R;
+import com.bmesc.app.R;
 
 public class VForegroundService extends Service {
     public static final String ACTION_START_FOREGROUND_SERVICE = "ACTION_START_FOREGROUND_SERVICE";
@@ -60,9 +60,9 @@ public class VForegroundService extends Service {
         Notification.Builder builder;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            String channelId = "BM_CHANNEL";
-            NotificationChannel channel = new NotificationChannel(channelId, "MicroEV", NotificationManager.IMPORTANCE_DEFAULT);
-            channel.setDescription("BM Background Service");
+            String channelId = "BMESC_CHANNEL";
+            NotificationChannel channel = new NotificationChannel(channelId, "BMESC", NotificationManager.IMPORTANCE_DEFAULT);
+            channel.setDescription("BMESC Background Service");
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
             builder = new Notification.Builder(this, channelId);
@@ -70,8 +70,8 @@ public class VForegroundService extends Service {
             builder = new Notification.Builder(this);
         }
 
-        builder.setContentTitle("BM");
-        builder.setContentText("BM is running in the background.");
+        builder.setContentTitle("BMESC");
+        builder.setContentText("BMESC is running in the background.");
 
         builder.setWhen(System.currentTimeMillis());
         builder.setSmallIcon(R.drawable.icon);
@@ -82,7 +82,7 @@ public class VForegroundService extends Service {
         Notification.Action prevAction = new Notification.Action(android.R.drawable.ic_media_pause, "Stop", pendingPrevIntent);
         builder.addAction(prevAction);
 
-        startForeground(1, builder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
+        startForeground(1, builder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
     }
 
     private void stopForegroundService()

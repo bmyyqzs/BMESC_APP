@@ -47,6 +47,8 @@ android-libvesc_tool.so-deployment-settings.json
 android-*-deployment-settings.json
 android_release_vesctool.keystore
 build_android_signed
+/keystores/
+/build/android-play-release/
 *.DS_Store
 
 res/firmwares/*/

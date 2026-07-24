@@ -18,7 +18,7 @@ ApplicationWindow {
     width: 500
     height: 850
     color: "#10171c"
-    title: "MicroEV"
+    title: "BMESC"
     flags: Qt.platform.os === "ios"
            ? (Qt.Window | Qt.MaximizeUsingFullscreenGeometryHint)
            : Qt.Window
@@ -52,7 +52,7 @@ ApplicationWindow {
                 spacing: 2
 
                 Label {
-                    text: "MicroEV"
+                    text: "BMESC"
                     color: "white"
                     font.pixelSize: 28
                     font.bold: true

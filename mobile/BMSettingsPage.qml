@@ -11,6 +11,10 @@ Item {
     property string languageName: qsTr("Chinese / English")
     property bool notificationsEnabled: true
     property bool useImperialUnits: false
+    readonly property string privacyPolicyUrl: "https://bmyyqzs.github.io/BMESC_APP/app-store/privacy-policy.html"
+    readonly property string userAgreementUrl: "https://bmyyqzs.github.io/BMESC_APP/app-store/user-agreement.html"
+    readonly property string supportUrl: "https://bmyyqzs.github.io/BMESC_APP/app-store/support.html"
+    readonly property string openSourceUrl: "https://bmyyqzs.github.io/BMESC_APP/app-store/open-source.html"
 
     readonly property color pageColor: "#090b0d"
     readonly property color surfaceColor: "#13171a"
@@ -73,20 +77,34 @@ Item {
             SettingsGroup {
                 SettingRow {
                     label: qsTr("Privacy policy")
-                    value: qsTr("Not configured")
+                    value: qsTr("Open")
                     onClicked: {
-                        // Official URL will be supplied by the product configuration layer.
+                        Qt.openUrlExternally(root.privacyPolicyUrl)
                     }
                 }
                 SettingRow {
                     label: qsTr("User agreement")
-                    value: qsTr("Not configured")
+                    value: qsTr("Open")
                     onClicked: {
-                        // Official URL will be supplied by the product configuration layer.
+                        Qt.openUrlExternally(root.userAgreementUrl)
                     }
                 }
                 SettingRow {
-                    label: qsTr("About BM")
+                    label: qsTr("Support")
+                    value: qsTr("Open")
+                    onClicked: {
+                        Qt.openUrlExternally(root.supportUrl)
+                    }
+                }
+                SettingRow {
+                    label: qsTr("Open source licenses")
+                    value: qsTr("Open")
+                    onClicked: {
+                        Qt.openUrlExternally(root.openSourceUrl)
+                    }
+                }
+                SettingRow {
+                    label: qsTr("About BMESC")
                     value: "v" + root.appVersion
                     showDivider: false
                 }
@@ -97,7 +115,7 @@ Item {
                 Layout.leftMargin: 20
                 Layout.rightMargin: 20
                 Layout.topMargin: 8
-                text: qsTr("BM · Version %1").arg(root.appVersion)
+                text: qsTr("BMESC · Version %1").arg(root.appVersion)
                 color: "#656b6f"
                 font.pixelSize: 11
                 horizontalAlignment: Text.AlignHCenter

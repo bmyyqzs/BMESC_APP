@@ -20,24 +20,30 @@ Item {
     readonly property bool protocolReady: deviceModel ? deviceModel.protocolReady : false
     readonly property bool telemetryValid: deviceModel ? deviceModel.telemetryValid : false
     readonly property bool imperial: deviceModel ? deviceModel.useImperialUnits : false
+    readonly property bool isEnglish: deviceModel ? deviceModel.isEnglish : false
 
     readonly property real speedKph: deviceModel ? deviceModel.speedMetersPerSecond * 3.6 : 0
     readonly property real maxSpeedKph: deviceModel ? deviceModel.sessionMaxSpeedMetersPerSecond * 3.6 : 0
+    readonly property real speedGaugeMaxKph: deviceModel ? deviceModel.speedGaugeMaximumMetersPerSecond * 3.6 : 60
     readonly property real displaySpeed: imperial ? speedKph * 0.621371192 : speedKph
     readonly property real displayMaxSpeed: imperial ? maxSpeedKph * 0.621371192 : maxSpeedKph
+    readonly property real displaySpeedGaugeMax: imperial ? speedGaugeMaxKph * 0.621371192 : speedGaugeMaxKph
     readonly property string speedUnit: imperial ? "MPH" : "KM/H"
     readonly property bool hasFault: deviceModel ? deviceModel.hasFault : false
+    readonly property int modelSpeedLimitKph: deviceModel && deviceModel.speedLimitLoaded
+                                             ? deviceModel.speedLimitKph : 0
+    property int speedLimitDraftKph: modelSpeedLimitKph
     readonly property string faultText: deviceModel && deviceModel.faultText.length > 0
-                                        ? deviceModel.faultText : qsTr("正常")
+                                        ? deviceModel.faultText : root.t("正常", "Normal")
     readonly property string deviceStatusText: !transportConnected
-                                                ? qsTr("未连接")
+                                                ? root.t("未连接", "Offline")
                                                 : (!protocolReady
-                                                   ? qsTr("正在识别设备")
+                                                   ? root.t("正在识别设备", "Reading device")
                                                 : (!telemetryValid
-                                                   ? qsTr("读取中")
+                                                   ? root.t("读取中", "Loading")
                                                    : (hasFault
-                                                      ? qsTr("需检查 · %1").arg(faultText)
-                                                      : qsTr("正常"))))
+                                                      ? root.t("需检查 · %1", "Check needed · %1").arg(faultText)
+                                                      : root.t("正常", "Normal"))))
     readonly property color deviceStatusColor: !transportConnected
                                                 ? "#9aa3b2"
                                                 : (!protocolReady
@@ -45,6 +51,21 @@ Item {
                                                 : (!telemetryValid
                                                    ? "#f2d58a"
                                                    : (hasFault ? "#ff8b8b" : "#64d6b0")))
+
+    function t(zh, en) {
+        return root.isEnglish ? en : zh
+    }
+
+    onModelSpeedLimitKphChanged: speedLimitDraftKph = modelSpeedLimitKph
+
+    Connections {
+        target: root.deviceModel
+        function onSpeedLimitChanged() {
+            if (root.deviceModel && !root.deviceModel.speedLimitSaving) {
+                root.speedLimitDraftKph = root.modelSpeedLimitKph
+            }
+        }
+    }
 
     ScrollView {
         anchors.fill: parent
@@ -78,8 +99,8 @@ Item {
                     }
 
                     contentItem: Text {
-                        text: !root.transportConnected ? qsTr("连接设备")
-                              : (!root.protocolReady ? qsTr("正在识别设备") : qsTr("实时数据已显示"))
+                        text: !root.transportConnected ? root.t("连接设备", "Connect Device")
+                              : (!root.protocolReady ? root.t("正在识别设备", "Reading Device") : root.t("实时数据已显示", "Live Data Shown"))
                         color: "#17120a"
                         font.pixelSize: 15
                         font.bold: true
@@ -105,7 +126,7 @@ Item {
                     }
 
                     contentItem: Text {
-                        text: qsTr("断开")
+                        text: root.t("断开", "Disconnect")
                         color: "#ff5c6f"
                         font.pixelSize: 15
                         font.bold: true
@@ -119,9 +140,10 @@ Item {
                 Layout.fillWidth: true
                 Layout.leftMargin: root.pageMargin
                 Layout.rightMargin: root.pageMargin
-                text: qsTr("请确认设备已开机并靠近手机，连接后查看实时状态")
+                text: root.t("请确认设备已开机并靠近手机，连接后查看实时状态",
+                             "Make sure the device is powered on and near your phone. Connect to view live status")
                       + (root.transportConnected && !root.protocolReady
-                         ? qsTr("；当前正在读取设备信息")
+                         ? root.t("；当前正在读取设备信息", "; reading device information")
                          : "")
                 color: "#9aa3b2"
                 font.pixelSize: 13
@@ -151,7 +173,7 @@ Item {
                             Text {
                                 Layout.fillWidth: true
                                 text: root.protocolReady && root.deviceModel
-                                      ? root.deviceModel.deviceName : qsTr("未连接设备")
+                                      ? root.deviceModel.deviceName : root.t("未连接设备", "No device connected")
                                 color: "#f4f1ea"
                                 font.pixelSize: 21
                                 font.bold: true
@@ -160,14 +182,14 @@ Item {
                             Text {
                                 Layout.fillWidth: true
                                 text: root.protocolReady
-                                      ? qsTr("实时速度、电量和设备状态")
-                                      : qsTr("连接后显示速度、电量和设备状态")
+                                      ? root.t("实时速度、电量和设备状态", "Live speed, battery, and device status")
+                                      : root.t("连接后显示速度、电量和设备状态", "Connect to show speed, battery, and device status")
                                 color: "#9aa3b2"
                                 font.pixelSize: 12
                                 elide: Text.ElideRight
                             }
                         }
-                        Pill { text: root.telemetryValid ? qsTr("数据正常") : qsTr("等待数据") }
+                        Pill { text: root.telemetryValid ? root.t("数据正常", "Data OK") : root.t("等待数据", "Waiting") }
                     }
 
                     Rectangle {
@@ -185,8 +207,10 @@ Item {
                             width: Math.min(230, parent.width * 0.86)
                             height: width
                             value: root.telemetryValid ? root.displaySpeed : 0
-                            maxValue: root.imperial ? 40 : 60
+                            maxValue: root.displaySpeedGaugeMax
+                            hasData: root.telemetryValid
                             unit: root.speedUnit
+                            isEnglish: root.isEnglish
                             accentColor: root.theme ? root.theme.gold2 : "#dfbd91"
                         }
                     }
@@ -211,14 +235,14 @@ Item {
 
                                 Kpi {
                                     width: parent.width / 3
-                                    label: qsTr("电量")
+                                    label: root.t("电量", "Battery")
                                     batteryMode: true
                                     batteryValid: root.telemetryValid
                                     batteryPercent: root.telemetryValid ? root.deviceModel.batteryPercent : 0
                                 }
                                 Kpi {
                                     width: parent.width / 3
-                                    label: qsTr("里程")
+                                    label: root.t("里程", "Odometer")
                                     value: root.telemetryValid
                                            ? (root.imperial
                                               ? (root.deviceModel.odometerKm * 0.621371192).toFixed(1) + " mi"
@@ -227,7 +251,7 @@ Item {
                                 }
                                 Kpi {
                                     width: parent.width / 3
-                                    label: qsTr("最高速度")
+                                    label: root.t("最高速度", "Top Speed")
                                     value: root.telemetryValid ? root.displayMaxSpeed.toFixed(1) : "--"
                                 }
                             }
@@ -235,9 +259,260 @@ Item {
                             StatusRow {
                                 id: statusMetric
                                 width: parent.width
-                                label: qsTr("设备状态")
+                                label: root.t("设备状态", "Device Status")
                                 value: root.deviceStatusText
                                 valueColor: root.deviceStatusColor
+                            }
+                        }
+
+                        Rectangle {
+                            x: parent.width / 3
+                            y: 0
+                            width: 1
+                            height: metricRow.height
+                            color: Qt.rgba(255, 255, 255, 0.08)
+                        }
+
+                        Rectangle {
+                            x: parent.width * 2 / 3
+                            y: 0
+                            width: 1
+                            height: metricRow.height
+                            color: Qt.rgba(255, 255, 255, 0.08)
+                        }
+
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            y: metricRow.height
+                            height: 1
+                            color: Qt.rgba(255, 255, 255, 0.08)
+                        }
+                    }
+                }
+            }
+
+            GlassCard {
+                visible: root.deviceModel && root.deviceModel.isFocstrotDevice
+                Layout.fillWidth: true
+                Layout.leftMargin: root.pageMargin
+                Layout.rightMargin: root.pageMargin
+                cardHeight: focstrotColumn.implicitHeight + 34
+
+                Column {
+                    id: focstrotColumn
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.margins: 18
+                    spacing: 14
+
+                    RowLayout {
+                        width: parent.width
+                        spacing: 10
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 4
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: root.t("踏板与限速", "Pedal and Speed Limit")
+                                color: "#f4f1ea"
+                                font.pixelSize: 18
+                                font.bold: true
+                                elide: Text.ElideRight
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: root.deviceModel && root.deviceModel.refloatAvailable
+                                      ? root.t("FOCSTrot Refloat 实时状态", "FOCSTrot Refloat live status")
+                                      : root.t("正在等待 Refloat 数据", "Waiting for Refloat data")
+                                color: "#9aa3b2"
+                                font.pixelSize: 12
+                                elide: Text.ElideRight
+                            }
+                        }
+
+                        Pill {
+                            text: root.deviceModel && root.deviceModel.refloatAvailable
+                                  ? root.t("已连接", "Ready")
+                                  : root.t("检测中", "Detecting")
+                        }
+                    }
+
+                    Rectangle {
+                        width: parent.width
+                        height: 1
+                        color: "#283038"
+                    }
+
+                    Column {
+                        width: parent.width
+                        spacing: 8
+
+                        Text {
+                            width: parent.width
+                            text: root.t("踏板状态", "Pedal Status")
+                            color: "#9aa3b2"
+                            font.pixelSize: 12
+                            font.bold: true
+                        }
+
+                        Row {
+                            width: parent.width
+                            height: 54
+                            spacing: 8
+
+                            PedalSegment {
+                                width: (parent.width - 8) / 2
+                                label: root.t("踏板1", "Footpad 1")
+                                active: root.deviceModel && root.deviceModel.pedalState === 1
+                            }
+                            PedalSegment {
+                                width: (parent.width - 8) / 2
+                                label: root.t("踏板2", "Footpad 2")
+                                active: root.deviceModel && root.deviceModel.pedalState === 2
+                            }
+                        }
+                    }
+
+                    Column {
+                        width: parent.width
+                        spacing: 10
+
+                        RowLayout {
+                            width: parent.width
+                            spacing: 10
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: root.t("限速", "Speed Limit")
+                                color: "#9aa3b2"
+                                font.pixelSize: 12
+                                font.bold: true
+                            }
+
+                            Text {
+                                text: (!root.deviceModel || !root.deviceModel.speedLimitLoaded)
+                                      ? root.t("读取中", "Loading")
+                                      : (root.speedLimitDraftKph === 0
+                                         ? root.t("未启用", "Off")
+                                         : root.speedLimitDraftKph + " km/h")
+                                color: "#f4f1ea"
+                                font.pixelSize: 16
+                                font.bold: true
+                            }
+                        }
+
+                        RowLayout {
+                            width: parent.width
+                            spacing: 10
+
+                            Button {
+                                Layout.preferredWidth: 42
+                                Layout.preferredHeight: 42
+                                enabled: root.speedLimitDraftKph > 0 &&
+                                         root.deviceModel && root.deviceModel.refloatAvailable &&
+                                         root.deviceModel.speedLimitLoaded &&
+                                         !root.deviceModel.speedLimitSaving
+                                onClicked: root.speedLimitDraftKph = Math.max(0, root.speedLimitDraftKph - 5)
+
+                                background: Rectangle {
+                                    radius: 12
+                                    color: parent.enabled ? "#202832" : "#151923"
+                                    border.width: 1
+                                    border.color: "#343b42"
+                                }
+                                contentItem: Text {
+                                    text: "-"
+                                    color: parent.enabled ? "#f4f1ea" : "#656b6f"
+                                    font.pixelSize: 22
+                                    font.bold: true
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+                            }
+
+                            Slider {
+                                Layout.fillWidth: true
+                                from: 0
+                                to: 100
+                                stepSize: 5
+                                snapMode: Slider.SnapAlways
+                                enabled: root.deviceModel && root.deviceModel.refloatAvailable &&
+                                         root.deviceModel.speedLimitLoaded &&
+                                         !root.deviceModel.speedLimitSaving
+                                value: root.speedLimitDraftKph
+                                onMoved: root.speedLimitDraftKph = Math.round(value / 5) * 5
+                            }
+
+                            Button {
+                                Layout.preferredWidth: 42
+                                Layout.preferredHeight: 42
+                                enabled: root.speedLimitDraftKph < 100 &&
+                                         root.deviceModel && root.deviceModel.refloatAvailable &&
+                                         root.deviceModel.speedLimitLoaded &&
+                                         !root.deviceModel.speedLimitSaving
+                                onClicked: root.speedLimitDraftKph = Math.min(100, root.speedLimitDraftKph + 5)
+
+                                background: Rectangle {
+                                    radius: 12
+                                    color: parent.enabled ? "#202832" : "#151923"
+                                    border.width: 1
+                                    border.color: "#343b42"
+                                }
+                                contentItem: Text {
+                                    text: "+"
+                                    color: parent.enabled ? "#f4f1ea" : "#656b6f"
+                                    font.pixelSize: 22
+                                    font.bold: true
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
+                            }
+                        }
+
+                        RowLayout {
+                            width: parent.width
+                            spacing: 10
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: root.deviceModel ? root.deviceModel.speedLimitStatusText : ""
+                                color: "#9aa3b2"
+                                font.pixelSize: 12
+                                elide: Text.ElideRight
+                            }
+
+                            Button {
+                                Layout.preferredWidth: 88
+                                Layout.preferredHeight: 42
+                                enabled: root.deviceModel &&
+                                         root.deviceModel.refloatAvailable &&
+                                         root.deviceModel.speedLimitLoaded &&
+                                         !root.deviceModel.speedLimitSaving &&
+                                         root.speedLimitDraftKph !== root.deviceModel.speedLimitKph
+                                onClicked: root.deviceModel.setSpeedLimitKph(root.speedLimitDraftKph)
+
+                                background: Rectangle {
+                                    radius: 14
+                                    gradient: Gradient {
+                                        GradientStop { position: 0.0; color: parent.enabled ? "#dfbd91" : "#2a3034" }
+                                        GradientStop { position: 1.0; color: parent.enabled ? "#c69c6e" : "#20262c" }
+                                    }
+                                }
+                                contentItem: Text {
+                                    text: root.deviceModel && root.deviceModel.speedLimitSaving
+                                          ? root.t("保存中", "Saving")
+                                          : root.t("保存", "Save")
+                                    color: parent.enabled ? "#17120a" : "#656b6f"
+                                    font.pixelSize: 14
+                                    font.bold: true
+                                    horizontalAlignment: Text.AlignHCenter
+                                    verticalAlignment: Text.AlignVCenter
+                                }
                             }
                         }
                     }
@@ -246,7 +521,7 @@ Item {
 
             Item {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 72
+                Layout.preferredHeight: 24
             }
         }
     }
@@ -287,8 +562,6 @@ Item {
         height: 78
         radius: 0
         color: "transparent"
-        border.width: 1
-        border.color: Qt.rgba(255, 255, 255, 0.08)
         Text {
             id: kpiLabel
             anchors.horizontalCenter: parent.horizontalCenter
@@ -330,8 +603,6 @@ Item {
         height: 62
         radius: 0
         color: "transparent"
-        border.width: 1
-        border.color: Qt.rgba(255, 255, 255, 0.08)
 
         Text {
             anchors.left: parent.left
@@ -380,6 +651,28 @@ Item {
                 PauseAnimation { duration: 900 }
                 ScriptAction { script: statusValue.x = 0 }
             }
+        }
+    }
+
+    component PedalSegment: Rectangle {
+        property string label: ""
+        property bool active: false
+
+        height: 54
+        radius: 14
+        color: active ? Qt.rgba(0.39, 0.84, 0.69, 0.16) : "#10151c"
+        border.width: 1
+        border.color: active ? "#64d6b0" : "#283038"
+
+        Text {
+            anchors.centerIn: parent
+            width: parent.width - 8
+            text: label
+            color: active ? "#64d6b0" : "#9aa3b2"
+            font.pixelSize: 12
+            font.bold: true
+            horizontalAlignment: Text.AlignHCenter
+            elide: Text.ElideRight
         }
     }
 }

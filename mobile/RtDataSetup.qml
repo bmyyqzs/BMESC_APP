@@ -150,7 +150,7 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: "BM"
+                    text: "BMESC"
                     color: "#f3fbff"
                     font.pixelSize: 15
                     font.bold: true

@@ -77,10 +77,14 @@ ApplicationWindow {
     visible: true
     width: 390
     height: 844
-    title: qsTr("BM")
+    title: qsTr("BMESC")
+    color: "#050609"
 
-    // Language toggle stub for the header pill; real i18n lands on the Mine page (phase 4).
-    property bool langEn: false
+    readonly property bool isEnglish: productDevice.isEnglish
+
+    function t(zh, en) {
+        return isEnglish ? en : zh
+    }
 
     // App-level premium gradient background (prototype body/frame glows).
     background: BMBackground {}
@@ -122,6 +126,9 @@ ApplicationWindow {
     Component.onCompleted: {
         updateNotch()
         VescIf.setIntroDone(true)
+        if (Qt.application.arguments.indexOf("--bm-seed-fault-logs") !== -1) {
+            productDevice.seedFaultLogsForTesting(16)
+        }
         startupInitTimer.start()
     }
 
@@ -273,7 +280,7 @@ ApplicationWindow {
 
                 onClicked: {
                     VescIf.emitMessageDialog(
-                                "BM Changelog",
+                                "BMESC Changelog",
                                 Utility.vescToolChangeLog(),
                                 true, false)
                 }
@@ -305,7 +312,7 @@ ApplicationWindow {
                 flat: true
 
                 onClicked: {
-                    Qt.openUrlExternally("https://example.com/privacy")
+                    Qt.openUrlExternally("https://bmyyqzs.github.io/BMESC_APP/app-store/privacy-policy.html")
                 }
             }
         }
@@ -369,8 +376,7 @@ ApplicationWindow {
             BMMinePage {
                 anchors.fill: parent
                 deviceModel: productDevice
-                langEn: appWindow.langEn
-                onLangToggled: appWindow.langEn = !appWindow.langEn
+                onLangToggled: productDevice.toggleLanguage()
             }
         }
     }
@@ -388,24 +394,78 @@ ApplicationWindow {
     header: Rectangle {
         id: headerBar
         color: "transparent"
-        height: notchTop + 76
+        height: notchTop + 52
 
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: 16
-            text: tabBar.currentIndex === 2 ? qsTr("我的")
-                  : (tabBar.currentIndex === 1 ? qsTr("设备") : qsTr("首页"))
+            anchors.bottomMargin: 10
+            text: tabBar.currentIndex === 2 ? appWindow.t("我的", "Mine")
+                  : (tabBar.currentIndex === 1 ? appWindow.t("设备", "Device") : appWindow.t("首页", "Home"))
             color: "#f4f1ea"
             font.pixelSize: 22
             font.bold: true
         }
 
         Rectangle {
+            id: languageSwitch
+            visible: tabBar.currentIndex === 0
+            anchors.left: parent.left
+            anchors.bottom: parent.bottom
+            anchors.leftMargin: 22 + notchLeft * 0.75
+            anchors.bottomMargin: 8
+            width: 76
+            height: 32
+            radius: 999
+            color: "#15191f"
+            border.width: 1
+            border.color: "#343b42"
+
+            Rectangle {
+                x: appWindow.isEnglish ? parent.width / 2 + 2 : 2
+                y: 2
+                width: parent.width / 2 - 4
+                height: parent.height - 4
+                radius: 999
+                color: "#c69c6e"
+                Behavior on x { NumberAnimation { duration: 140 } }
+            }
+
+            Row {
+                anchors.fill: parent
+                Text {
+                    width: parent.width / 2
+                    height: parent.height
+                    text: "中"
+                    color: appWindow.isEnglish ? "#9aa3b2" : "#17120a"
+                    font.pixelSize: 12
+                    font.bold: true
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+                Text {
+                    width: parent.width / 2
+                    height: parent.height
+                    text: "EN"
+                    color: appWindow.isEnglish ? "#17120a" : "#9aa3b2"
+                    font.pixelSize: 12
+                    font.bold: true
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                onClicked: productDevice.toggleLanguage()
+            }
+        }
+
+        Rectangle {
             anchors.right: parent.right
             anchors.bottom: parent.bottom
             anchors.rightMargin: 38 + notchRight * 0.75
-            anchors.bottomMargin: 15
+            anchors.bottomMargin: 9
             width: Math.max(76, statusText.implicitWidth + 34)
             height: 30
             radius: 999
@@ -432,8 +492,8 @@ ApplicationWindow {
                 anchors.right: parent.right
                 anchors.rightMargin: 11
                 anchors.verticalCenter: parent.verticalCenter
-                text: protocolReady ? qsTr("已连接")
-                      : (transportConnected ? qsTr("识别中") : qsTr("未连接"))
+                text: protocolReady ? appWindow.t("已连接", "Connected")
+                      : (transportConnected ? appWindow.t("识别中", "Reading") : appWindow.t("未连接", "Offline"))
                 color: protocolReady ? theme.success
                       : (transportConnected ? "#dfbd91" : "#c1c7d0")
                 font.pixelSize: 12
@@ -556,84 +616,91 @@ ApplicationWindow {
         clip: true
         color: "#e6050609"
         width: parent.width
-        height: 92 + notchBot
+        height: 80 + notchBot
 
-        TabBar {
-            id: tabBar
-            currentIndex: 0
+        Item {
+            id: navContent
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.top: parent.top
-            anchors.topMargin: 8
-            height: 68
-            spacing: 0
-            Material.accent: "transparent"
+            height: 80
 
-            onCurrentIndexChanged: {
-                if (mainSwipeView.currentIndex !== currentIndex) {
-                    mainSwipeView.setCurrentIndex(currentIndex)
-                }
-            }
+            TabBar {
+                id: tabBar
+                currentIndex: 0
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                height: 64
+                spacing: 0
+                Material.accent: "transparent"
 
-            property int buttonWidth: tabBar.width / Math.max(1, rep.model.length)
-
-            background: Rectangle { color: "transparent" }
-
-            Repeater {
-                id: rep
-                model: [
-                    {
-                        label: qsTr("首页"),
-                        icon: "qrc:/res/icons/bm_tab_home.png",
-                        activeIcon: "qrc:/res/icons/bm_tab_home_active.png"
-                    },
-                    {
-                        label: qsTr("设备"),
-                        icon: "qrc:/res/icons/bm_tab_device.png",
-                        activeIcon: "qrc:/res/icons/bm_tab_device_active.png"
-                    },
-                    {
-                        label: qsTr("我的"),
-                        icon: "qrc:/res/icons/bm_tab_mine.png",
-                        activeIcon: "qrc:/res/icons/bm_tab_mine_active.png"
+                onCurrentIndexChanged: {
+                    if (mainSwipeView.currentIndex !== currentIndex) {
+                        mainSwipeView.setCurrentIndex(currentIndex)
                     }
-                ]
+                }
 
-                TabButton {
-                    id: tabBtn
-                    width: tabBar.buttonWidth
-                    height: 68
-                    Material.accent: "transparent"
+                property int buttonWidth: tabBar.width / Math.max(1, rep.model.length)
 
-                    background: Rectangle { color: "transparent" }
+                background: Rectangle { color: "transparent" }
 
-                    contentItem: Item {
-                        implicitWidth: tabBtn.width
-                        implicitHeight: tabBtn.height
-
-                        Image {
-                            id: tabIcon
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            anchors.top: parent.top
-                            anchors.topMargin: 2
-                            width: 34
-                            height: 34
-                            source: tabBtn.checked ? modelData.activeIcon : modelData.icon
-                            fillMode: Image.PreserveAspectFit
-                            smooth: true
-                            mipmap: true
+                Repeater {
+                    id: rep
+                    model: [
+                        {
+                            label: appWindow.t("首页", "Home"),
+                            icon: "qrc:/res/icons/bm_tab_home.png",
+                            activeIcon: "qrc:/res/icons/bm_tab_home_active.png"
+                        },
+                        {
+                            label: appWindow.t("设备", "Device"),
+                            icon: "qrc:/res/icons/bm_tab_device.png",
+                            activeIcon: "qrc:/res/icons/bm_tab_device_active.png"
+                        },
+                        {
+                            label: appWindow.t("我的", "Mine"),
+                            icon: "qrc:/res/icons/bm_tab_mine.png",
+                            activeIcon: "qrc:/res/icons/bm_tab_mine_active.png"
                         }
+                    ]
 
-                        Text {
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            anchors.top: tabIcon.bottom
-                            anchors.topMargin: 3
-                            text: modelData.label
-                            color: tabBtn.checked ? theme.gold2 : "#6f7886"
-                            font.pixelSize: 14
-                            font.bold: tabBtn.checked
+                    TabButton {
+                        id: tabBtn
+                        width: tabBar.buttonWidth
+                        height: 64
+                        Material.accent: "transparent"
+
+                        background: Rectangle { color: "transparent" }
+
+                        contentItem: Item {
+                            implicitWidth: tabBtn.width
+                            implicitHeight: tabBtn.height
+
+                            Column {
+                                anchors.centerIn: parent
+                                spacing: 4
+
+                                Image {
+                                    width: 34
+                                    height: 34
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    source: tabBtn.checked ? modelData.activeIcon : modelData.icon
+                                    fillMode: Image.PreserveAspectFit
+                                    smooth: true
+                                    mipmap: true
+                                }
+
+                                Text {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    text: modelData.label
+                                    color: tabBtn.checked ? theme.gold2 : "#6f7886"
+                                    font.pixelSize: 14
+                                    font.bold: tabBtn.checked
+                                    horizontalAlignment: Text.AlignHCenter
+                                }
+                            }
                         }
-
                     }
                 }
             }

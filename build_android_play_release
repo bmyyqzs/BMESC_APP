@@ -1,0 +1,120 @@
+#!/bin/bash
+
+set -euo pipefail
+
+export ANDROID_HOME="${ANDROID_HOME:-$HOME/Android/Latest/Sdk}"
+export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+export ANDROID_NDK_ROOT="${ANDROID_NDK_ROOT:-$ANDROID_HOME/ndk/23.1.7779620}"
+export ANDROID_NDK_HOST="${ANDROID_NDK_HOST:-darwin-x86_64}"
+export ANDROID_NDK_PLATFORM="${ANDROID_NDK_PLATFORM:-android-23}"
+export ANDROID_NDK_TOOLCHAIN_VERSION="${ANDROID_NDK_TOOLCHAIN_VERSION:-4.9}"
+export JAVA_HOME="${JAVA_HOME:-$HOME/jdks/amazon-corretto-8.jdk/Contents/Home}"
+
+QT_ANDROID_BIN="${QT_ANDROID_BIN:-$HOME/Qt/5.15.2/android/bin}"
+ANDROID_PLATFORM="${ANDROID_PLATFORM:-android-33}"
+OUTPUT_ROOT="build/android-play-release"
+PACKAGE_ROOT="$OUTPUT_ROOT/package"
+KEYSTORE_PATH="${BMESC_UPLOAD_KEYSTORE:-keystores/bmesc-upload-key.jks}"
+KEY_ALIAS="${BMESC_UPLOAD_KEY_ALIAS:-bmesc_upload}"
+BUILD_TOOLS_ROOT="${ANDROID_BUILD_TOOLS_ROOT:-$ANDROID_HOME/build-tools}"
+
+if [[ -z "${BMESC_UPLOAD_STOREPASS:-}" ]]; then
+    echo "Missing BMESC_UPLOAD_STOREPASS" >&2
+    exit 1
+fi
+
+if [[ -z "${BMESC_UPLOAD_KEYPASS:-}" ]]; then
+    echo "Missing BMESC_UPLOAD_KEYPASS" >&2
+    exit 1
+fi
+
+if [[ ! -f "$KEYSTORE_PATH" ]]; then
+    echo "Missing upload keystore: $KEYSTORE_PATH" >&2
+    exit 1
+fi
+
+if [[ ! -d "$BUILD_TOOLS_ROOT" ]]; then
+    echo "Missing Android build tools: $BUILD_TOOLS_ROOT" >&2
+    exit 1
+fi
+
+BUILD_TOOLS_DIR="$(find "$BUILD_TOOLS_ROOT" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+ZIPALIGN="$BUILD_TOOLS_DIR/zipalign"
+APKSIGNER="$BUILD_TOOLS_DIR/apksigner"
+
+if [[ ! -x "$ZIPALIGN" || ! -x "$APKSIGNER" ]]; then
+    echo "Missing zipalign or apksigner in $BUILD_TOOLS_DIR" >&2
+    exit 1
+fi
+
+VERSION_NAME="$(sed -n 's/.*android:versionName="\([^"]*\)".*/\1/p' android/AndroidManifest.xml | head -n 1)"
+VERSION_CODE="$(sed -n 's/.*android:versionCode="\([^"]*\)".*/\1/p' android/AndroidManifest.xml | head -n 1)"
+
+if [[ -z "$VERSION_NAME" || -z "$VERSION_CODE" ]]; then
+    echo "Could not read Android versionName/versionCode" >&2
+    exit 1
+fi
+
+export PATH="$QT_ANDROID_BIN:$JAVA_HOME/bin:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$PATH"
+
+rm -rf "$OUTPUT_ROOT"
+mkdir -p "$PACKAGE_ROOT"
+
+qmake -config release "CONFIG += release_android build_mobile" ANDROID_ABIS="arm64-v8a" -spec android-clang
+make clean
+make -j8
+make install INSTALL_ROOT="$PACKAGE_ROOT"
+
+androiddeployqt \
+    --gradle \
+    --no-gdbserver \
+    --aab \
+    --release \
+    --output "$PACKAGE_ROOT" \
+    --input android-BMESC-deployment-settings.json \
+    --android-platform "$ANDROID_PLATFORM" \
+    --jdk "$JAVA_HOME"
+
+mkdir -p "$OUTPUT_ROOT/artifacts"
+jarsigner \
+    -keystore "$KEYSTORE_PATH" \
+    -storepass "$BMESC_UPLOAD_STOREPASS" \
+    -keypass "$BMESC_UPLOAD_KEYPASS" \
+    -sigalg SHA256withRSA \
+    -digestalg SHA-256 \
+    -signedjar "$OUTPUT_ROOT/artifacts/BMESC_mobile_release.aab" \
+    "$PACKAGE_ROOT/build/outputs/bundle/release/package.aab" \
+    "$KEY_ALIAS"
+
+jarsigner -verify "$OUTPUT_ROOT/artifacts/BMESC_mobile_release.aab"
+
+UNSIGNED_APK="$PACKAGE_ROOT/build/outputs/apk/release/package-release-unsigned.apk"
+ALIGNED_APK="$OUTPUT_ROOT/artifacts/BMESC-${VERSION_NAME}-${VERSION_CODE}-aligned.apk"
+SIGNED_APK="$OUTPUT_ROOT/artifacts/BMESC-${VERSION_NAME}-${VERSION_CODE}.apk"
+
+if [[ ! -f "$UNSIGNED_APK" ]]; then
+    echo "Missing unsigned release APK: $UNSIGNED_APK" >&2
+    exit 1
+fi
+
+"$ZIPALIGN" -f -p 4 "$UNSIGNED_APK" "$ALIGNED_APK"
+"$APKSIGNER" sign \
+    --ks "$KEYSTORE_PATH" \
+    --ks-key-alias "$KEY_ALIAS" \
+    --ks-pass "pass:$BMESC_UPLOAD_STOREPASS" \
+    --key-pass "pass:$BMESC_UPLOAD_KEYPASS" \
+    --out "$SIGNED_APK" \
+    "$ALIGNED_APK"
+rm "$ALIGNED_APK"
+
+"$APKSIGNER" verify --verbose --print-certs "$SIGNED_APK"
+
+APK_SHA256="$(shasum -a 256 "$SIGNED_APK" | awk '{print $1}')"
+APK_BYTES="$(stat -f '%z' "$SIGNED_APK" 2>/dev/null || stat -c '%s' "$SIGNED_APK")"
+printf '%s  %s\n' "$APK_SHA256" "$(basename "$SIGNED_APK")" > "$SIGNED_APK.sha256"
+printf '{\n  "version": "%s",\n  "versionCode": %s,\n  "file": "%s",\n  "bytes": %s,\n  "sha256": "%s"\n}\n' \
+    "$VERSION_NAME" "$VERSION_CODE" "$(basename "$SIGNED_APK")" "$APK_BYTES" "$APK_SHA256" \
+    > "$OUTPUT_ROOT/artifacts/android-release.json"
+
+echo "Created $OUTPUT_ROOT/artifacts/BMESC_mobile_release.aab"
+echo "Created $SIGNED_APK"

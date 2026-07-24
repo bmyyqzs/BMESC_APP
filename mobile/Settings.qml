@@ -38,7 +38,7 @@ Item {
         standardButtons: Dialog.Close
         modal: true
         focus: true
-        title: "BM Settings"
+        title: "BMESC Settings"
 
         Overlay.modal: Rectangle {
             color: "#AA000000"
@@ -198,8 +198,8 @@ Item {
             anchors.fill: parent
             wrapMode: Text.WordWrap
             text:
-                "The theme has been changed. This requires restarting BM to take effect. " +
-                "Do you want to close BM now?"
+                "The theme has been changed. This requires restarting BMESC to take effect. " +
+                "Do you want to close BMESC now?"
         }
 
         onAccepted: {

@@ -1,0 +1,49 @@
+#!/bin/bash
+
+set -euo pipefail
+
+SITE_ROOT="${BMESC_DOWNLOAD_SITE_ROOT:-docs/download}"
+ARTIFACT_ROOT="${BMESC_ANDROID_ARTIFACT_ROOT:-build/android-play-release/artifacts}"
+OSSUTIL_BIN="${OSSUTIL_BIN:-ossutil}"
+OSS_BUCKET="${BMESC_OSS_BUCKET:-}"
+OSS_ENDPOINT="${BMESC_OSS_ENDPOINT:-}"
+ACCESS_KEY_ID="${BMESC_OSS_ACCESS_KEY_ID:-}"
+ACCESS_KEY_SECRET="${BMESC_OSS_ACCESS_KEY_SECRET:-}"
+
+if [[ ! -d "$SITE_ROOT" ]]; then
+    echo "Missing download site: $SITE_ROOT" >&2
+    exit 1
+fi
+
+if [[ -z "$OSS_BUCKET" || -z "$OSS_ENDPOINT" || -z "$ACCESS_KEY_ID" || -z "$ACCESS_KEY_SECRET" ]]; then
+    cat >&2 <<'EOF'
+Missing Aliyun OSS deployment settings.
+Set BMESC_OSS_BUCKET, BMESC_OSS_ENDPOINT, BMESC_OSS_ACCESS_KEY_ID, and BMESC_OSS_ACCESS_KEY_SECRET.
+EOF
+    exit 1
+fi
+
+if ! command -v "$OSSUTIL_BIN" >/dev/null 2>&1; then
+    echo "Missing ossutil. Install Alibaba Cloud ossutil and set OSSUTIL_BIN if needed." >&2
+    exit 1
+fi
+
+OSS_ARGS=(-e "$OSS_ENDPOINT" -i "$ACCESS_KEY_ID" -k "$ACCESS_KEY_SECRET")
+OSS_ROOT="oss://$OSS_BUCKET"
+
+"$OSSUTIL_BIN" cp -r "$SITE_ROOT/" "$OSS_ROOT/" -f -u "${OSS_ARGS[@]}"
+
+if compgen -G "$ARTIFACT_ROOT/BMESC-*.apk" >/dev/null; then
+    for apk in "$ARTIFACT_ROOT"/BMESC-*.apk; do
+        "$OSSUTIL_BIN" cp "$apk" "$OSS_ROOT/releases/android/$(basename "$apk")" \
+            --meta "Content-Type:application/vnd.android.package-archive#Content-Disposition:attachment" \
+            -f "${OSS_ARGS[@]}"
+    done
+fi
+
+"$OSSUTIL_BIN" set-meta "$OSS_ROOT/index.html" "Cache-Control:no-cache, no-store, must-revalidate" -f "${OSS_ARGS[@]}"
+"$OSSUTIL_BIN" set-meta "$OSS_ROOT/download-config.json" "Cache-Control:no-cache, no-store, must-revalidate" -f "${OSS_ARGS[@]}"
+"$OSSUTIL_BIN" set-meta "$OSS_ROOT/assets/" "Cache-Control:public, max-age=31536000, immutable" -r -f "${OSS_ARGS[@]}"
+
+echo "Uploaded BMESC download site to $OSS_ROOT"
+echo "Configure download.floatw.com as the bucket custom domain with HTTPS, then verify https://download.floatw.com/."

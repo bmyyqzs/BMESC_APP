@@ -53,7 +53,18 @@ class ProductDeviceModel : public QObject
     Q_PROPERTY(int selectedCanNodeId READ selectedCanNodeId NOTIFY canNodesChanged)
     Q_PROPERTY(QString selectedNodeName READ selectedNodeName NOTIFY canNodesChanged)
     Q_PROPERTY(double sessionMaxSpeedMetersPerSecond READ sessionMaxSpeedMetersPerSecond NOTIFY telemetryChanged)
+    Q_PROPERTY(double speedGaugeMaximumMetersPerSecond READ speedGaugeMaximumMetersPerSecond NOTIFY telemetryChanged)
     Q_PROPERTY(QDateTime lastTelemetryAt READ lastTelemetryAt NOTIFY telemetryChanged)
+    Q_PROPERTY(QString languageCode READ languageCode WRITE setLanguageCode NOTIFY languageChanged)
+    Q_PROPERTY(bool isEnglish READ isEnglish NOTIFY languageChanged)
+    Q_PROPERTY(bool isFocstrotDevice READ isFocstrotDevice NOTIFY refloatChanged)
+    Q_PROPERTY(bool refloatAvailable READ refloatAvailable NOTIFY refloatChanged)
+    Q_PROPERTY(int pedalState READ pedalState NOTIFY refloatChanged)
+    Q_PROPERTY(QString pedalStateText READ pedalStateText NOTIFY refloatChanged)
+    Q_PROPERTY(int speedLimitKph READ speedLimitKph NOTIFY speedLimitChanged)
+    Q_PROPERTY(bool speedLimitLoaded READ speedLimitLoaded NOTIFY speedLimitChanged)
+    Q_PROPERTY(bool speedLimitSaving READ speedLimitSaving NOTIFY speedLimitChanged)
+    Q_PROPERTY(QString speedLimitStatusText READ speedLimitStatusText NOTIFY speedLimitChanged)
 
 public:
     explicit ProductDeviceModel(QObject *parent = nullptr);
@@ -105,7 +116,19 @@ public:
     int selectedCanNodeId() const;
     QString selectedNodeName() const;
     double sessionMaxSpeedMetersPerSecond() const;
+    double speedGaugeMaximumMetersPerSecond() const;
     QDateTime lastTelemetryAt() const;
+    QString languageCode() const;
+    void setLanguageCode(const QString &languageCode);
+    bool isEnglish() const;
+    bool isFocstrotDevice() const;
+    bool refloatAvailable() const;
+    int pedalState() const;
+    QString pedalStateText() const;
+    int speedLimitKph() const;
+    bool speedLimitLoaded() const;
+    bool speedLimitSaving() const;
+    QString speedLimitStatusText() const;
 
     Q_INVOKABLE void startBleScan();
     Q_INVOKABLE void connectBle(const QString &identifier);
@@ -116,6 +139,10 @@ public:
     Q_INVOKABLE void clearConnectionError();
     Q_INVOKABLE void clearFaultLogs();
     Q_INVOKABLE void refresh();
+    Q_INVOKABLE void toggleLanguage();
+    Q_INVOKABLE QString faultTextForCode(const QString &faultCode, const QString &fallbackText = QString()) const;
+    Q_INVOKABLE void seedFaultLogsForTesting(int count = 16);
+    Q_INVOKABLE void setSpeedLimitKph(int kph);
 
 signals:
     void vescChanged();
@@ -128,6 +155,9 @@ signals:
     void scanChanged();
     void connectionAttemptChanged();
     void canNodesChanged();
+    void languageChanged();
+    void refloatChanged();
+    void speedLimitChanged();
     void requestShowHome();
 
 private slots:
@@ -140,13 +170,21 @@ private slots:
     void handleBleConnected();
     void handleFwRxChanged(bool rx, bool limited);
     void updateConnectCountdown();
+    void pollRefloat();
+    void handleCustomAppData(const QByteArray &data);
+    void handleCustomConfigLoaded();
+    void handleCustomConfigRx(int confId, QByteArray data);
+    void handleCustomConfigAck(int confId);
 
 private:
     VescInterface *mVesc;
     Commands *mCommands;
     QTimer mPollTimer;
     QTimer mConnectCountdownTimer;
+    QTimer mRefloatPollTimer;
     QDateTime mLastTelemetryAt;
+    QDateTime mRefloatPollStartedAt;
+    QDateTime mLastRefloatAt;
     bool mTelemetryValid;
     bool mHighRateTelemetry;
     bool mScanning;
@@ -169,6 +207,7 @@ private:
     double mOdometerKm;
     double mTripKm;
     double mSessionMaxSpeedMetersPerSecond;
+    double mSpeedGaugeMaximumMetersPerSecond;
     QString mFaultCode;
     QString mFaultText;
     QVariantList mFaultLogs;
@@ -180,7 +219,16 @@ private:
     QVariantList mCanNodes;
     int mSelectedCanNodeId;
     QString mSelectedNodeName;
+    QString mLanguageCode;
     QHash<QString, QString> mDiscoveredBleDeviceNames;
+    bool mIsFocstrotDevice;
+    bool mRefloatAvailable;
+    int mPedalState;
+    int mSpeedLimitKph;
+    bool mSpeedLimitLoaded;
+    bool mSpeedLimitSaving;
+    bool mSpeedLimitReadRequested;
+    QString mSpeedLimitStatusText;
 
     enum class ProductConnectionFlow {
         Unknown,
@@ -201,10 +249,19 @@ private:
     void rebuildCanNodes(const QVector<int> &remoteNodes, bool isTimeout);
     void applyCanNodeSelection(int nodeId, bool showHome);
     void updateCanNodeSelectionFlags();
+    void updateSpeedGaugeMaximum(const SETUP_VALUES &values);
+    void updateFocstrotState();
+    void resetRefloatState();
+    void updateRefloatPolling();
+    void requestSpeedLimitRead();
+    void loadSpeedLimitFromConfig();
+    void setSpeedLimitStatusText(const QString &text);
     QString nameForCanNode(int nodeId) const;
     QString displayNameForBleDevice(const QString &identifier, const QString &rawName) const;
+    QString focstrotIdentityText() const;
     ProductConnectionFlow classifyBleDevice(const QString &deviceName) const;
-    static QString userFaultText(const QString &faultCode);
+    void retranslateProductText();
+    QString userFaultText(const QString &faultCode) const;
 };
 
 #endif // PRODUCTDEVICEMODEL_H

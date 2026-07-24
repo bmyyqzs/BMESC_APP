@@ -16,9 +16,14 @@ Item {
     readonly property bool failed: connectionState === "failed"
     readonly property bool hasBleDevices: deviceModel && deviceModel.discoveredBleDevices.length > 0
     readonly property real nodeCardHeight: Math.max(92, nodeListColumn.childrenRect.height + nodeFooter.height)
+    readonly property bool isEnglish: deviceModel ? deviceModel.isEnglish : false
 
     signal requestConnect()
     signal requestDisconnect()
+
+    function t(zh, en) {
+        return root.isEnglish ? en : zh
+    }
 
     function startScan() {
         if (deviceModel) {
@@ -52,7 +57,8 @@ Item {
 
                 Text {
                     Layout.fillWidth: true
-                    text: qsTr("查找附近设备，选择直连设备或多节点设备")
+                    text: root.t("查找附近设备，选择直连设备或多节点设备",
+                                 "Find nearby devices, then choose a direct or multi-node device")
                     color: "#9aa3b2"
                     font.pixelSize: 13
                     wrapMode: Text.WordWrap
@@ -77,26 +83,26 @@ Item {
                             Layout.fillWidth: true
                             spacing: 4
                             Text {
-                                text: root.scanning ? qsTr("正在搜索附近设备")
-                                      : root.connecting ? qsTr("正在连接设备")
-                                      : connectionState === "reading" ? qsTr("正在读取设备信息")
-                                      : root.failed ? qsTr("连接失败")
-                                      : root.protocolReady ? qsTr("已连接设备")
-                                      : root.hasBleDevices ? qsTr("已发现附近设备")
-                                                           : qsTr("暂无扫描结果")
+                                text: root.scanning ? root.t("正在搜索附近设备", "Searching nearby devices")
+                                      : root.connecting ? root.t("正在连接设备", "Connecting device")
+                                      : connectionState === "reading" ? root.t("正在读取设备信息", "Reading device information")
+                                      : root.failed ? root.t("连接失败", "Connection failed")
+                                      : root.protocolReady ? root.t("已连接设备", "Device connected")
+                                      : root.hasBleDevices ? root.t("已发现附近设备", "Nearby devices found")
+                                                           : root.t("暂无扫描结果", "No scan results")
                                 color: "#f4f1ea"
                                 font.pixelSize: 20
                                 font.bold: true
                             }
                             Text {
                                 Layout.fillWidth: true
-                                text: root.scanning ? qsTr("扫描结果会实时显示在下方列表")
-                                      : root.connecting ? qsTr("蓝牙已发起连接，请保持设备靠近手机")
-                                      : connectionState === "reading" ? qsTr("蓝牙已连接，正在确认设备信息和协议状态")
-                                      : root.failed ? qsTr("请确认设备已开机、未被其他手机占用，并靠近手机")
-                                      : root.protocolReady ? root.deviceModel.deviceName + qsTr(" 已连接")
-                                      : root.hasBleDevices ? qsTr("选择设备后开始连接")
-                                                           : qsTr("点击重新扫描开始查找附近设备")
+                                text: root.scanning ? root.t("扫描结果会实时显示在下方列表", "Scan results will appear below")
+                                      : root.connecting ? root.t("蓝牙已发起连接，请保持设备靠近手机", "Bluetooth connection started. Keep the device near your phone")
+                                      : connectionState === "reading" ? root.t("蓝牙已连接，正在确认设备信息和协议状态", "Bluetooth is connected. Confirming device information and protocol status")
+                                      : root.failed ? root.t("请确认设备已开机、未被其他手机占用，并靠近手机", "Make sure the device is powered on, nearby, and not in use by another phone")
+                                      : root.protocolReady ? root.deviceModel.deviceName + root.t(" 已连接", " connected")
+                                      : root.hasBleDevices ? root.t("选择设备后开始连接", "Select a device to connect")
+                                                           : root.t("点击重新扫描开始查找附近设备", "Tap rescan to find nearby devices")
                                 color: "#9aa3b2"
                                 font.pixelSize: 12
                                 wrapMode: Text.WordWrap
@@ -104,12 +110,12 @@ Item {
                         }
 
                         StatusPill {
-                            text: root.protocolReady ? qsTr("已连接")
-                                  : root.connecting ? qsTr("连接中")
-                                  : connectionState === "reading" ? qsTr("识别中")
-                                  : root.scanning ? qsTr("扫描中")
-                                  : root.failed ? qsTr("可重试")
-                                  : qsTr("可连接")
+                            text: root.protocolReady ? root.t("已连接", "Connected")
+                                  : root.connecting ? root.t("连接中", "Connecting")
+                                  : connectionState === "reading" ? root.t("识别中", "Reading")
+                                  : root.scanning ? root.t("扫描中", "Scanning")
+                                  : root.failed ? root.t("可重试", "Retry")
+                                  : root.t("可连接", "Ready")
                             mode: root.protocolReady ? "good"
                                   : root.failed ? "bad"
                                   : (root.scanning || root.connecting ? "gold" : "idle")
@@ -135,8 +141,8 @@ Item {
                             }
                         }
                         contentItem: Text {
-                            text: root.transportConnected ? qsTr("断开当前连接")
-                                  : (root.scanning ? qsTr("扫描中") : qsTr("重新扫描"))
+                            text: root.transportConnected ? root.t("断开当前连接", "Disconnect Current Device")
+                                  : (root.scanning ? root.t("扫描中", "Scanning") : root.t("重新扫描", "Rescan"))
                             color: "#17120a"
                             font.pixelSize: 14
                             font.bold: true
@@ -149,7 +155,7 @@ Item {
 
             SectionTitle {
                 visible: !root.transportConnected
-                text: qsTr("BLE 设备")
+                text: root.t("BLE 设备", "BLE Devices")
             }
 
             Surface {
@@ -166,9 +172,9 @@ Item {
 
                     EmptyRow {
                         visible: !root.hasBleDevices
-                        title: root.scanning ? qsTr("正在扫描") : qsTr("暂无设备")
-                        subtitle: root.scanning ? qsTr("请保持设备开机并靠近手机")
-                                                : qsTr("点击重新扫描开始查找附近 BM 设备")
+                        title: root.scanning ? root.t("正在扫描", "Scanning") : root.t("暂无设备", "No devices")
+                        subtitle: root.scanning ? root.t("请保持设备开机并靠近手机", "Keep the device powered on and near your phone")
+                                                : root.t("点击重新扫描开始查找附近设备", "Tap rescan to find nearby devices")
                     }
 
                     Repeater {
@@ -178,9 +184,9 @@ Item {
                             readonly property bool connectingThisDevice: root.connecting &&
                                                                          root.deviceModel.connectingIdentifier === modelData.identifier
                             name: modelData.name
-                            subtitle: modelData.subtitle ? modelData.subtitle : qsTr("BLE 设备 · 点击连接")
-                            actionText: connectingThisDevice ? qsTr("连接中 %1s").arg(root.deviceModel.connectCountdownSeconds)
-                                        : (modelData.connected ? qsTr("已连接") : qsTr("连接"))
+                            subtitle: modelData.subtitle ? modelData.subtitle : root.t("BLE 设备 · 点击连接", "BLE device · Tap to connect")
+                            actionText: connectingThisDevice ? root.t("连接中 %1s", "Connecting %1s").arg(root.deviceModel.connectCountdownSeconds)
+                                        : (modelData.connected ? root.t("已连接", "Connected") : root.t("连接", "Connect"))
                             actionMode: modelData.connected ? "good" : (root.failed ? "bad" : "gold")
                             interactive: !root.connecting || connectingThisDevice
                             onClicked: root.connectDevice(modelData.identifier)
@@ -206,12 +212,13 @@ Item {
                     SectionTitle {
                         Layout.leftMargin: 0
                         Layout.rightMargin: 0
-                        text: qsTr("设备节点")
+                        text: root.t("设备节点", "Device Nodes")
                     }
 
                     Text {
                         Layout.fillWidth: true
-                        text: qsTr("多节点设备已连接，请选择一个节点，首页会显示该节点实时数据")
+                        text: root.t("多节点设备已连接，请选择一个节点，首页会显示该节点实时数据",
+                                     "A multi-node device is connected. Select a node to show its live data on Home")
                         color: "#9aa3b2"
                         font.pixelSize: 12
                         wrapMode: Text.WordWrap
@@ -219,7 +226,8 @@ Item {
 
                     Text {
                         Layout.fillWidth: true
-                        text: qsTr("切换节点前会停止当前遥测，避免显示旧数据。")
+                        text: root.t("切换节点前会停止当前遥测，避免显示旧数据。",
+                                     "Telemetry pauses while switching nodes to avoid showing stale data.")
                         color: "#9aa3b2"
                         font.pixelSize: 12
                         wrapMode: Text.WordWrap
@@ -241,8 +249,8 @@ Item {
 
                                 EmptyRow {
                                     visible: !root.deviceModel || root.deviceModel.canNodes.length === 0
-                                    title: qsTr("暂无节点")
-                                    subtitle: qsTr("点击重新扫描节点")
+                                    title: root.t("暂无节点", "No nodes")
+                                    subtitle: root.t("点击重新扫描节点", "Tap to rescan nodes")
                                 }
 
                                 Repeater {
@@ -290,7 +298,7 @@ Item {
                                         }
                                     }
                                     contentItem: Text {
-                                        text: root.canScanning ? qsTr("扫描中") : qsTr("重新扫描节点")
+                                        text: root.canScanning ? root.t("扫描中", "Scanning") : root.t("重新扫描节点", "Rescan Nodes")
                                         color: "#17120a"
                                         font.pixelSize: 15
                                         font.bold: true
@@ -376,7 +384,7 @@ Item {
         property bool interactive: true
         signal clicked()
         width: parent ? parent.width : 0
-        height: 78
+        height: 92
         opacity: interactive ? 1.0 : 0.72
 
         Column {
@@ -401,7 +409,6 @@ Item {
             font.bold: true
         }
 
-        Rectangle { anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom; height: 1; color: "#252b2f" }
         MouseArea { anchors.fill: parent; enabled: parent.interactive; onClicked: parent.clicked() }
     }
 
@@ -438,16 +445,16 @@ Item {
             ColumnLayout {
                 Layout.preferredWidth: 60
                 spacing: 4
-                Text { text: qsTr("节点"); color: "#9aa3b2"; font.pixelSize: 11 }
+                Text { text: root.t("节点", "Node"); color: "#9aa3b2"; font.pixelSize: 11 }
                 Text { text: nodeId; color: !interactive ? "#67717f" : (selected ? "#8ddfff" : "#dfbd91"); font.pixelSize: 22; font.bold: true }
-                Text { visible: selected; text: qsTr("已选择"); color: "#64d6b0"; font.pixelSize: 11 }
+                Text { visible: selected; text: root.t("已选择", "Selected"); color: "#64d6b0"; font.pixelSize: 11 }
             }
 
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 5
                 Text { Layout.fillWidth: true; text: name; color: !interactive ? "#7a8491" : (selected ? "#ffffff" : "#f4f1ea"); font.pixelSize: 15; font.bold: true; elide: Text.ElideRight }
-                Text { Layout.fillWidth: true; text: qsTr("固件版本 ") + firmware; color: !interactive ? "#67717f" : (selected ? "#b7d7e3" : "#9aa3b2"); font.pixelSize: 12; elide: Text.ElideRight }
+                Text { Layout.fillWidth: true; text: root.t("固件版本 ", "Firmware ") + firmware; color: !interactive ? "#67717f" : (selected ? "#b7d7e3" : "#9aa3b2"); font.pixelSize: 12; elide: Text.ElideRight }
             }
 
             Text {

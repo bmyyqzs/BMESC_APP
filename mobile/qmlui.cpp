@@ -23,6 +23,7 @@
 #include <QApplication>
 #include <QQuickWindow>
 #include <QQmlContext>
+#include <QColor>
 
 #include "product/productdevicemodel.h"
 
@@ -47,6 +48,12 @@ bool QmlUi::startQmlUi()
     qmlRegisterType<ProductDeviceModel>("BM.Product", 1, 0, "ProductDeviceModel");
 
     mEngine->load(QUrl(QLatin1String("qrc:/mobile/main.qml")));
+    const auto roots = mEngine->rootObjects();
+    for (QObject *root : roots) {
+        if (QQuickWindow *window = qobject_cast<QQuickWindow *>(root)) {
+            window->setColor(QColor(5, 6, 9));
+        }
+    }
     return !mEngine->rootObjects().isEmpty();
 }
 

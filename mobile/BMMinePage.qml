@@ -6,10 +6,19 @@ Item {
     id: root
 
     property var deviceModel
-    property bool langEn: false
+    readonly property string supportEmail: "op727142092@gmail.com"
+    readonly property string privacyPolicyUrl: "https://bmyyqzs.github.io/BMESC_APP/app-store/privacy-policy.html"
+    readonly property string userAgreementUrl: "https://bmyyqzs.github.io/BMESC_APP/app-store/user-agreement.html"
+    readonly property string supportUrl: "https://bmyyqzs.github.io/BMESC_APP/app-store/support.html"
+    readonly property string openSourceUrl: "https://bmyyqzs.github.io/BMESC_APP/app-store/open-source.html"
     readonly property real pageMargin: Math.max(24, Math.min(40, width * 0.065))
     readonly property bool connected: deviceModel ? deviceModel.connected : false
+    readonly property bool isEnglish: deviceModel ? deviceModel.isEnglish : false
     signal langToggled()
+
+    function t(zh, en) {
+        return root.isEnglish ? en : zh
+    }
 
     function showInfo(title, body) {
         infoTitle.text = title
@@ -19,6 +28,10 @@ Item {
 
     function showFaultLogs() {
         faultLogModal.open()
+    }
+
+    function openExternal(url) {
+        Qt.openUrlExternally(url)
     }
 
     ScrollView {
@@ -43,46 +56,65 @@ Item {
                     width: parent.width
 
                     ActionRow {
-                        label: qsTr("语言")
-                        value: root.langEn ? "English" : qsTr("简体中文")
+                        label: root.t("语言", "Language")
+                        value: root.isEnglish ? "English" : "简体中文"
                         onClicked: root.langToggled()
                     }
                     ActionRow {
-                        label: qsTr("单位")
+                        label: root.t("单位", "Units")
                         value: root.deviceModel && root.deviceModel.useImperialUnits ? "mph" : "km/h"
                         onClicked: if (root.deviceModel) root.deviceModel.useImperialUnits = !root.deviceModel.useImperialUnits
                     }
                     ActionRow {
-                        label: qsTr("故障日志")
+                        label: root.t("故障日志", "Fault Logs")
                         value: root.deviceModel && root.deviceModel.faultLogCount > 0
-                               ? qsTr("%1 条").arg(root.deviceModel.faultLogCount)
-                               : qsTr("无记录")
+                               ? root.t("%1 条", "%1 items").arg(root.deviceModel.faultLogCount)
+                               : root.t("无记录", "None")
                         onClicked: root.showFaultLogs()
                     }
                     ActionRow {
-                        label: qsTr("支持与反馈")
-                        value: qsTr("查看")
-                        onClicked: root.showInfo(qsTr("支持与反馈"),
-                                                 qsTr("如遇到连接失败、数据异常或设备安全提示，请记录设备名称、节点 ID 和发生时间，并发邮件到 op727142092@gmail.com。"))
+                        label: root.t("支持与反馈", "Support")
+                        value: root.t("查看", "View")
+                        onClicked: root.openExternal(root.supportUrl)
                     }
                     ActionRow {
-                        label: qsTr("隐私政策")
-                        value: qsTr("查看")
-                        onClicked: root.showInfo(qsTr("隐私政策"),
-                                                 qsTr("蓝牙权限仅用于发现和连接附近 BM 设备。遥测数据用于本地状态显示，不用于账号或云端绑定。"))
+                        label: root.t("隐私政策", "Privacy Policy")
+                        value: root.t("查看", "View")
+                        onClicked: root.openExternal(root.privacyPolicyUrl)
                     }
                     ActionRow {
-                        label: qsTr("用户协议")
-                        value: qsTr("查看")
-                        onClicked: root.showInfo(qsTr("用户协议"),
-                                                 qsTr("请在安全环境中使用设备。App 展示的数据用于辅助判断设备状态，不替代设备本身的安全检查。"))
+                        label: root.t("用户协议", "User Agreement")
+                        value: root.t("查看", "View")
+                        onClicked: root.openExternal(root.userAgreementUrl)
                     }
                     ActionRow {
-                        label: qsTr("关于 BM")
-                        value: qsTr("查看")
+                        label: root.t("开源许可", "Open Source")
+                        value: root.t("查看", "View")
+                        onClicked: root.openExternal(root.openSourceUrl)
+                    }
+                    ActionRow {
+                        label: root.t("关于 BMESC", "About BMESC")
+                        value: root.t("查看", "View")
                         showDivider: false
-                        onClicked: root.showInfo(qsTr("关于 BM"),
-                                                 qsTr("BM 首版聚焦连接、遥测、设备信息、安全提示和合规入口。"))
+                        onClicked: root.showInfo(root.t("关于 BMESC", "About BMESC"),
+                                                 root.t("BMESC 是一个面向电机驱动应用的软硬件品牌，围绕 VESC 生态提供电机控制硬件设备与移动端管理工具。\n\n" +
+                                                        "BMESC 品牌主要包含 BMESC 硬件设备 与 BMESC APP 两部分。\n\n" +
+                                                        "BMESC 硬件设备\n" +
+                                                        "用于实现电机驱动与控制，支持电机运行、功率输出、状态反馈、参数配置和故障诊断等功能，适用于电动车、平衡车、滑板车、机器人及其他电机驱动场景。\n\n" +
+                                                        "BMESC APP\n" +
+                                                        "是配套 BMESC 硬件设备使用的移动端管理工具。用户可以通过 APP 查看速度、电量、里程、最高速度、故障日志等常用信息，更直观地了解设备运行状态。\n\n" +
+                                                        "BMESC 将持续围绕 VESC 生态进行软硬件优化与适配，为更多电机驱动应用提供稳定、实用、易用的工具和驱动器支持。\n\n" +
+                                                        "如需了解更多信息、技术交流或商务合作，请联系：\n" +
+                                                        "op727142092@gmail.com",
+                                                        "BMESC is a software and hardware brand for motor-drive applications, providing motor-control hardware devices and mobile management tools around the VESC ecosystem.\n\n" +
+                                                        "The BMESC brand mainly includes two parts: BMESC hardware devices and the BMESC app.\n\n" +
+                                                        "BMESC Hardware Devices\n" +
+                                                        "Used for motor drive and control, supporting motor operation, power output, status feedback, parameter configuration, and fault diagnosis. They are suitable for electric vehicles, balance vehicles, scooters, robots, and other motor-drive scenarios.\n\n" +
+                                                        "BMESC App\n" +
+                                                        "A mobile management tool used with BMESC hardware devices. Users can view common information such as speed, battery level, mileage, top speed, and fault logs through the app to better understand device operating status.\n\n" +
+                                                        "BMESC will continue optimizing and adapting software and hardware around the VESC ecosystem, providing stable, practical, and easy-to-use tools and driver support for more motor-drive applications.\n\n" +
+                                                        "For more information, technical discussion, or business cooperation, contact:\n" +
+                                                        "op727142092@gmail.com"))
                     }
                 }
             }
@@ -115,21 +147,22 @@ Item {
 
         Overlay.modal: Rectangle { color: "#b8000000" }
 
-        contentItem: ColumnLayout {
-            spacing: 14
-
+        contentItem: Item {
             RowLayout {
-                Layout.fillWidth: true
-                Layout.leftMargin: 20
-                Layout.rightMargin: 20
-                Layout.topMargin: 20
+                id: faultLogHeader
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.leftMargin: 20
+                anchors.rightMargin: 20
+                anchors.topMargin: 20
 
                 ColumnLayout {
                     Layout.fillWidth: true
                     spacing: 4
                     Text {
                         Layout.fillWidth: true
-                        text: qsTr("故障日志")
+                        text: root.t("故障日志", "Fault Logs")
                         color: "#f4f1ea"
                         font.pixelSize: 18
                         font.bold: true
@@ -137,8 +170,8 @@ Item {
                     Text {
                         Layout.fillWidth: true
                         text: root.deviceModel && root.deviceModel.faultLogCount > 0
-                              ? qsTr("最近 %1 条本地记录").arg(root.deviceModel.faultLogCount)
-                              : qsTr("暂无历史故障")
+                              ? root.t("最近 %1 条本地记录", "%1 recent local records").arg(root.deviceModel.faultLogCount)
+                              : root.t("暂无历史故障", "No fault history")
                         color: "#9aa3b2"
                         font.pixelSize: 12
                     }
@@ -146,39 +179,54 @@ Item {
             }
 
             Rectangle {
-                Layout.fillWidth: true
-                Layout.leftMargin: 20
-                Layout.rightMargin: 20
+                id: faultLogDivider
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: faultLogHeader.bottom
+                anchors.leftMargin: 20
+                anchors.rightMargin: 20
+                anchors.topMargin: 14
                 height: 1
                 color: "#283038"
             }
 
             Item {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.leftMargin: 20
-                Layout.rightMargin: 20
+                id: faultLogBody
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: faultLogDivider.bottom
+                anchors.bottom: faultLogActions.top
+                anchors.leftMargin: 20
+                anchors.rightMargin: 20
+                anchors.topMargin: 14
+                anchors.bottomMargin: 14
 
                 Text {
                     anchors.centerIn: parent
                     visible: !root.deviceModel || root.deviceModel.faultLogCount === 0
                     width: parent.width
-                    text: qsTr("设备出现故障提示时，App 会自动保存时间、设备和关键状态。")
+                    text: root.t("设备出现故障提示时，App 会自动保存时间、设备和关键状态。",
+                                 "When a device fault appears, the app saves the time, device, and key status locally.")
                     color: "#9aa3b2"
                     font.pixelSize: 13
                     wrapMode: Text.WordWrap
                     horizontalAlignment: Text.AlignHCenter
                 }
 
-                ScrollView {
+                Flickable {
+                    id: faultLogFlickable
                     anchors.fill: parent
                     visible: root.deviceModel && root.deviceModel.faultLogCount > 0
-                    contentWidth: availableWidth
                     clip: true
-                    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                    boundsBehavior: Flickable.StopAtBounds
+                    flickableDirection: Flickable.VerticalFlick
+                    interactive: contentHeight > height
+                    contentWidth: width
+                    contentHeight: faultLogList.implicitHeight
 
                     Column {
-                        width: parent.width
+                        id: faultLogList
+                        width: faultLogFlickable.width - (faultLogScrollBar.visible ? 8 : 0)
                         spacing: 10
 
                         Repeater {
@@ -190,14 +238,26 @@ Item {
                             }
                         }
                     }
+
+                    ScrollBar.vertical: ScrollBar {
+                        id: faultLogScrollBar
+                        policy: faultLogFlickable.contentHeight > faultLogFlickable.height
+                                ? ScrollBar.AlwaysOn
+                                : ScrollBar.AlwaysOff
+                        active: true
+                    }
                 }
             }
 
             RowLayout {
-                Layout.fillWidth: true
-                Layout.leftMargin: 20
-                Layout.rightMargin: 20
-                Layout.bottomMargin: 20
+                id: faultLogActions
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.leftMargin: 20
+                anchors.rightMargin: 20
+                anchors.bottomMargin: 20
+                height: 42
                 spacing: 10
 
                 Button {
@@ -213,7 +273,7 @@ Item {
                         border.color: clearFaultLogsButton.enabled ? Qt.rgba(1, 0.36, 0.44, 0.34) : "#283038"
                     }
                     contentItem: Text {
-                        text: qsTr("清除日志")
+                        text: root.t("清除日志", "Clear Logs")
                         color: clearFaultLogsButton.enabled ? "#ff8b8b" : "#67717f"
                         font.pixelSize: 13
                         font.bold: true
@@ -232,7 +292,7 @@ Item {
                         color: closeFaultLogsButton.down ? "#b78a5c" : "#c69c6e"
                     }
                     contentItem: Text {
-                        text: qsTr("完成")
+                        text: root.t("完成", "Done")
                         color: "#17120a"
                         font.pixelSize: 13
                         font.bold: true
@@ -249,7 +309,7 @@ Item {
         parent: Overlay.overlay
         anchors.centerIn: Overlay.overlay
         modal: true
-        title: qsTr("清除故障日志")
+        title: root.t("清除故障日志", "Clear Fault Logs")
         standardButtons: Dialog.Ok | Dialog.Cancel
         onAccepted: {
             if (root.deviceModel) {
@@ -259,7 +319,8 @@ Item {
 
         Label {
             width: Math.min(root.width * 0.76, 280)
-            text: qsTr("将清除本机保存的历史故障日志，不会复位设备当前故障状态。")
+            text: root.t("将清除本机保存的历史故障日志，不会复位设备当前故障状态。",
+                         "This clears fault logs saved on this phone. It will not reset the current device fault state.")
             wrapMode: Text.WordWrap
         }
     }
@@ -311,7 +372,7 @@ Item {
                     color: parent.down ? "#b78a5c" : "#c69c6e"
                 }
                 contentItem: Text {
-                    text: qsTr("完成")
+                    text: root.t("完成", "Done")
                     color: "#17120a"
                     font.pixelSize: 13
                     font.bold: true
@@ -405,7 +466,10 @@ Item {
                 spacing: 8
                 Text {
                     Layout.fillWidth: true
-                    text: log && log.faultText ? log.faultText : qsTr("未知异常，请停止使用并联系售后")
+                    text: root.deviceModel
+                          ? root.deviceModel.faultTextForCode(log && log.faultCode ? log.faultCode : "",
+                                                              log && log.faultText ? log.faultText : "")
+                          : root.t("未知异常，请停止使用并联系售后", "Unknown fault. Stop using the device and contact support.")
                     color: "#ff8b8b"
                     font.pixelSize: 14
                     font.bold: true
@@ -421,8 +485,8 @@ Item {
             Text {
                 width: parent.width
                 text: log && log.faultCode
-                      ? qsTr("故障代码：%1").arg(log.faultCode)
-                      : qsTr("故障代码：未知")
+                      ? root.t("故障代码：%1", "Fault code: %1").arg(log.faultCode)
+                      : root.t("故障代码：未知", "Fault code: Unknown")
                 color: "#f4f1ea"
                 font.pixelSize: 13
                 wrapMode: Text.WordWrap
@@ -430,8 +494,8 @@ Item {
 
             Text {
                 width: parent.width
-                text: qsTr("%1 · %2").arg(log && log.deviceName ? log.deviceName : qsTr("未知设备"))
-                                     .arg(log && log.selectedNodeName ? log.selectedNodeName : qsTr("本机"))
+                text: "%1 · %2".arg(log && log.deviceName ? log.deviceName : root.t("未知设备", "Unknown device"))
+                                     .arg(log && log.selectedNodeName ? log.selectedNodeName : root.t("本机", "Local device"))
                 color: "#9aa3b2"
                 font.pixelSize: 12
                 elide: Text.ElideRight
@@ -439,7 +503,8 @@ Item {
 
             Text {
                 width: parent.width
-                text: qsTr("电量 %1% · 电压 %2 V · 控制器 %3 °C")
+                text: root.t("电量 %1% · 电压 %2 V · 控制器 %3 °C",
+                             "Battery %1% · Voltage %2 V · Controller %3 °C")
                       .arg(log && log.batteryPercent !== undefined ? Number(log.batteryPercent).toFixed(0) : "--")
                       .arg(log && log.inputVoltage !== undefined ? Number(log.inputVoltage).toFixed(1) : "--")
                       .arg(log && log.controllerTemperatureCelsius !== undefined ? Number(log.controllerTemperatureCelsius).toFixed(0) : "--")

@@ -1,4 +1,4 @@
-package com.bm.microev;
+package com.bmesc.app;
 
 import android.app.Activity;
 import android.content.Context;
