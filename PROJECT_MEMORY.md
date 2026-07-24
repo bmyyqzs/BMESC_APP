@@ -6968,3 +6968,19 @@ This Git-tracked file is the chronological memory for project conversations and 
 
 **Sensitive information**
 - None.
+
+### 2026-07-24 - Reverted build installed and verified on phone
+
+**User request**
+- Approved rebuilding and installing the reverted code on the phone.
+
+**Actions and results**
+- Incremental rebuild (`make -j8 && make install INSTALL_ROOT=build && androiddeployqt --gradle`) produced `build/android/apk/BMESC_mobile_debug.apk` (15:51).
+- Phone USB dropped mid-session; after user reconnected, device reappeared as serial `10AC4A03WU000N1`. Install via `pm install -r -t` succeeded.
+- On-device verification (screenshot `verify_reverted_device.png`): device page shows pre-optimization layout — separate scan-status card + "BLE 设备" section; BLE scan works, "VESC BLE UART" discovered. Phone now matches reverted code (commit `c0ec848`).
+
+**Unresolved items**
+- Design optimization backlog remains open for new direction (user rejected round-1 changes).
+
+**Sensitive information**
+- None.
