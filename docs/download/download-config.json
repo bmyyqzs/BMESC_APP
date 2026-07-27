@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-07-17",
+  "updatedAt": "2026-07-27",
   "canonicalUrl": "https://download.bmesc.floatw.com/",
   "supportUrl": "https://bmyyqzs.github.io/BMESC_APP/app-store/support.html",
   "privacyUrl": "https://bmyyqzs.github.io/BMESC_APP/app-store/privacy-policy.html",
@@ -16,7 +16,7 @@
       "versionCode": 192,
       "url": "releases/android/BMESC_mobile_debug.apk",
       "fileSize": "50.7 MB",
-      "sha256": "afa06b4aff14efe1d69ab7d35357b99be7af96b7737be128010924601a645d32"
+      "sha256": "f9becaf6a0d152703c3d25e91e5f29d2740c8da869ab5ab075a189c99793ba7b"
     },
     "googlePlay": {
       "status": "live",
