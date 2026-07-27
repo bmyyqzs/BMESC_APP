@@ -7152,3 +7152,48 @@ This Git-tracked file is the chronological memory for project conversations and 
 
 ### Sensitive information
 - None.
+
+### 2026-07-27 - Publish hall-check APK to official download site
+
+**User request**
+- Upload the newly built APK (with the home page hall sensor check feature) to the official site https://download.bmesc.floatw.com/.
+
+**Key context**
+- The distributed channel keeps the same filename `BMESC_mobile_debug.apk`, so only the OSS object and the config checksum needed updating; the download URL is unchanged.
+- ossutil 2.1.2 at `build/tools/ossutil-2.1.2-mac-arm64/ossutil`; a fresh config with the RAM AK (PRIVATE-20260717-001) was written to `build/tools/ossutilconfig` (chmod 600, values never printed).
+
+**Actions and results (verified)**
+- New APK: 53,187,333 B, SHA-256 `fee582af6ef26ae29decd65f07fca003050b8d72aaa251f0f8a3294874bf10b8` (contains the hall-check feature; `startHallCheck` markers confirmed in the packaged .so).
+- Uploaded to `oss://bmesc-download/releases/android/BMESC_mobile_debug.apk` with content-type `application/vnd.android.package-archive`, disposition attachment, `-f` overwrite.
+- Updated `docs/download/download-config.json` (updatedAt 2026-07-27, new sha256) and `docs/download/index.html` fallbackConfig updatedAt; uploaded both with no-cache.
+- HTTPS end-to-end verified: landing page 200, config serves the new sha256, full APK download HTTP 200 at 53,187,333 B with matching SHA-256, ~29 MB/s.
+
+**Unresolved items**
+- On-device hall-check verification still pending a powered FOCSTrot board (currently connected board reports "T series", so the FOCSTrot-gated card stays hidden; user to confirm whether T series should also get the feature).
+- Hall-check code + download config changes are uncommitted on `codex/focstrot`; gh-pages fallback branch not yet synced.
+
+**Sensitive information**
+- RAM AccessKey (PRIVATE-20260717-001) used via a workspace-local ossutil config file; no secrets printed or added to public memory.
+
+### 2026-07-27 - Hide speed-limit feature; accidental sweep of hall-check QML repaired
+
+**User request**
+- Hide the speed-limit feature in the FOCSTrot card and install to phone.
+
+**Key context**
+- Working tree contained uncommitted hall-check work from a parallel session (QML card in `mobile/BMHomePage.qml` + backend in `product/productdevicemodel.{cpp,h}`), published to the download site earlier today (see entry "Publish hall-check APK").
+- `git add mobile/BMHomePage.qml` swept the hall-check QML card into commit `1964de4` alongside the intended speed-limit hide (207 insertions instead of ~3).
+
+**Actions and results**
+- Intended change: speed-limit Column `visible: false` (code kept for restore); card title "踏板与限速" → "踏板".
+- Repaired consistency by committing the hall-check backend as `98e183b`; both commits pushed to origin `codex/focstrot`. Repo checkout is now coherent.
+- Rebuilt APK (53,187,969 B) and installed on phone via adb (Success). Phone build = hall-check + hidden speed limit.
+- On-device screenshot verification was blocked: user was actively using the phone (WeChat / control center / Settings); user to self-verify after connecting a FOCSTrot board.
+- `docs/download/*` changes from the publish task remain uncommitted (left for that work stream).
+
+**Unresolved items**
+- Official download-site APK (published earlier today, sha256 fee582…) does NOT include the speed-limit hide; republish if the hide should be public.
+- Hall-check on-device verification still pending a powered FOCSTrot board (per previous entry).
+
+**Sensitive information**
+- None (RAM AK reference PRIVATE-20260717-001 unchanged, no values echoed).
