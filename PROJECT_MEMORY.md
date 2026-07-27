@@ -24,6 +24,52 @@ This Git-tracked file is the chronological memory for project conversations and 
 **Sensitive information**
 - Existing private memory was read per workflow but not changed. No sensitive values were recorded.
 
+### 2026-07-26 - Run daily Gmail cooperation summary
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- Search used connected Gmail through read-only browser access because no dedicated Gmail connector was exposed in the current tool session.
+- Search prioritized recent unread inbox and recent inbox mail, then all mail after 2026-07-24, 14-day BMESC/VESC/VESC Tool/Refloat/pev.dev topic mail, 30-day controller hardware/BLE/electric skateboard/e-bike/scooter terms, and 30-day English/Chinese cooperation/business keywords.
+
+**Confirmed decisions and preferences**
+- Gmail access stayed read-only. No replies, drafts, labels, archiving, deletion, or mailbox modifications were performed.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- Notable non-matches included Google Play BMESC target API and third-party Android app store notices, IARC BMESC live rating notice, pev.dev summary mentioning controllers/VESC, Google Search Console floatw.com notices, AIHubMix service notices, ElevenReader/xAI/Ollama/service or promotional emails, and a Neon onboarding feedback email unrelated to BMESC/VESC cooperation.
+- Wrote this run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None for cooperation-demand mail.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-26 - Run daily Gmail cooperation summary
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- Search used connected Gmail through read-only browser access because no dedicated Gmail connector was exposed in the current tool session.
+- Search prioritized recent unread inbox and recent inbox mail, then all mail after 2026-07-24, 14-day BMESC/VESC/VESC Tool/Refloat/pev.dev topic mail, 30-day controller hardware/BLE/electric skateboard/e-bike/scooter terms, and 30-day English/Chinese cooperation/business keywords.
+
+**Confirmed decisions and preferences**
+- Gmail access stayed read-only. No replies, drafts, labels, archiving, deletion, or mailbox modifications were performed.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- Notable non-matches included Google Play BMESC target API and third-party Android app store notices, IARC BMESC live rating notice, pev.dev summary mentioning controllers/VESC, Google Search Console floatw.com notices, AIHubMix service notices, ElevenReader/xAI/Ollama/service or promotional emails, and a Neon onboarding feedback email unrelated to BMESC/VESC cooperation.
+- Wrote this run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None for cooperation-demand mail.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
 ### 2026-07-10 - Regenerate three Refloat-based pedal UI directions
 
 **User request**
@@ -7005,3 +7051,92 @@ This Git-tracked file is the chronological memory for project conversations and 
 
 ### Sensitive information
 - RAM AccessKey (PRIVATE-20260717-001) used from private memory for OSS upload; no secrets printed or newly recorded.
+
+### 2026-07-25 - Daily Gmail cooperation summary blocked
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- The automation memory showed the last successful recorded run on 2026-07-17 found no matching cooperation-demand emails.
+- This Codex session did not expose any Gmail/mail connector tool after tool discovery, and the provided recommended plugin list did not include a Gmail plugin.
+
+**Confirmed decisions and preferences**
+- Gmail access must remain read-only unless the user explicitly confirms a later mailbox action.
+
+**Actions and results**
+- Read project memory and automation memory.
+- Attempted tool discovery for Gmail/mailbox search capabilities, but no usable Gmail connector was available.
+- Did not search, open, send, archive, label, delete, or otherwise modify any email.
+- Wrote the blocked run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- The automation needs an available Gmail/mail connector before it can inspect the mailbox.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-26 - Run daily Gmail cooperation summary
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- Search used connected Gmail through read-only browser access because no dedicated Gmail connector was exposed in the current tool session.
+- Search prioritized recent unread inbox and recent inbox mail, then all mail after 2026-07-24, 14-day BMESC/VESC/VESC Tool/Refloat/pev.dev topic mail, 30-day controller hardware/BLE/electric skateboard/e-bike/scooter terms, and 30-day English/Chinese cooperation/business keywords.
+
+**Confirmed decisions and preferences**
+- Gmail access stayed read-only. No replies, drafts, labels, archiving, deletion, or mailbox modifications were performed.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- Notable non-matches included Google Play BMESC target API and third-party Android app store notices, IARC BMESC live rating notice, pev.dev summary mentioning controllers/VESC, Google Search Console floatw.com notices, AIHubMix service notices, ElevenReader/xAI/Ollama/service or promotional emails, and a Neon onboarding feedback email unrelated to BMESC/VESC cooperation.
+- Wrote this run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None for cooperation-demand mail.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-27 - Add home page hall sensor fault check
+
+**User request**
+- Add a hall sensor fault detection feature to the home page: 2A detection current, disable Refloat before detection, warn that the wheel will spin and must be lifted off the ground, start only after user confirms, show 霍尔正常 when hall sensors are detected and 霍尔错误 otherwise, re-enable Refloat afterward, reuse the existing hall detection logic, and do not save hall data.
+
+**Key context**
+- Existing hall detection logic is `Commands::measureHallFoc(current)` (COMM_DETECT_HALL_FOC) with result signal `focHallTableReceived(QVector<int>, int)`; `res != 0` means detection failed (per `widgets/detectfochall.cpp` and `mobile/DetectFocHall.qml`).
+- "关闭/打开 refloat" has no prior implementation; used the VESC-standard `Commands::disableAppOutput(time_ms, fwdCan)` (COMM_APP_DISABLE_OUTPUT), the same mechanism `Utility::detectAllFoc` uses around FOC detection. A bounded 60000 ms disable was chosen so firmware auto-restores output if the phone disconnects mid-check.
+
+**Confirmed decisions and preferences**
+- Feature implemented through `ProductDeviceModel` (product-layer isolation; BM QML never touches `Commands` directly), gated to FOCSTrot devices like the pedal/speed-limit card.
+- Hall table results are never written to mcconf or stored anywhere; only a state (normal/error) is shown.
+- Detection current fixed at 2 A (`hallCheckCurrentAmps`), timeout 25 s, states: 0 unchecked / 1 checking / 2 ok / 3 error.
+
+**Actions and results**
+- `product/productdevicemodel.h/.cpp`: added `hallCheckState` Q_PROPERTY, `startHallCheck()` Q_INVOKABLE, `handleFocHallTable`/`handleHallCheckTimeout` slots, `finishHallCheck(bool)` helper, `mHallCheckTimer`; wired `Commands::focHallTableReceived` in `setVesc`; running state resets to idle on disconnect.
+- `mobile/BMHomePage.qml`: added a 霍尔检测 GlassCard (status pill, result text with color coding, gold 开始检测 button) and a styled confirmation Dialog warning that the wheel spins and must be off the ground; all text bilingual via `root.t()`.
+- Verified: `git diff --check` clean, qmllint (Qt 5.15.2 ios kit) passes on `BMHomePage.qml`, incremental Android build compiles `productdevicemodel.cpp` + moc and relinks `libBMESC_arm64-v8a.so` (42.3 MB) successfully.
+
+**Unresolved items**
+- Not yet tested on real hardware: APK repackage (`make install INSTALL_ROOT=build` + androiddeployqt) and on-device validation of the full flow (dialog, Refloat pause/resume, 霍尔正常/错误 display) still pending.
+- Changes are uncommitted on `codex/focstrot`.
+
+**Sensitive information**
+- None; private memory was read per workflow and not changed.
+
+## 2026-07-27 - Download page made bilingual (default EN, toggle to ZH), published
+
+### User request
+- Make the QR download page bilingual Chinese/English: default English, button to switch to Chinese.
+
+### Actions and results (verified)
+- Rewrote `docs/download/index.html`: all user-facing copy moved into an inline `translations` {en, zh} dictionary; elements tagged `data-i18n` / `data-i18n-alt` / `data-i18n-aria`; JS `setLang`-style flow re-renders static + dynamic text (status badges, buttons, version meta, updated date via Intl locale, WeChat guide states). Default `en`; `zh` persisted via localStorage `bmesc-lang`. Toggle button `.lang-toggle` in brand header (shows 中文 in EN mode, EN in ZH mode).
+- renderChannel now uses `button.onclick` assignment instead of addEventListener so re-render on language switch never double-binds.
+- Also fixed stale head metadata: canonical/og:url/og:image now point to `https://download.bmesc.floatw.com/` (were gh-pages URLs).
+- Validated: node --check on extracted script; all 42 i18n keys present in both en and zh dictionaries.
+- Published to OSS and verified live: page 200, `<html lang="en">`, title "Download BMESC", lang-toggle present, canonical correct.
+- git: committed on codex/focstrot (b6e8af2), synced and pushed gh-pages (cc14383, applied cleanly on top of outside-session commit 9acedfa which local already contained).
+
+### Sensitive information
+- None.
