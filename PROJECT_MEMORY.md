@@ -7140,3 +7140,15 @@ This Git-tracked file is the chronological memory for project conversations and 
 
 ### Sensitive information
 - None.
+
+## 2026-07-27 - Language toggle repositioned (was overlapping WeChat corner arrow)
+
+### User request
+- Move the language toggle left; it overlapped the WeChat top-right corner arrow.
+
+### Actions and results (verified)
+- `docs/download/index.html`: removed `margin-left: auto` from `.lang-toggle` (added small top margin) so the button sits directly after the brand title instead of at the right edge, clearing the fixed corner-pointer arrow area in WeChat.
+- Uploaded to OSS; verified live CSS updated, page 200. git committed (codex/focstrot) and gh-pages synced+pushed.
+
+### Sensitive information
+- None.
