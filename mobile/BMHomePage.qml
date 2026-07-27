@@ -33,6 +33,7 @@ Item {
     readonly property int modelSpeedLimitKph: deviceModel && deviceModel.speedLimitLoaded
                                              ? deviceModel.speedLimitKph : 0
     property int speedLimitDraftKph: modelSpeedLimitKph
+    readonly property int hallCheckState: deviceModel ? deviceModel.hallCheckState : 0
     readonly property string faultText: deviceModel && deviceModel.faultText.length > 0
                                         ? deviceModel.faultText : root.t("正常", "Normal")
     readonly property string deviceStatusText: !transportConnected
@@ -317,7 +318,7 @@ Item {
 
                             Text {
                                 Layout.fillWidth: true
-                                text: root.t("踏板与限速", "Pedal and Speed Limit")
+                                text: root.t("踏板", "Pedal")
                                 color: "#f4f1ea"
                                 font.pixelSize: 18
                                 font.bold: true
@@ -378,7 +379,9 @@ Item {
                         }
                     }
 
+                    // 限速区块：按用户要求隐藏（2026-07-27），代码保留以便恢复
                     Column {
+                        visible: false
                         width: parent.width
                         spacing: 10
 
@@ -519,9 +522,212 @@ Item {
                 }
             }
 
+            // ---- 霍尔检测 card ----
+            GlassCard {
+                visible: root.deviceModel && root.deviceModel.isFocstrotDevice
+                Layout.fillWidth: true
+                Layout.leftMargin: root.pageMargin
+                Layout.rightMargin: root.pageMargin
+                cardHeight: hallColumn.implicitHeight + 34
+
+                Column {
+                    id: hallColumn
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.margins: 18
+                    spacing: 14
+
+                    RowLayout {
+                        width: parent.width
+                        spacing: 10
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 4
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: root.t("霍尔检测", "Hall Sensor Check")
+                                color: "#f4f1ea"
+                                font.pixelSize: 18
+                                font.bold: true
+                                elide: Text.ElideRight
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: root.t("检测电机霍尔传感器是否正常", "Check if the motor hall sensors work")
+                                color: "#9aa3b2"
+                                font.pixelSize: 12
+                                elide: Text.ElideRight
+                            }
+                        }
+
+                        Pill {
+                            text: root.hallCheckState === 1
+                                  ? root.t("检测中", "Checking")
+                                  : (root.hallCheckState === 2
+                                     ? root.t("正常", "OK")
+                                     : (root.hallCheckState === 3
+                                        ? root.t("错误", "Error")
+                                        : root.t("未检测", "Unchecked")))
+                        }
+                    }
+
+                    Rectangle {
+                        width: parent.width
+                        height: 1
+                        color: "#283038"
+                    }
+
+                    Text {
+                        width: parent.width
+                        text: root.hallCheckState === 1
+                              ? root.t("正在检测，请保持轮子悬空…", "Checking, keep the wheel off the ground…")
+                              : (root.hallCheckState === 2
+                                 ? root.t("霍尔正常", "Hall sensors OK")
+                                 : (root.hallCheckState === 3
+                                    ? root.t("霍尔错误", "Hall sensor error")
+                                    : root.t("检测时轮子会转动，请先确认轮子已悬空",
+                                             "The wheel will spin during the check. Lift it off the ground first")))
+                        color: root.hallCheckState === 1
+                               ? "#f2d58a"
+                               : (root.hallCheckState === 2
+                                  ? "#64d6b0"
+                                  : (root.hallCheckState === 3 ? "#ff8b8b" : "#9aa3b2"))
+                        font.pixelSize: 13
+                        font.bold: root.hallCheckState !== 0
+                        wrapMode: Text.WordWrap
+                    }
+
+                    Button {
+                        width: parent.width
+                        height: 48
+                        enabled: root.protocolReady && root.hallCheckState !== 1
+                        onClicked: hallConfirmDialog.open()
+
+                        background: Rectangle {
+                            radius: 14
+                            gradient: Gradient {
+                                GradientStop { position: 0.0; color: parent.enabled ? "#dfbd91" : "#2a3034" }
+                                GradientStop { position: 1.0; color: parent.enabled ? "#c69c6e" : "#20262c" }
+                            }
+                        }
+
+                        contentItem: Text {
+                            text: root.hallCheckState === 1
+                                  ? root.t("检测中…", "Checking…")
+                                  : root.t("开始检测", "Start Check")
+                            color: parent.enabled ? "#17120a" : "#656b6f"
+                            font.pixelSize: 14
+                            font.bold: true
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+                    }
+                }
+            }
+
             Item {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 24
+            }
+        }
+    }
+
+    Dialog {
+        id: hallConfirmDialog
+        modal: true
+        width: Math.min(root.width - 48, 340)
+        x: (root.width - width) / 2
+        y: Math.max(0, (root.height - implicitHeight) / 2)
+        padding: 20
+
+        background: Rectangle {
+            radius: 18
+            color: "#151923"
+            border.width: 1
+            border.color: "#283038"
+        }
+
+        Overlay.modal: Rectangle {
+            color: "#AA000000"
+        }
+
+        contentItem: Column {
+            spacing: 14
+
+            Text {
+                width: parent.width
+                text: root.t("霍尔检测", "Hall Sensor Check")
+                color: "#f4f1ea"
+                font.pixelSize: 18
+                font.bold: true
+            }
+
+            Text {
+                width: parent.width
+                text: root.t("检测过程中轮子会转动，请确保轮子已悬空并远离障碍物。点击确认后开始检测。",
+                             "The wheel will spin during the check. Make sure the wheel is off the ground and clear of obstacles before confirming.")
+                color: "#9aa3b2"
+                font.pixelSize: 13
+                wrapMode: Text.WordWrap
+            }
+
+            RowLayout {
+                width: parent.width
+                spacing: 10
+
+                Button {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 44
+                    onClicked: hallConfirmDialog.close()
+
+                    background: Rectangle {
+                        radius: 12
+                        color: "#202832"
+                        border.width: 1
+                        border.color: "#343b42"
+                    }
+
+                    contentItem: Text {
+                        text: root.t("取消", "Cancel")
+                        color: "#f4f1ea"
+                        font.pixelSize: 14
+                        font.bold: true
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                }
+
+                Button {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: 44
+                    onClicked: {
+                        hallConfirmDialog.close()
+                        if (root.deviceModel) {
+                            root.deviceModel.startHallCheck()
+                        }
+                    }
+
+                    background: Rectangle {
+                        radius: 12
+                        gradient: Gradient {
+                            GradientStop { position: 0.0; color: "#dfbd91" }
+                            GradientStop { position: 1.0; color: "#c69c6e" }
+                        }
+                    }
+
+                    contentItem: Text {
+                        text: root.t("确认开始", "Confirm & Start")
+                        color: "#17120a"
+                        font.pixelSize: 14
+                        font.bold: true
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+                }
             }
         }
     }
