@@ -7197,3 +7197,21 @@ This Git-tracked file is the chronological memory for project conversations and 
 
 **Sensitive information**
 - None (RAM AK reference PRIVATE-20260717-001 unchanged, no values echoed).
+
+### 2026-07-27 - Publish hide-speed-limit APK to official download site
+
+**User request**
+- "把安装包发布到官网" — publish the current APK (hall-check + hidden speed limit) to https://download.bmesc.floatw.com/.
+
+**Actions and results (verified)**
+- Uploaded `build/android/apk/BMESC_mobile_debug.apk` (53,187,969 B, SHA-256 `f9becaf6a0d152703c3d25e91e5f29d2740c8da869ab5ab075a189c99793ba7b`) to `oss://bmesc-download/releases/android/BMESC_mobile_debug.apk` (content-type apk, disposition attachment). OSS upload needed `--region cn-hangzhou` flag (endpoint oss-cn-hangzhou.aliyuncs.com; v4 signing requires explicit region).
+- Updated `docs/download/download-config.json` androidDirect sha256; `index.html` fallbackConfig needed no change (no sha field there; version/size/date unchanged).
+- Uploaded config with no-cache. HTTPS end-to-end verified: landing 200, config serves new sha256, APK 200 at 53,187,969 B with matching SHA-256.
+- Committed config as part of this publish; download site now matches the phone build.
+
+**Unresolved items**
+- `docs/download/index.html` still shows an unrelated uncommitted modification from the parallel session (left untouched).
+- On-device verification of hidden speed limit + hall-check still pending user connecting a FOCSTrot board.
+
+**Sensitive information**
+- RAM AK reference PRIVATE-20260717-001; no secret values printed or committed.
