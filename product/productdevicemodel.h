@@ -65,6 +65,7 @@ class ProductDeviceModel : public QObject
     Q_PROPERTY(bool speedLimitLoaded READ speedLimitLoaded NOTIFY speedLimitChanged)
     Q_PROPERTY(bool speedLimitSaving READ speedLimitSaving NOTIFY speedLimitChanged)
     Q_PROPERTY(QString speedLimitStatusText READ speedLimitStatusText NOTIFY speedLimitChanged)
+    Q_PROPERTY(int hallCheckState READ hallCheckState NOTIFY hallCheckChanged)
 
 public:
     explicit ProductDeviceModel(QObject *parent = nullptr);
@@ -129,6 +130,7 @@ public:
     bool speedLimitLoaded() const;
     bool speedLimitSaving() const;
     QString speedLimitStatusText() const;
+    int hallCheckState() const;
 
     Q_INVOKABLE void startBleScan();
     Q_INVOKABLE void connectBle(const QString &identifier);
@@ -143,6 +145,7 @@ public:
     Q_INVOKABLE QString faultTextForCode(const QString &faultCode, const QString &fallbackText = QString()) const;
     Q_INVOKABLE void seedFaultLogsForTesting(int count = 16);
     Q_INVOKABLE void setSpeedLimitKph(int kph);
+    Q_INVOKABLE void startHallCheck();
 
 signals:
     void vescChanged();
@@ -158,6 +161,7 @@ signals:
     void languageChanged();
     void refloatChanged();
     void speedLimitChanged();
+    void hallCheckChanged();
     void requestShowHome();
 
 private slots:
@@ -175,6 +179,8 @@ private slots:
     void handleCustomConfigLoaded();
     void handleCustomConfigRx(int confId, QByteArray data);
     void handleCustomConfigAck(int confId);
+    void handleFocHallTable(QVector<int> hallTable, int res);
+    void handleHallCheckTimeout();
 
 private:
     VescInterface *mVesc;
@@ -229,6 +235,8 @@ private:
     bool mSpeedLimitSaving;
     bool mSpeedLimitReadRequested;
     QString mSpeedLimitStatusText;
+    QTimer mHallCheckTimer;
+    int mHallCheckState;
 
     enum class ProductConnectionFlow {
         Unknown,
@@ -256,6 +264,7 @@ private:
     void requestSpeedLimitRead();
     void loadSpeedLimitFromConfig();
     void setSpeedLimitStatusText(const QString &text);
+    void finishHallCheck(bool ok);
     QString nameForCanNode(int nodeId) const;
     QString displayNameForBleDevice(const QString &identifier, const QString &rawName) const;
     QString focstrotIdentityText() const;

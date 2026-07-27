@@ -16,6 +16,9 @@ const int refloatUnavailableTimeoutMs = 2000;
 const quint8 refloatPackageId = 101;
 const quint8 refloatRealtimeDataInternalCommand = 31;
 const char *refloatSpeedLimitParam = "tiltback_speed";
+const double hallCheckCurrentAmps = 2.0;
+const int hallCheckAppDisableMs = 60000;
+const int hallCheckTimeoutMs = 25000;
 const double defaultSpeedGaugeMaximumKph = 60.0;
 const double kphPerMeterPerSecond = 3.6;
 
@@ -108,6 +111,7 @@ ProductDeviceModel::ProductDeviceModel(QObject *parent)
       mSpeedLimitSaving(false),
       mSpeedLimitReadRequested(false),
       mSpeedLimitStatusText(QStringLiteral("")),
+      mHallCheckState(0),
       mPendingConnectionFlow(ProductConnectionFlow::Unknown),
       mActiveConnectionFlow(ProductConnectionFlow::Unknown)
 {
@@ -129,6 +133,11 @@ ProductDeviceModel::ProductDeviceModel(QObject *parent)
     mRefloatPollTimer.setInterval(refloatPollIntervalMs);
     mRefloatPollTimer.setSingleShot(false);
     connect(&mRefloatPollTimer, &QTimer::timeout, this, &ProductDeviceModel::pollRefloat);
+
+    mHallCheckTimer.setInterval(hallCheckTimeoutMs);
+    mHallCheckTimer.setSingleShot(true);
+    connect(&mHallCheckTimer, &QTimer::timeout,
+            this, &ProductDeviceModel::handleHallCheckTimeout);
 
     loadFaultLogs();
 }
@@ -187,6 +196,8 @@ void ProductDeviceModel::setVesc(VescInterface *vesc)
                 this, &ProductDeviceModel::handleCustomConfigRx);
         connect(mCommands, &Commands::customConfigAckReceived,
                 this, &ProductDeviceModel::handleCustomConfigAck);
+        connect(mCommands, &Commands::focHallTableReceived,
+                this, &ProductDeviceModel::handleFocHallTable);
     }
 
     resetTelemetry();
@@ -608,12 +619,71 @@ void ProductDeviceModel::setSpeedLimitKph(int kph)
     mCommands->customConfigSet(0, config);
 }
 
+int ProductDeviceModel::hallCheckState() const
+{
+    return mHallCheckState;
+}
+
+void ProductDeviceModel::startHallCheck()
+{
+    if (!mVesc || !mCommands || !protocolReady() || mHallCheckState == 1) {
+        return;
+    }
+
+    mHallCheckState = 1;
+    emit hallCheckChanged();
+
+    // 检测前关闭 Refloat：禁用 app 输出。使用有上限的禁用时长，
+    // 即使手机端中途断连，固件也会在超时后自动恢复输出。
+    mCommands->disableAppOutput(hallCheckAppDisableMs, true);
+
+    // 现有霍尔检测逻辑：COMM_DETECT_HALL_FOC，2 A 检测电流。
+    mCommands->measureHallFoc(hallCheckCurrentAmps);
+    mHallCheckTimer.start();
+}
+
+void ProductDeviceModel::handleFocHallTable(QVector<int> hallTable, int res)
+{
+    // 检测结果表不写入配置、不保存，只用于提示霍尔正常/异常。
+    Q_UNUSED(hallTable)
+
+    if (mHallCheckState != 1) {
+        return;
+    }
+
+    finishHallCheck(res == 0);
+}
+
+void ProductDeviceModel::handleHallCheckTimeout()
+{
+    finishHallCheck(false);
+}
+
+void ProductDeviceModel::finishHallCheck(bool ok)
+{
+    mHallCheckTimer.stop();
+
+    // 检测结束，重新打开 Refloat（恢复 app 输出）。
+    if (mCommands && connected()) {
+        mCommands->disableAppOutput(0, true);
+    }
+
+    mHallCheckState = ok ? 2 : 3;
+    emit hallCheckChanged();
+}
+
 void ProductDeviceModel::updateConnection()
 {
     if (!connected()) {
         restoreFirmwareSwapPolicy();
         resetTelemetry();
         resetRefloatState();
+        if (mHallCheckState == 1) {
+            // 检测中断连：固件侧 60 秒禁用计时到期后会自动恢复 Refloat 输出。
+            mHallCheckTimer.stop();
+            mHallCheckState = 0;
+            emit hallCheckChanged();
+        }
         mActiveConnectionFlow = ProductConnectionFlow::Unknown;
         mCanNodes.clear();
         mSelectedCanNodeId = -1;
