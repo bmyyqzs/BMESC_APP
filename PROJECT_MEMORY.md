@@ -27,6 +27,33 @@ This Git-tracked file is the chronological memory for project conversations and 
 **Sensitive information**
 - Existing private memory was read per workflow but not changed. No sensitive values were recorded.
 
+### 2026-08-06 - Merge GitHub code into main
+
+**User request**
+- Merge code from GitHub into `main`.
+
+**Key context**
+- Work started from clean `codex/focstrot`.
+- `origin/main` had been force-updated and had unrelated history from local `main`.
+- `origin/codex/focstrot` contained the latest product/UI changes not yet on `main`.
+
+**Confirmed decisions and preferences**
+- Preserve local product implementation while merging GitHub history.
+- Exclude the Android upload keystore from Git tracking and ignore `keystores/*.jks`.
+
+**Actions and results**
+- Fetched GitHub remotes.
+- Merged `origin/main` into local `main` with unrelated histories allowed, resolving broad add/add conflicts by keeping local product files and accepting GitHub-added legal/docs/project files.
+- Merged `origin/codex/focstrot` into `main`, resolving conflicts toward the product branch values for bundle ID, iOS positioning behavior, Android foreground service type, and App Store metadata.
+- Pushed `main` to GitHub; `main` and `origin/main` now both point to `6e6135a`.
+- Verified no unresolved conflicts and clean branch status after push.
+
+**Unresolved items**
+- No build/test run was performed after the merge; only Git status and staged whitespace checks were verified.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. The keystore file was explicitly kept out of Git tracking.
+
 ### 2026-08-06 - Add press rebound animation to product page buttons
 
 **User request**
