@@ -262,6 +262,11 @@ QString Utility::versionText()
     return QString::number(VT_VERSION, 'f', 2) + "-" + QString::number(VT_IS_TEST_VERSION) + "+" + STR(VT_GIT_COMMIT);
 }
 
+QString Utility::appVersionText()
+{
+    return QString::number(VT_VERSION, 'f', 2);
+}
+
 QString Utility::uuid2Str(QByteArray uuid, bool space)
 {
     QString strUuid;

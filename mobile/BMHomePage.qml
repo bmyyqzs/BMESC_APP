@@ -21,6 +21,9 @@ Item {
     readonly property bool telemetryValid: deviceModel ? deviceModel.telemetryValid : false
     readonly property bool imperial: deviceModel ? deviceModel.useImperialUnits : false
     readonly property bool isEnglish: deviceModel ? deviceModel.isEnglish : false
+    readonly property bool showPedalState: deviceModel ? deviceModel.refloatAvailable : false
+    readonly property bool pedalOnePressed: showPedalState && (deviceModel.pedalState === 1 || deviceModel.pedalState === 3)
+    readonly property bool pedalTwoPressed: showPedalState && (deviceModel.pedalState === 2 || deviceModel.pedalState === 3)
 
     readonly property real speedKph: deviceModel ? deviceModel.speedMetersPerSecond * 3.6 : 0
     readonly property real maxSpeedKph: deviceModel ? deviceModel.sessionMaxSpeedMetersPerSecond * 3.6 : 0
@@ -30,10 +33,6 @@ Item {
     readonly property real displaySpeedGaugeMax: imperial ? speedGaugeMaxKph * 0.621371192 : speedGaugeMaxKph
     readonly property string speedUnit: imperial ? "MPH" : "KM/H"
     readonly property bool hasFault: deviceModel ? deviceModel.hasFault : false
-    readonly property int modelSpeedLimitKph: deviceModel && deviceModel.speedLimitLoaded
-                                             ? deviceModel.speedLimitKph : 0
-    property int speedLimitDraftKph: modelSpeedLimitKph
-    readonly property int hallCheckState: deviceModel ? deviceModel.hallCheckState : 0
     readonly property string faultText: deviceModel && deviceModel.faultText.length > 0
                                         ? deviceModel.faultText : root.t("正常", "Normal")
     readonly property string deviceStatusText: !transportConnected
@@ -57,17 +56,6 @@ Item {
         return root.isEnglish ? en : zh
     }
 
-    onModelSpeedLimitKphChanged: speedLimitDraftKph = modelSpeedLimitKph
-
-    Connections {
-        target: root.deviceModel
-        function onSpeedLimitChanged() {
-            if (root.deviceModel && !root.deviceModel.speedLimitSaving) {
-                root.speedLimitDraftKph = root.modelSpeedLimitKph
-            }
-        }
-    }
-
     ScrollView {
         anchors.fill: parent
         contentWidth: availableWidth
@@ -89,7 +77,18 @@ Item {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 52
                     enabled: !root.transportConnected
+                    transformOrigin: Item.Center
+                    scale: enabled && down ? 0.96 : 1.0
+                    opacity: enabled ? (down ? 0.92 : 1.0) : 0.72
                     onClicked: root.requestConnect()
+
+                    Behavior on scale {
+                        NumberAnimation { duration: 130; easing.type: Easing.OutCubic }
+                    }
+
+                    Behavior on opacity {
+                        NumberAnimation { duration: 110; easing.type: Easing.OutCubic }
+                    }
 
                     background: Rectangle {
                         radius: 16
@@ -115,8 +114,19 @@ Item {
                     Layout.preferredHeight: 52
                     visible: root.transportConnected
                     enabled: root.transportConnected
+                    transformOrigin: Item.Center
+                    scale: enabled && down ? 0.96 : 1.0
+                    opacity: enabled ? (down ? 0.92 : 1.0) : 0.72
                     onClicked: {
                         if (root.deviceModel) root.deviceModel.disconnectDevice()
+                    }
+
+                    Behavior on scale {
+                        NumberAnimation { duration: 130; easing.type: Easing.OutCubic }
+                    }
+
+                    Behavior on opacity {
+                        NumberAnimation { duration: 110; easing.type: Easing.OutCubic }
                     }
 
                     background: Rectangle {
@@ -216,6 +226,46 @@ Item {
                         }
                     }
 
+                    Item {
+                        visible: root.showPedalState
+                        width: parent.width
+                        height: visible ? 36 : 0
+                        readonly property real centerX: width / 2
+                        readonly property real stripWidth: Math.min(96, Math.max(68, (width - 160) / 2))
+                        readonly property real stripGap: 44
+
+                        PedalStrip {
+                            width: parent.stripWidth
+                            height: 12
+                            x: parent.centerX - parent.stripGap - width
+                            anchors.verticalCenter: parent.verticalCenter
+                            active: root.pedalOnePressed
+                            activeColor: root.theme ? root.theme.gold2 : "#dfbd91"
+                        }
+
+                        Text {
+                            width: 104
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: root.t("踏板", "Footpad")
+                            color: "#9aa3b2"
+                            font.pixelSize: 24
+                            font.bold: true
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                            elide: Text.ElideRight
+                        }
+
+                        PedalStrip {
+                            width: parent.stripWidth
+                            height: 12
+                            x: parent.centerX + parent.stripGap
+                            anchors.verticalCenter: parent.verticalCenter
+                            active: root.pedalTwoPressed
+                            activeColor: root.theme ? root.theme.gold2 : "#dfbd91"
+                        }
+                    }
+
                     Rectangle {
                         width: parent.width
                         height: metricRow.height + statusMetric.height
@@ -290,444 +340,13 @@ Item {
                             color: Qt.rgba(255, 255, 255, 0.08)
                         }
                     }
-                }
-            }
 
-            GlassCard {
-                visible: root.deviceModel && root.deviceModel.isFocstrotDevice
-                Layout.fillWidth: true
-                Layout.leftMargin: root.pageMargin
-                Layout.rightMargin: root.pageMargin
-                cardHeight: focstrotColumn.implicitHeight + 34
-
-                Column {
-                    id: focstrotColumn
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    anchors.margins: 18
-                    spacing: 14
-
-                    RowLayout {
-                        width: parent.width
-                        spacing: 10
-
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 4
-
-                            Text {
-                                Layout.fillWidth: true
-                                text: root.t("踏板", "Pedal")
-                                color: "#f4f1ea"
-                                font.pixelSize: 18
-                                font.bold: true
-                                elide: Text.ElideRight
-                            }
-
-                            Text {
-                                Layout.fillWidth: true
-                                text: root.deviceModel && root.deviceModel.refloatAvailable
-                                      ? root.t("FOCSTrot Refloat 实时状态", "FOCSTrot Refloat live status")
-                                      : root.t("正在等待 Refloat 数据", "Waiting for Refloat data")
-                                color: "#9aa3b2"
-                                font.pixelSize: 12
-                                elide: Text.ElideRight
-                            }
-                        }
-
-                        Pill {
-                            text: root.deviceModel && root.deviceModel.refloatAvailable
-                                  ? root.t("已连接", "Ready")
-                                  : root.t("检测中", "Detecting")
-                        }
-                    }
-
-                    Rectangle {
-                        width: parent.width
-                        height: 1
-                        color: "#283038"
-                    }
-
-                    Column {
-                        width: parent.width
-                        spacing: 8
-
-                        Text {
-                            width: parent.width
-                            text: root.t("踏板状态", "Pedal Status")
-                            color: "#9aa3b2"
-                            font.pixelSize: 12
-                            font.bold: true
-                        }
-
-                        Row {
-                            width: parent.width
-                            height: 54
-                            spacing: 8
-
-                            PedalSegment {
-                                width: (parent.width - 8) / 2
-                                label: root.t("踏板1", "Footpad 1")
-                                active: root.deviceModel && root.deviceModel.pedalState === 1
-                            }
-                            PedalSegment {
-                                width: (parent.width - 8) / 2
-                                label: root.t("踏板2", "Footpad 2")
-                                active: root.deviceModel && root.deviceModel.pedalState === 2
-                            }
-                        }
-                    }
-
-                    // 限速区块：按用户要求隐藏（2026-07-27），代码保留以便恢复
-                    Column {
-                        visible: false
-                        width: parent.width
-                        spacing: 10
-
-                        RowLayout {
-                            width: parent.width
-                            spacing: 10
-
-                            Text {
-                                Layout.fillWidth: true
-                                text: root.t("限速", "Speed Limit")
-                                color: "#9aa3b2"
-                                font.pixelSize: 12
-                                font.bold: true
-                            }
-
-                            Text {
-                                text: (!root.deviceModel || !root.deviceModel.speedLimitLoaded)
-                                      ? root.t("读取中", "Loading")
-                                      : (root.speedLimitDraftKph === 0
-                                         ? root.t("未启用", "Off")
-                                         : root.speedLimitDraftKph + " km/h")
-                                color: "#f4f1ea"
-                                font.pixelSize: 16
-                                font.bold: true
-                            }
-                        }
-
-                        RowLayout {
-                            width: parent.width
-                            spacing: 10
-
-                            Button {
-                                Layout.preferredWidth: 42
-                                Layout.preferredHeight: 42
-                                enabled: root.speedLimitDraftKph > 0 &&
-                                         root.deviceModel && root.deviceModel.refloatAvailable &&
-                                         root.deviceModel.speedLimitLoaded &&
-                                         !root.deviceModel.speedLimitSaving
-                                onClicked: root.speedLimitDraftKph = Math.max(0, root.speedLimitDraftKph - 5)
-
-                                background: Rectangle {
-                                    radius: 12
-                                    color: parent.enabled ? "#202832" : "#151923"
-                                    border.width: 1
-                                    border.color: "#343b42"
-                                }
-                                contentItem: Text {
-                                    text: "-"
-                                    color: parent.enabled ? "#f4f1ea" : "#656b6f"
-                                    font.pixelSize: 22
-                                    font.bold: true
-                                    horizontalAlignment: Text.AlignHCenter
-                                    verticalAlignment: Text.AlignVCenter
-                                }
-                            }
-
-                            Slider {
-                                Layout.fillWidth: true
-                                from: 0
-                                to: 100
-                                stepSize: 5
-                                snapMode: Slider.SnapAlways
-                                enabled: root.deviceModel && root.deviceModel.refloatAvailable &&
-                                         root.deviceModel.speedLimitLoaded &&
-                                         !root.deviceModel.speedLimitSaving
-                                value: root.speedLimitDraftKph
-                                onMoved: root.speedLimitDraftKph = Math.round(value / 5) * 5
-                            }
-
-                            Button {
-                                Layout.preferredWidth: 42
-                                Layout.preferredHeight: 42
-                                enabled: root.speedLimitDraftKph < 100 &&
-                                         root.deviceModel && root.deviceModel.refloatAvailable &&
-                                         root.deviceModel.speedLimitLoaded &&
-                                         !root.deviceModel.speedLimitSaving
-                                onClicked: root.speedLimitDraftKph = Math.min(100, root.speedLimitDraftKph + 5)
-
-                                background: Rectangle {
-                                    radius: 12
-                                    color: parent.enabled ? "#202832" : "#151923"
-                                    border.width: 1
-                                    border.color: "#343b42"
-                                }
-                                contentItem: Text {
-                                    text: "+"
-                                    color: parent.enabled ? "#f4f1ea" : "#656b6f"
-                                    font.pixelSize: 22
-                                    font.bold: true
-                                    horizontalAlignment: Text.AlignHCenter
-                                    verticalAlignment: Text.AlignVCenter
-                                }
-                            }
-                        }
-
-                        RowLayout {
-                            width: parent.width
-                            spacing: 10
-
-                            Text {
-                                Layout.fillWidth: true
-                                text: root.deviceModel ? root.deviceModel.speedLimitStatusText : ""
-                                color: "#9aa3b2"
-                                font.pixelSize: 12
-                                elide: Text.ElideRight
-                            }
-
-                            Button {
-                                Layout.preferredWidth: 88
-                                Layout.preferredHeight: 42
-                                enabled: root.deviceModel &&
-                                         root.deviceModel.refloatAvailable &&
-                                         root.deviceModel.speedLimitLoaded &&
-                                         !root.deviceModel.speedLimitSaving &&
-                                         root.speedLimitDraftKph !== root.deviceModel.speedLimitKph
-                                onClicked: root.deviceModel.setSpeedLimitKph(root.speedLimitDraftKph)
-
-                                background: Rectangle {
-                                    radius: 14
-                                    gradient: Gradient {
-                                        GradientStop { position: 0.0; color: parent.enabled ? "#dfbd91" : "#2a3034" }
-                                        GradientStop { position: 1.0; color: parent.enabled ? "#c69c6e" : "#20262c" }
-                                    }
-                                }
-                                contentItem: Text {
-                                    text: root.deviceModel && root.deviceModel.speedLimitSaving
-                                          ? root.t("保存中", "Saving")
-                                          : root.t("保存", "Save")
-                                    color: parent.enabled ? "#17120a" : "#656b6f"
-                                    font.pixelSize: 14
-                                    font.bold: true
-                                    horizontalAlignment: Text.AlignHCenter
-                                    verticalAlignment: Text.AlignVCenter
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // ---- 霍尔检测 card ----
-            GlassCard {
-                visible: root.deviceModel && root.deviceModel.isFocstrotDevice
-                Layout.fillWidth: true
-                Layout.leftMargin: root.pageMargin
-                Layout.rightMargin: root.pageMargin
-                cardHeight: hallColumn.implicitHeight + 34
-
-                Column {
-                    id: hallColumn
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    anchors.margins: 18
-                    spacing: 14
-
-                    RowLayout {
-                        width: parent.width
-                        spacing: 10
-
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 4
-
-                            Text {
-                                Layout.fillWidth: true
-                                text: root.t("霍尔检测", "Hall Sensor Check")
-                                color: "#f4f1ea"
-                                font.pixelSize: 18
-                                font.bold: true
-                                elide: Text.ElideRight
-                            }
-
-                            Text {
-                                Layout.fillWidth: true
-                                text: root.t("检测电机霍尔传感器是否正常", "Check if the motor hall sensors work")
-                                color: "#9aa3b2"
-                                font.pixelSize: 12
-                                elide: Text.ElideRight
-                            }
-                        }
-
-                        Pill {
-                            text: root.hallCheckState === 1
-                                  ? root.t("检测中", "Checking")
-                                  : (root.hallCheckState === 2
-                                     ? root.t("正常", "OK")
-                                     : (root.hallCheckState === 3
-                                        ? root.t("错误", "Error")
-                                        : root.t("未检测", "Unchecked")))
-                        }
-                    }
-
-                    Rectangle {
-                        width: parent.width
-                        height: 1
-                        color: "#283038"
-                    }
-
-                    Text {
-                        width: parent.width
-                        text: root.hallCheckState === 1
-                              ? root.t("正在检测，请保持轮子悬空…", "Checking, keep the wheel off the ground…")
-                              : (root.hallCheckState === 2
-                                 ? root.t("霍尔正常", "Hall sensors OK")
-                                 : (root.hallCheckState === 3
-                                    ? root.t("霍尔错误", "Hall sensor error")
-                                    : root.t("检测时轮子会转动，请先确认轮子已悬空",
-                                             "The wheel will spin during the check. Lift it off the ground first")))
-                        color: root.hallCheckState === 1
-                               ? "#f2d58a"
-                               : (root.hallCheckState === 2
-                                  ? "#64d6b0"
-                                  : (root.hallCheckState === 3 ? "#ff8b8b" : "#9aa3b2"))
-                        font.pixelSize: 13
-                        font.bold: root.hallCheckState !== 0
-                        wrapMode: Text.WordWrap
-                    }
-
-                    Button {
-                        width: parent.width
-                        height: 48
-                        enabled: root.protocolReady && root.hallCheckState !== 1
-                        onClicked: hallConfirmDialog.open()
-
-                        background: Rectangle {
-                            radius: 14
-                            gradient: Gradient {
-                                GradientStop { position: 0.0; color: parent.enabled ? "#dfbd91" : "#2a3034" }
-                                GradientStop { position: 1.0; color: parent.enabled ? "#c69c6e" : "#20262c" }
-                            }
-                        }
-
-                        contentItem: Text {
-                            text: root.hallCheckState === 1
-                                  ? root.t("检测中…", "Checking…")
-                                  : root.t("开始检测", "Start Check")
-                            color: parent.enabled ? "#17120a" : "#656b6f"
-                            font.pixelSize: 14
-                            font.bold: true
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-                    }
                 }
             }
 
             Item {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 24
-            }
-        }
-    }
-
-    Dialog {
-        id: hallConfirmDialog
-        modal: true
-        width: Math.min(root.width - 48, 340)
-        x: (root.width - width) / 2
-        y: Math.max(0, (root.height - implicitHeight) / 2)
-        padding: 20
-
-        background: Rectangle {
-            radius: 18
-            color: "#151923"
-            border.width: 1
-            border.color: "#283038"
-        }
-
-        Overlay.modal: Rectangle {
-            color: "#AA000000"
-        }
-
-        contentItem: Column {
-            spacing: 14
-
-            Text {
-                width: parent.width
-                text: root.t("霍尔检测", "Hall Sensor Check")
-                color: "#f4f1ea"
-                font.pixelSize: 18
-                font.bold: true
-            }
-
-            Text {
-                width: parent.width
-                text: root.t("检测过程中轮子会转动，请确保轮子已悬空并远离障碍物。点击确认后开始检测。",
-                             "The wheel will spin during the check. Make sure the wheel is off the ground and clear of obstacles before confirming.")
-                color: "#9aa3b2"
-                font.pixelSize: 13
-                wrapMode: Text.WordWrap
-            }
-
-            RowLayout {
-                width: parent.width
-                spacing: 10
-
-                Button {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 44
-                    onClicked: hallConfirmDialog.close()
-
-                    background: Rectangle {
-                        radius: 12
-                        color: "#202832"
-                        border.width: 1
-                        border.color: "#343b42"
-                    }
-
-                    contentItem: Text {
-                        text: root.t("取消", "Cancel")
-                        color: "#f4f1ea"
-                        font.pixelSize: 14
-                        font.bold: true
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                    }
-                }
-
-                Button {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 44
-                    onClicked: {
-                        hallConfirmDialog.close()
-                        if (root.deviceModel) {
-                            root.deviceModel.startHallCheck()
-                        }
-                    }
-
-                    background: Rectangle {
-                        radius: 12
-                        gradient: Gradient {
-                            GradientStop { position: 0.0; color: "#dfbd91" }
-                            GradientStop { position: 1.0; color: "#c69c6e" }
-                        }
-                    }
-
-                    contentItem: Text {
-                        text: root.t("确认开始", "Confirm & Start")
-                        color: "#17120a"
-                        font.pixelSize: 14
-                        font.bold: true
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                    }
-                }
             }
         }
     }
@@ -860,25 +479,18 @@ Item {
         }
     }
 
-    component PedalSegment: Rectangle {
-        property string label: ""
+    component PedalStrip: Item {
         property bool active: false
+        property color activeColor: "#dfbd91"
 
-        height: 54
-        radius: 14
-        color: active ? Qt.rgba(0.39, 0.84, 0.69, 0.16) : "#10151c"
-        border.width: 1
-        border.color: active ? "#64d6b0" : "#283038"
-
-        Text {
-            anchors.centerIn: parent
-            width: parent.width - 8
-            text: label
-            color: active ? "#64d6b0" : "#9aa3b2"
-            font.pixelSize: 12
-            font.bold: true
-            horizontalAlignment: Text.AlignHCenter
-            elide: Text.ElideRight
+        Rectangle {
+            anchors.fill: parent
+            anchors.leftMargin: 2
+            anchors.rightMargin: 2
+            radius: height / 2
+            color: active ? activeColor : "#656b6f"
+            opacity: active ? 1.0 : 0.72
         }
     }
+
 }

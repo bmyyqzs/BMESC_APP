@@ -28,9 +28,14 @@ class ProductDeviceModel : public QObject
     Q_PROPERTY(double inputVoltage READ inputVoltage NOTIFY telemetryChanged)
     Q_PROPERTY(double motorCurrentAmps READ motorCurrentAmps NOTIFY telemetryChanged)
     Q_PROPERTY(double inputCurrentAmps READ inputCurrentAmps NOTIFY telemetryChanged)
+    Q_PROPERTY(double dutyPercent READ dutyPercent NOTIFY telemetryChanged)
+    Q_PROPERTY(double rpm READ rpm NOTIFY telemetryChanged)
     Q_PROPERTY(double powerWatts READ powerWatts NOTIFY telemetryChanged)
     Q_PROPERTY(double controllerTemperatureCelsius READ controllerTemperatureCelsius NOTIFY telemetryChanged)
     Q_PROPERTY(double motorTemperatureCelsius READ motorTemperatureCelsius NOTIFY telemetryChanged)
+    Q_PROPERTY(bool imuValid READ imuValid NOTIFY imuChanged)
+    Q_PROPERTY(double rollDegrees READ rollDegrees NOTIFY imuChanged)
+    Q_PROPERTY(double pitchDegrees READ pitchDegrees NOTIFY imuChanged)
     Q_PROPERTY(double odometerKm READ odometerKm NOTIFY telemetryChanged)
     Q_PROPERTY(double tripKm READ tripKm NOTIFY telemetryChanged)
     Q_PROPERTY(QString faultCode READ faultCode NOTIFY telemetryChanged)
@@ -61,10 +66,17 @@ class ProductDeviceModel : public QObject
     Q_PROPERTY(bool refloatAvailable READ refloatAvailable NOTIFY refloatChanged)
     Q_PROPERTY(int pedalState READ pedalState NOTIFY refloatChanged)
     Q_PROPERTY(QString pedalStateText READ pedalStateText NOTIFY refloatChanged)
+    Q_PROPERTY(double refloatFootpadLeftVoltage READ refloatFootpadLeftVoltage NOTIFY refloatChanged)
+    Q_PROPERTY(double refloatFootpadRightVoltage READ refloatFootpadRightVoltage NOTIFY refloatChanged)
+    Q_PROPERTY(QString refloatStatusText READ refloatStatusText NOTIFY refloatChanged)
     Q_PROPERTY(int speedLimitKph READ speedLimitKph NOTIFY speedLimitChanged)
     Q_PROPERTY(bool speedLimitLoaded READ speedLimitLoaded NOTIFY speedLimitChanged)
     Q_PROPERTY(bool speedLimitSaving READ speedLimitSaving NOTIFY speedLimitChanged)
     Q_PROPERTY(QString speedLimitStatusText READ speedLimitStatusText NOTIFY speedLimitChanged)
+    Q_PROPERTY(QString terminalOutput READ terminalOutput NOTIFY terminalChanged)
+    Q_PROPERTY(QString terminalStatusText READ terminalStatusText NOTIFY terminalChanged)
+    Q_PROPERTY(QString printFaultsOutput READ printFaultsOutput NOTIFY printFaultsChanged)
+    Q_PROPERTY(QString printFaultsStatusText READ printFaultsStatusText NOTIFY printFaultsChanged)
     Q_PROPERTY(int hallCheckState READ hallCheckState NOTIFY hallCheckChanged)
 
 public:
@@ -87,9 +99,14 @@ public:
     double inputVoltage() const;
     double motorCurrentAmps() const;
     double inputCurrentAmps() const;
+    double dutyPercent() const;
+    double rpm() const;
     double powerWatts() const;
     double controllerTemperatureCelsius() const;
     double motorTemperatureCelsius() const;
+    bool imuValid() const;
+    double rollDegrees() const;
+    double pitchDegrees() const;
     double odometerKm() const;
     double tripKm() const;
     QString faultCode() const;
@@ -126,10 +143,17 @@ public:
     bool refloatAvailable() const;
     int pedalState() const;
     QString pedalStateText() const;
+    double refloatFootpadLeftVoltage() const;
+    double refloatFootpadRightVoltage() const;
+    QString refloatStatusText() const;
     int speedLimitKph() const;
     bool speedLimitLoaded() const;
     bool speedLimitSaving() const;
     QString speedLimitStatusText() const;
+    QString terminalOutput() const;
+    QString terminalStatusText() const;
+    QString printFaultsOutput() const;
+    QString printFaultsStatusText() const;
     int hallCheckState() const;
 
     Q_INVOKABLE void startBleScan();
@@ -145,6 +169,10 @@ public:
     Q_INVOKABLE QString faultTextForCode(const QString &faultCode, const QString &fallbackText = QString()) const;
     Q_INVOKABLE void seedFaultLogsForTesting(int count = 16);
     Q_INVOKABLE void setSpeedLimitKph(int kph);
+    Q_INVOKABLE void printFaults();
+    Q_INVOKABLE void printThreads();
+    Q_INVOKABLE void copyTerminalOutput();
+    Q_INVOKABLE void clearTerminalOutput();
     Q_INVOKABLE void startHallCheck();
 
 signals:
@@ -160,7 +188,10 @@ signals:
     void canNodesChanged();
     void languageChanged();
     void refloatChanged();
+    void imuChanged();
     void speedLimitChanged();
+    void terminalChanged();
+    void printFaultsChanged();
     void hallCheckChanged();
     void requestShowHome();
 
@@ -176,9 +207,11 @@ private slots:
     void updateConnectCountdown();
     void pollRefloat();
     void handleCustomAppData(const QByteArray &data);
+    void handleImuData(const IMU_VALUES &values, unsigned int mask);
     void handleCustomConfigLoaded();
     void handleCustomConfigRx(int confId, QByteArray data);
     void handleCustomConfigAck(int confId);
+    void handlePrintReceived(const QString &text);
     void handleFocHallTable(QVector<int> hallTable, int res);
     void handleHallCheckTimeout();
 
@@ -207,9 +240,14 @@ private:
     double mInputVoltage;
     double mMotorCurrentAmps;
     double mInputCurrentAmps;
+    double mDutyPercent;
+    double mRpm;
     double mPowerWatts;
     double mControllerTemperatureCelsius;
     double mMotorTemperatureCelsius;
+    bool mImuValid;
+    double mRollDegrees;
+    double mPitchDegrees;
     double mOdometerKm;
     double mTripKm;
     double mSessionMaxSpeedMetersPerSecond;
@@ -230,11 +268,16 @@ private:
     bool mIsFocstrotDevice;
     bool mRefloatAvailable;
     int mPedalState;
+    int mRefloatPackageState;
+    double mRefloatFootpadLeftVoltage;
+    double mRefloatFootpadRightVoltage;
     int mSpeedLimitKph;
     bool mSpeedLimitLoaded;
     bool mSpeedLimitSaving;
     bool mSpeedLimitReadRequested;
     QString mSpeedLimitStatusText;
+    QString mTerminalOutput;
+    QString mTerminalStatusText;
     QTimer mHallCheckTimer;
     int mHallCheckState;
 
@@ -264,6 +307,7 @@ private:
     void requestSpeedLimitRead();
     void loadSpeedLimitFromConfig();
     void setSpeedLimitStatusText(const QString &text);
+    void sendFixedTerminalCommand(const QString &command, const QString &englishName, const QString &chineseName);
     void finishHallCheck(bool ok);
     QString nameForCanNode(int nodeId) const;
     QString displayNameForBleDevice(const QString &identifier, const QString &rawName) const;

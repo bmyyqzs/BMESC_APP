@@ -1,10 +1,14 @@
 #include "productdevicemodel.h"
 #include "utility.h"
 
+#include <QClipboard>
+#include <QGuiApplication>
 #include <QSettings>
 #include <QStringList>
 #include <QtMath>
 #include <QtGlobal>
+
+#include <cstring>
 
 namespace {
 const char *faultLogsKey = "product/faultLogs";
@@ -21,6 +25,10 @@ const int hallCheckAppDisableMs = 60000;
 const int hallCheckTimeoutMs = 25000;
 const double defaultSpeedGaugeMaximumKph = 60.0;
 const double kphPerMeterPerSecond = 3.6;
+const int refloatInternalRealtimeOffset = 12;
+const int refloatInternalRealtimeItemSize = 2;
+const int refloatInternalAdcLeftIndex = 13;
+const int refloatInternalAdcRightIndex = 14;
 
 QString firmwareString(const FW_RX_PARAMS &params)
 {
@@ -70,6 +78,72 @@ QString displayNameForNodeParams(const FW_RX_PARAMS &params, const QString &fall
     name = name.simplified().replace(QStringLiteral("_"), QStringLiteral(" "));
     return name.isEmpty() ? fallbackName : name;
 }
+
+float decodeRefloatFloat16(quint16 value)
+{
+    const quint32 sign = (quint32(value & 0x8000)) << 16;
+    const quint32 exponent = (value & 0x7c00) >> 10;
+    const quint32 mantissa16 = value & 0x03ff;
+    const quint32 mantissa = mantissa16 << 13;
+    quint32 bits = sign;
+
+    if (exponent != 0) {
+        bits |= ((exponent + 112) << 23) | mantissa;
+    } else if (mantissa16 != 0) {
+        int leadingBit = 0;
+        for (quint32 probe = mantissa16; probe > 1; probe >>= 1) {
+            ++leadingBit;
+        }
+        const quint32 decodedExponent = quint32(103 + leadingBit);
+        const int mantissaShift = 10 - leadingBit;
+        bits |= (decodedExponent << 23) |
+                ((mantissa << mantissaShift) & 0x007fe000);
+    }
+
+    float decoded = 0.0f;
+    std::memcpy(&decoded, &bits, sizeof(decoded));
+    return decoded;
+}
+
+QString refloatPackageStateName(int packageState)
+{
+    switch (packageState) {
+    case 1:
+        return QStringLiteral("STARTUP");
+    case 2:
+        return QStringLiteral("READY");
+    case 3:
+        return QStringLiteral("RUNNING");
+    default:
+        return QStringLiteral("DISABLED");
+    }
+}
+
+QString refloatFootpadStateName(int pedalState)
+{
+    switch (pedalState) {
+    case 1:
+        return QStringLiteral("LEFT");
+    case 2:
+        return QStringLiteral("RIGHT");
+    case 3:
+        return QStringLiteral("BOTH");
+    default:
+        return QStringLiteral("NONE");
+    }
+}
+
+double decodeRefloatRealtimeFloat16(const QByteArray &data, int itemIndex)
+{
+    const int offset = refloatInternalRealtimeOffset + itemIndex * refloatInternalRealtimeItemSize;
+    if (data.size() <= offset + 1) {
+        return 0.0;
+    }
+
+    const quint16 raw = (quint16(quint8(data.at(offset))) << 8) |
+            quint16(quint8(data.at(offset + 1)));
+    return double(decodeRefloatFloat16(raw));
+}
 }
 
 ProductDeviceModel::ProductDeviceModel(QObject *parent)
@@ -92,9 +166,14 @@ ProductDeviceModel::ProductDeviceModel(QObject *parent)
       mInputVoltage(0.0),
       mMotorCurrentAmps(0.0),
       mInputCurrentAmps(0.0),
+      mDutyPercent(0.0),
+      mRpm(0.0),
       mPowerWatts(0.0),
       mControllerTemperatureCelsius(0.0),
       mMotorTemperatureCelsius(0.0),
+      mImuValid(false),
+      mRollDegrees(0.0),
+      mPitchDegrees(0.0),
       mOdometerKm(0.0),
       mTripKm(0.0),
       mSessionMaxSpeedMetersPerSecond(0.0),
@@ -106,11 +185,16 @@ ProductDeviceModel::ProductDeviceModel(QObject *parent)
       mIsFocstrotDevice(false),
       mRefloatAvailable(false),
       mPedalState(0),
+      mRefloatPackageState(0),
+      mRefloatFootpadLeftVoltage(0.0),
+      mRefloatFootpadRightVoltage(0.0),
       mSpeedLimitKph(0),
       mSpeedLimitLoaded(false),
       mSpeedLimitSaving(false),
       mSpeedLimitReadRequested(false),
       mSpeedLimitStatusText(QStringLiteral("")),
+      mTerminalOutput(QString()),
+      mTerminalStatusText(QString()),
       mHallCheckState(0),
       mPendingConnectionFlow(ProductConnectionFlow::Unknown),
       mActiveConnectionFlow(ProductConnectionFlow::Unknown)
@@ -190,12 +274,16 @@ void ProductDeviceModel::setVesc(VescInterface *vesc)
     if (mCommands) {
         connect(mCommands, &Commands::valuesSetupReceived,
                 this, &ProductDeviceModel::applyTelemetry);
+        connect(mCommands, &Commands::valuesImuReceived,
+                this, &ProductDeviceModel::handleImuData);
         connect(mCommands, &Commands::customAppDataReceived,
                 this, &ProductDeviceModel::handleCustomAppData);
         connect(mCommands, &Commands::customConfigRx,
                 this, &ProductDeviceModel::handleCustomConfigRx);
         connect(mCommands, &Commands::customConfigAckReceived,
                 this, &ProductDeviceModel::handleCustomConfigAck);
+        connect(mCommands, &Commands::printReceived,
+                this, &ProductDeviceModel::handlePrintReceived);
         connect(mCommands, &Commands::focHallTableReceived,
                 this, &ProductDeviceModel::handleFocHallTable);
     }
@@ -264,9 +352,14 @@ double ProductDeviceModel::batteryPercent() const { return mBatteryPercent; }
 double ProductDeviceModel::inputVoltage() const { return mInputVoltage; }
 double ProductDeviceModel::motorCurrentAmps() const { return mMotorCurrentAmps; }
 double ProductDeviceModel::inputCurrentAmps() const { return mInputCurrentAmps; }
+double ProductDeviceModel::dutyPercent() const { return mDutyPercent; }
+double ProductDeviceModel::rpm() const { return mRpm; }
 double ProductDeviceModel::powerWatts() const { return mPowerWatts; }
 double ProductDeviceModel::controllerTemperatureCelsius() const { return mControllerTemperatureCelsius; }
 double ProductDeviceModel::motorTemperatureCelsius() const { return mMotorTemperatureCelsius; }
+bool ProductDeviceModel::imuValid() const { return mImuValid; }
+double ProductDeviceModel::rollDegrees() const { return mRollDegrees; }
+double ProductDeviceModel::pitchDegrees() const { return mPitchDegrees; }
 double ProductDeviceModel::odometerKm() const { return mOdometerKm; }
 double ProductDeviceModel::tripKm() const { return mTripKm; }
 QString ProductDeviceModel::faultCode() const { return mFaultCode; }
@@ -355,10 +448,33 @@ bool ProductDeviceModel::isEnglish() const
 bool ProductDeviceModel::isFocstrotDevice() const { return mIsFocstrotDevice; }
 bool ProductDeviceModel::refloatAvailable() const { return mRefloatAvailable; }
 int ProductDeviceModel::pedalState() const { return mPedalState; }
+double ProductDeviceModel::refloatFootpadLeftVoltage() const { return mRefloatFootpadLeftVoltage; }
+double ProductDeviceModel::refloatFootpadRightVoltage() const { return mRefloatFootpadRightVoltage; }
+QString ProductDeviceModel::refloatStatusText() const
+{
+    if (!mRefloatAvailable) {
+        return QStringLiteral("--");
+    }
+
+    switch (mRefloatPackageState) {
+    case 1:
+        return QStringLiteral("STARTUP");
+    case 2:
+        return QStringLiteral("READY");
+    case 3:
+        return QStringLiteral("RUNNING");
+    default:
+        return QStringLiteral("DISABLED");
+    }
+}
 int ProductDeviceModel::speedLimitKph() const { return mSpeedLimitKph; }
 bool ProductDeviceModel::speedLimitLoaded() const { return mSpeedLimitLoaded; }
 bool ProductDeviceModel::speedLimitSaving() const { return mSpeedLimitSaving; }
 QString ProductDeviceModel::speedLimitStatusText() const { return mSpeedLimitStatusText; }
+QString ProductDeviceModel::terminalOutput() const { return mTerminalOutput; }
+QString ProductDeviceModel::terminalStatusText() const { return mTerminalStatusText; }
+QString ProductDeviceModel::printFaultsOutput() const { return mTerminalOutput; }
+QString ProductDeviceModel::printFaultsStatusText() const { return mTerminalStatusText; }
 
 QString ProductDeviceModel::pedalStateText() const
 {
@@ -525,6 +641,54 @@ void ProductDeviceModel::clearFaultLogs()
     emit faultLogsChanged();
 }
 
+void ProductDeviceModel::printFaults()
+{
+    sendFixedTerminalCommand(QStringLiteral("faults"),
+                             QStringLiteral("Print Faults"),
+                             QStringLiteral("故障代码"));
+}
+
+void ProductDeviceModel::printThreads()
+{
+    sendFixedTerminalCommand(QStringLiteral("threads"),
+                             QStringLiteral("Print Threads"),
+                             QStringLiteral("打印线程"));
+}
+
+void ProductDeviceModel::copyTerminalOutput()
+{
+    if (mTerminalOutput.isEmpty()) {
+        mTerminalStatusText = isEnglish()
+                ? QStringLiteral("No output to copy.")
+                : QStringLiteral("暂无可复制内容。");
+        emit terminalChanged();
+        emit printFaultsChanged();
+        return;
+    }
+
+    QClipboard *clipboard = QGuiApplication::clipboard();
+    if (clipboard) {
+        clipboard->setText(mTerminalOutput);
+    }
+    mTerminalStatusText = isEnglish()
+            ? QStringLiteral("Copied to clipboard.")
+            : QStringLiteral("已复制到剪切板。");
+    emit terminalChanged();
+    emit printFaultsChanged();
+}
+
+void ProductDeviceModel::clearTerminalOutput()
+{
+    if (mTerminalOutput.isEmpty() && mTerminalStatusText.isEmpty()) {
+        return;
+    }
+
+    mTerminalOutput.clear();
+    mTerminalStatusText.clear();
+    emit terminalChanged();
+    emit printFaultsChanged();
+}
+
 void ProductDeviceModel::refresh()
 {
     updateConnection();
@@ -591,7 +755,7 @@ void ProductDeviceModel::seedFaultLogsForTesting(int count)
 void ProductDeviceModel::setSpeedLimitKph(int kph)
 {
     const int clampedKph = qBound(0, kph, 100);
-    if (!mIsFocstrotDevice || !mRefloatAvailable || !mVesc || !mCommands) {
+    if (!mRefloatAvailable || !mVesc || !mCommands) {
         setSpeedLimitStatusText(isEnglish()
                                 ? QStringLiteral("Refloat is not available.")
                                 : QStringLiteral("Refloat 不可用。"));
@@ -746,6 +910,8 @@ void ProductDeviceModel::applyTelemetry(const SETUP_VALUES &values, unsigned int
     mInputVoltage = values.v_in;
     mMotorCurrentAmps = values.current_motor;
     mInputCurrentAmps = values.current_in;
+    mDutyPercent = values.duty_now * 100.0;
+    mRpm = values.rpm;
     mPowerWatts = values.v_in * values.current_in;
     mControllerTemperatureCelsius = values.temp_mos;
     mMotorTemperatureCelsius = values.temp_motor;
@@ -775,6 +941,8 @@ void ProductDeviceModel::resetTelemetry()
     mInputVoltage = 0.0;
     mMotorCurrentAmps = 0.0;
     mInputCurrentAmps = 0.0;
+    mDutyPercent = 0.0;
+    mRpm = 0.0;
     mPowerWatts = 0.0;
     mControllerTemperatureCelsius = 0.0;
     mMotorTemperatureCelsius = 0.0;
@@ -782,9 +950,13 @@ void ProductDeviceModel::resetTelemetry()
     mTripKm = 0.0;
     mSessionMaxSpeedMetersPerSecond = 0.0;
     mSpeedGaugeMaximumMetersPerSecond = defaultSpeedGaugeMaximumKph / kphPerMeterPerSecond;
+    mImuValid = false;
+    mRollDegrees = 0.0;
+    mPitchDegrees = 0.0;
     mFaultCode = "FAULT_CODE_NONE";
     mFaultText = userFaultText(mFaultCode);
     emit telemetryChanged();
+    emit imuChanged();
 }
 
 void ProductDeviceModel::updateSpeedGaugeMaximum(const SETUP_VALUES &values)
@@ -845,30 +1017,27 @@ void ProductDeviceModel::updateFocstrotState()
              identity.contains(QStringLiteral("focstrot v3"), Qt::CaseInsensitive) ||
              identity.contains(QStringLiteral("focstrot v4"), Qt::CaseInsensitive));
 
-    if (mIsFocstrotDevice == detected) {
-        updateRefloatPolling();
-        if (detected && mRefloatAvailable && !mSpeedLimitReadRequested) {
-            requestSpeedLimitRead();
-        }
-        return;
+    if (mIsFocstrotDevice != detected) {
+        mIsFocstrotDevice = detected;
+        emit refloatChanged();
     }
 
-    mIsFocstrotDevice = detected;
-    if (!mIsFocstrotDevice) {
-        resetRefloatState();
-    } else {
+    if (connected() && protocolReady() && !mRefloatAvailable && !mRefloatPollStartedAt.isValid()) {
         mPedalState = 0;
-        mRefloatAvailable = false;
         mSpeedLimitReadRequested = false;
         mLastRefloatAt = QDateTime();
         mRefloatPollStartedAt = QDateTime::currentDateTimeUtc();
         setSpeedLimitStatusText(isEnglish()
                                 ? QStringLiteral("Detecting Refloat...")
                                 : QStringLiteral("正在检测 Refloat..."));
-        updateRefloatPolling();
     }
 
-    emit refloatChanged();
+    updateRefloatPolling();
+    if (mRefloatAvailable && !mSpeedLimitReadRequested) {
+        requestSpeedLimitRead();
+        return;
+    }
+
     emit speedLimitChanged();
 }
 
@@ -880,6 +1049,9 @@ void ProductDeviceModel::resetRefloatState()
     mIsFocstrotDevice = false;
     mRefloatAvailable = false;
     mPedalState = 0;
+    mRefloatPackageState = 0;
+    mRefloatFootpadLeftVoltage = 0.0;
+    mRefloatFootpadRightVoltage = 0.0;
     mSpeedLimitKph = 0;
     mSpeedLimitLoaded = false;
     mSpeedLimitSaving = false;
@@ -891,7 +1063,7 @@ void ProductDeviceModel::resetRefloatState()
 
 void ProductDeviceModel::updateRefloatPolling()
 {
-    if (mIsFocstrotDevice && connected() && protocolReady() && mCommands) {
+    if (connected() && protocolReady() && mCommands) {
         if (!mRefloatPollTimer.isActive()) {
             mRefloatPollStartedAt = QDateTime::currentDateTimeUtc();
             mRefloatPollTimer.start();
@@ -904,7 +1076,7 @@ void ProductDeviceModel::updateRefloatPolling()
 
 void ProductDeviceModel::pollRefloat()
 {
-    if (!mIsFocstrotDevice || !connected() || !protocolReady() || !mCommands) {
+    if (!connected() || !protocolReady() || !mCommands) {
         updateRefloatPolling();
         return;
     }
@@ -938,11 +1110,14 @@ void ProductDeviceModel::pollRefloat()
     data.append(char(refloatPackageId));
     data.append(char(refloatRealtimeDataInternalCommand));
     mCommands->sendCustomAppData(data);
+
+    const unsigned int rollPitchMask = (uint32_t(1) << 0) | (uint32_t(1) << 1);
+    mCommands->getImuData(rollPitchMask);
 }
 
 void ProductDeviceModel::handleCustomAppData(const QByteArray &data)
 {
-    if (!mIsFocstrotDevice || data.size() < 12) {
+    if (data.size() < 12) {
         return;
     }
 
@@ -954,17 +1129,39 @@ void ProductDeviceModel::handleCustomAppData(const QByteArray &data)
         return;
     }
 
+    if (qEnvironmentVariableIsSet("BM_REFLOAT_RAW_LOG")) {
+        qDebug() << "Refloat realtime payload:" << data.toHex(' ');
+    }
+
     const quint32 stateFlags = (quint32(byteAt(8)) << 24) |
             (quint32(byteAt(9)) << 16) |
             (quint32(byteAt(10)) << 8) |
             quint32(byteAt(11));
     const int newPedalState = int((stateFlags >> 22) & 0x3);
+    const int newPackageState = int((stateFlags >> 24) & 0x3);
+    const double newLeftVoltage = decodeRefloatRealtimeFloat16(data, refloatInternalAdcLeftIndex);
+    const double newRightVoltage = decodeRefloatRealtimeFloat16(data, refloatInternalAdcRightIndex);
+    if (qEnvironmentVariableIsSet("BM_REFLOAT_RAW_LOG")) {
+        qDebug() << "Refloat realtime parsed:"
+                 << "size" << data.size()
+                 << "package_state" << refloatPackageStateName(newPackageState)
+                 << "footpad_state" << refloatFootpadStateName(newPedalState)
+                 << "adc1" << newLeftVoltage
+                 << "adc2" << newRightVoltage;
+    }
     const bool wasAvailable = mRefloatAvailable;
     const int previousPedalState = mPedalState;
+    const int previousPackageState = mRefloatPackageState;
+    const bool footpadVoltageChanged =
+            !qFuzzyCompare(mRefloatFootpadLeftVoltage + 1.0, newLeftVoltage + 1.0) ||
+            !qFuzzyCompare(mRefloatFootpadRightVoltage + 1.0, newRightVoltage + 1.0);
 
     mLastRefloatAt = QDateTime::currentDateTimeUtc();
     mRefloatAvailable = true;
     mPedalState = newPedalState;
+    mRefloatPackageState = newPackageState;
+    mRefloatFootpadLeftVoltage = newLeftVoltage;
+    mRefloatFootpadRightVoltage = newRightVoltage;
 
     if (!mSpeedLimitSaving) {
         if (!mSpeedLimitReadRequested) {
@@ -978,14 +1175,38 @@ void ProductDeviceModel::handleCustomAppData(const QByteArray &data)
         }
     }
 
-    if (!wasAvailable || previousPedalState != mPedalState) {
+    if (!wasAvailable || previousPedalState != mPedalState ||
+            previousPackageState != mRefloatPackageState || footpadVoltageChanged) {
         emit refloatChanged();
+    }
+}
+
+void ProductDeviceModel::handleImuData(const IMU_VALUES &values, unsigned int mask)
+{
+    const bool hasRoll = mask & (uint32_t(1) << 0);
+    const bool hasPitch = mask & (uint32_t(1) << 1);
+    if (!hasRoll && !hasPitch) {
+        return;
+    }
+
+    const double newRollDegrees = hasRoll ? values.roll * 180.0 / M_PI : mRollDegrees;
+    const double newPitchDegrees = hasPitch ? values.pitch * 180.0 / M_PI : mPitchDegrees;
+    const bool changed = !mImuValid ||
+            !qFuzzyCompare(mRollDegrees + 360.0, newRollDegrees + 360.0) ||
+            !qFuzzyCompare(mPitchDegrees + 360.0, newPitchDegrees + 360.0);
+
+    mImuValid = true;
+    mRollDegrees = newRollDegrees;
+    mPitchDegrees = newPitchDegrees;
+
+    if (changed) {
+        emit imuChanged();
     }
 }
 
 void ProductDeviceModel::handleCustomConfigLoaded()
 {
-    if (mIsFocstrotDevice && mRefloatAvailable && !mSpeedLimitReadRequested) {
+    if (mRefloatAvailable && !mSpeedLimitReadRequested) {
         requestSpeedLimitRead();
         return;
     }
@@ -997,7 +1218,7 @@ void ProductDeviceModel::handleCustomConfigRx(int confId, QByteArray data)
 {
     Q_UNUSED(data)
 
-    if (confId != 0 || !mIsFocstrotDevice) {
+    if (confId != 0 || !mRefloatAvailable) {
         return;
     }
 
@@ -1019,9 +1240,28 @@ void ProductDeviceModel::handleCustomConfigAck(int confId)
     emit speedLimitChanged();
 }
 
+void ProductDeviceModel::handlePrintReceived(const QString &text)
+{
+    const QString trimmed = text.trimmed();
+    const QString output = trimmed.isEmpty()
+            ? (isEnglish() ? QStringLiteral("(empty output)") : QStringLiteral("（无返回内容）"))
+            : trimmed;
+
+    if (mTerminalOutput.isEmpty()) {
+        mTerminalOutput = output;
+    } else {
+        mTerminalOutput += QStringLiteral("\n\n") + output;
+    }
+    mTerminalStatusText = isEnglish()
+            ? QStringLiteral("Output received.")
+            : QStringLiteral("已收到返回信息。");
+    emit terminalChanged();
+    emit printFaultsChanged();
+}
+
 void ProductDeviceModel::requestSpeedLimitRead()
 {
-    if (!mIsFocstrotDevice || !mRefloatAvailable || !mVesc || !mCommands) {
+    if (!mRefloatAvailable || !mVesc || !mCommands) {
         return;
     }
 
@@ -1053,7 +1293,7 @@ void ProductDeviceModel::requestSpeedLimitRead()
 
 void ProductDeviceModel::loadSpeedLimitFromConfig()
 {
-    if (!mIsFocstrotDevice || !mRefloatAvailable || !mVesc || !mVesc->customConfigsLoaded()) {
+    if (!mRefloatAvailable || !mVesc || !mVesc->customConfigsLoaded()) {
         return;
     }
 
@@ -1096,6 +1336,27 @@ void ProductDeviceModel::setSpeedLimitStatusText(const QString &text)
 
     mSpeedLimitStatusText = text;
     emit speedLimitChanged();
+}
+
+void ProductDeviceModel::sendFixedTerminalCommand(const QString &command, const QString &englishName, const QString &chineseName)
+{
+    if (!protocolReady() || !mCommands) {
+        mTerminalOutput.clear();
+        mTerminalStatusText = isEnglish()
+                ? QStringLiteral("Connect to a device before using Terminal.")
+                : QStringLiteral("请先连接设备再使用终端。");
+        emit terminalChanged();
+        emit printFaultsChanged();
+        return;
+    }
+
+    const QString displayName = isEnglish() ? englishName : chineseName;
+    mTerminalStatusText = isEnglish()
+            ? QStringLiteral("%1 sent. Waiting for output...").arg(displayName)
+            : QStringLiteral("%1 已发送，等待返回信息...").arg(displayName);
+    emit terminalChanged();
+    emit printFaultsChanged();
+    mCommands->sendTerminalCmd(command);
 }
 
 void ProductDeviceModel::loadFaultLogs()
@@ -1475,7 +1736,7 @@ void ProductDeviceModel::retranslateProductText()
         mCanNodes[i] = node;
     }
 
-    if (mIsFocstrotDevice && !mSpeedLimitSaving) {
+    if ((mIsFocstrotDevice || mRefloatPollTimer.isActive()) && !mSpeedLimitSaving) {
         if (!mRefloatAvailable) {
             mSpeedLimitStatusText = isEnglish()
                     ? QStringLiteral("Detecting Refloat...")

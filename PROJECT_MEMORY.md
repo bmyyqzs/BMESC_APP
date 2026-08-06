@@ -2,6 +2,1053 @@
 
 This Git-tracked file is the chronological memory for project conversations and task outcomes. Append new entries; do not rewrite history. Stable product background belongs in `PROJECT_CONTEXT.md`. Sensitive values belong only in the ignored `PROJECT_MEMORY_PRIVATE.md`.
 
+### 2026-08-06 - Add Terminal button press animation
+
+**User request**
+- Add press compression and release rebound effects to the Device page hidden Terminal buttons: Fault Code, Print Threads, Copy, and Clear.
+
+**Key context**
+- All four buttons share the local `TerminalButton` component in `mobile/BMDevicePage.qml`.
+- The request should not change command, copy, clear, toast, layout, or enable/disable behavior.
+
+**Confirmed decisions and preferences**
+- Use a lightweight scale/opacity animation inside the local `TerminalButton` component only.
+- Do not introduce a global button component or spring physics.
+
+**Actions and results**
+- Added center-origin scale binding so enabled pressed terminal buttons compress to `0.96` and rebound to `1.0`.
+- Added short `Behavior on scale` and `Behavior on opacity` animations with `Easing.OutCubic`.
+- Added slight pressed opacity change while preserving disabled appearance.
+- Verified `qmllint mobile/BMDevicePage.qml`, `git diff --check`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should feel-test the button animation on-device and confirm the compression amount is comfortable.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-06 - Add press rebound animation to product page buttons
+
+**User request**
+- Extend the terminal button press/rebound effect to other product page buttons, while excluding the bottom navigation.
+
+**Key context**
+- Product pages in scope were `mobile/BMHomePage.qml`, `mobile/BMDevicePage.qml`, and `mobile/BMMinePage.qml`.
+- `mobile/main.qml` bottom navigation `TabButton` controls were explicitly out of scope.
+
+**Confirmed decisions and preferences**
+- Use the same lightweight scale/opacity interaction already used by Terminal buttons.
+- Keep button text, colors, layout, enabled conditions, click behavior, terminal toast, and protocol behavior unchanged.
+
+**Actions and results**
+- Added press scale and opacity animation to Home action buttons, Device scan/CAN/Hall/dialog buttons, and Mine page dialog/log buttons.
+- Left bottom navigation untouched.
+- Verified with `qmllint` for all three QML files, `git diff --check`, regenerated `build/ios/qrc_qml.cpp`, completed an iPhoneOS Debug build, and installed/launched the app on the connected iPhone.
+
+**Unresolved items**
+- User should visually confirm the button feel on device and request timing/scale tuning if needed.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-06 - Add auto-dismiss copy success prompt
+
+**User request**
+- After tapping Copy in the Device page hidden Terminal card, show a copy-success prompt window and automatically dismiss it.
+
+**Key context**
+- `ProductDeviceModel::copyTerminalOutput()` already copies only real terminal output and updates status text.
+- The Terminal card has Copy enabled only when `terminalOutput` is non-empty.
+
+**Confirmed decisions and preferences**
+- Use a lightweight toast-style `Popup`, not a manual confirmation dialog.
+- Keep backend clipboard behavior unchanged.
+
+**Actions and results**
+- Added a non-modal `Popup` to `mobile/BMDevicePage.qml` with localized text `复制成功` / `Copied`.
+- Added a 1500 ms `Timer` that closes the popup automatically.
+- Updated Copy button click handling to call `copyTerminalOutput()`, open the popup, and restart the timer so repeated taps reuse one prompt.
+- Verified `qmllint mobile/BMDevicePage.qml`, `git diff --check`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should visually confirm the toast position and timing on-device.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-06 - Move Terminal Copy and Clear below output
+
+**User request**
+- Change Device page hidden Terminal card buttons into two rows.
+- Put Copy and Clear below the information box.
+
+**Key context**
+- Terminal card had four buttons in one row: Print Faults, Print Threads, Copy, Clear.
+- Copy/Clear behavior was already implemented through `ProductDeviceModel`.
+
+**Confirmed decisions and preferences**
+- Only change QML layout; preserve backend terminal, copy, and clear behavior.
+
+**Actions and results**
+- Updated `mobile/BMDevicePage.qml` so the first row above the output box contains only `故障代码 / Print Faults` and `打印线程 / Print Threads`.
+- Moved `复制 / Copy` and `清除 / Clear` into a second row below the output box.
+- Preserved existing enable/disable rules and output height behavior.
+- Verified `qmllint mobile/BMDevicePage.qml`, `git diff --check`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should visually confirm the two-row button layout on-device.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-06 - Add Device Terminal output copy action
+
+**User request**
+- Add a way to copy the Device page hidden Terminal information box content to the system clipboard so customers can send diagnostics to support.
+
+**Key context**
+- The hidden Terminal card exposes only fixed diagnostic actions and stores real returned text in `ProductDeviceModel::terminalOutput`.
+- Empty/status hints should not be copied.
+
+**Confirmed decisions and preferences**
+- Copy only the real displayed terminal output.
+- Keep the product-facing interface narrow; do not add arbitrary terminal input, sharing UI, file export, or network send.
+
+**Actions and results**
+- Added `ProductDeviceModel::copyTerminalOutput()` using `QGuiApplication::clipboard()->setText(mTerminalOutput)`.
+- Empty output now reports `暂无可复制内容。` / `No output to copy.` without writing the clipboard.
+- Successful copy keeps the terminal output and reports `已复制到剪切板。` / `Copied to clipboard.`
+- Added a localized `复制` / `Copy` button to the Device page Terminal card, enabled only when `terminalOutput` is non-empty.
+- Verified `qmllint mobile/BMDevicePage.qml`, `git diff --check`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should confirm on-device that pasted clipboard content matches the Terminal information box output.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-06 - Use system font for Terminal output
+
+**User request**
+- Change real terminal output to use the system proportional font and `WordWrap` too.
+
+**Key context**
+- The previous fix split hint/status and actual terminal output text items.
+- Actual terminal output still used Menlo and `Text.WrapAnywhere`.
+
+**Confirmed decisions and preferences**
+- Use system proportional font for both Terminal hints/status and returned terminal output.
+- Use `Text.WordWrap` for real terminal output, accepting that very long unbroken diagnostic tokens may not wrap as aggressively as before.
+
+**Actions and results**
+- Removed the Menlo font family from `terminalOutputText` in `mobile/BMDevicePage.qml`.
+- Changed real terminal output wrap mode from `Text.WrapAnywhere` to `Text.WordWrap`.
+- Verified `qmllint mobile/BMDevicePage.qml`, `git diff --check`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should visually confirm terminal output readability on-device.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-06 - Separate Terminal hint and output text rendering
+
+**User request**
+- The English Terminal empty hint still showed visually excessive word spacing in the screenshot.
+- Explain and solve the spacing problem.
+
+**Key context**
+- The string contained normal single ASCII spaces.
+- The same QML `Text` item dynamically switched between hint text and terminal output, including dynamic font family selection for Menlo terminal output.
+- On Qt 5/iOS this can preserve or render the hint with terminal-style text metrics, making normal spaces appear too wide.
+
+**Confirmed decisions and preferences**
+- Use separate text items: system-font proportional rendering for hints/status, Menlo monospace rendering only for actual terminal output.
+
+**Actions and results**
+- Split the Terminal display box into `terminalHintText` and `terminalOutputText`.
+- The display box height now uses the visible text item's `paintedHeight`.
+- Hints/status use system font and `Text.WordWrap`; real terminal output uses Menlo and `Text.WrapAnywhere`.
+- Verified `qmllint mobile/BMDevicePage.qml`, `git diff --check`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should visually confirm the English empty hint now has normal proportional spacing.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-06 - Fix Terminal hint spacing and fault button wording
+
+**User request**
+- Change the Chinese `打印错误` label to `故障代码`.
+- Investigate why the English empty Terminal hint `Tap Print Faults or Print Threads to show output` visually had more than one space between words.
+
+**Key context**
+- The English source string already had single ASCII spaces.
+- The Terminal output text used `Text.WrapAnywhere` for both real terminal output and empty/status hints.
+
+**Confirmed decisions and preferences**
+- Keep long real terminal output using `WrapAnywhere` so diagnostic lines remain visible.
+- Use normal word wrapping for empty/status hints to avoid abnormal English spacing.
+
+**Actions and results**
+- Changed the Chinese Print Faults button text to `故障代码`.
+- Changed the Chinese fixed-command status label for `faults` to `故障代码`.
+- Updated the Chinese empty hint to `点击故障代码或打印线程后显示返回信息。`.
+- Set Terminal output text to use `Text.WordWrap` for hints/status and `Text.WrapAnywhere` only when actual terminal output is present; also set `font.letterSpacing: 0`.
+- Verified `qmllint mobile/BMDevicePage.qml`, `git diff --check`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should visually confirm the English hint spacing on-device.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-06 - Localize Terminal empty output hint
+
+**User request**
+- Change the Terminal information display box hint `点击...后显示返回信息` to Chinese in Chinese mode.
+- In English mode, all related text should be English, and English words should have only one space between words.
+
+**Key context**
+- The Device page hidden Terminal card already localizes the command buttons.
+- The empty output hint still used English command names inside the Chinese string.
+
+**Confirmed decisions and preferences**
+- Keep English hint text unchanged because it already uses single spaces between words.
+- Replace only the Chinese hint text to avoid mixed-language display.
+
+**Actions and results**
+- Updated `mobile/BMDevicePage.qml` Terminal output empty-state hint to `点击打印错误或打印线程后显示返回信息。`.
+- Verified `qmllint mobile/BMDevicePage.qml`, `git diff --check`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should visually confirm the hint text in both Chinese and English modes.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-06 - Add Terminal clear button and localized diagnostics buttons
+
+**User request**
+- After tapping Print Faults, tapping Print Threads should not clear the existing Print Faults output.
+- Add a Clear button to clear printed terminal information.
+- Make the Print Faults and Print Threads buttons switch between Chinese and English.
+
+**Key context**
+- Device page hidden Terminal card exposes only fixed `faults` and `threads` terminal commands through `ProductDeviceModel`.
+- The previous fixed-command helper cleared terminal output every time a command was sent.
+
+**Confirmed decisions and preferences**
+- Keep terminal command access narrow and fixed.
+- Preserve accumulated output until the user explicitly taps Clear.
+
+**Actions and results**
+- Added `ProductDeviceModel::clearTerminalOutput()` as a QML invokable that clears `terminalOutput` and `terminalStatusText`.
+- Changed fixed terminal command sending so `Print Faults` and `Print Threads` no longer clear previous output.
+- Added a localized Clear button to the Device page Terminal card.
+- Localized Device page Terminal button labels for Print Faults and Print Threads.
+- Verified `qmllint mobile/BMDevicePage.qml`, `git diff --check`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should confirm on a connected device that Print Faults and Print Threads outputs accumulate until Clear is tapped.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-06 - Fix Device Terminal output scrolling
+
+**User request**
+- After the Terminal information display box appears, dragging down the Device page could not scroll far enough to see all displayed terminal information.
+
+**Key context**
+- The hidden Device Terminal card expands its output box based on returned `COMM_PRINT` text.
+- On Qt 5/iOS, the surrounding `ScrollView` was not explicitly bound to the dynamically changing page content height.
+
+**Confirmed decisions and preferences**
+- Keep the Terminal output box growing with content, but ensure the outer Device page can scroll through the full expanded card.
+
+**Actions and results**
+- Added an id to the Device page `ScrollView` and bound `contentHeight` to the main page content `ColumnLayout.implicitHeight`.
+- Added explicit `Layout.preferredHeight` bindings for hidden dynamic cards.
+- Changed the terminal output box height calculation to use `terminalOutput.paintedHeight` with a fixed text width, so wrapped terminal output contributes accurate height.
+- Verified `qmllint mobile/BMDevicePage.qml`, `git diff --check`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should verify on the device with a long `Print Threads` or `Print Faults` output that dragging the Device page reaches the full terminal output.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-06 - Explain Terminal diagnostics commands
+
+**User request**
+- Explain what all Terminal commands do and how to combine them to diagnose controller faults.
+
+**Key context**
+- The current Codex thread had no attached terminal session output, so the command list was inferred from project source.
+- Full `mobile/Terminal.qml` exposes arbitrary terminal input plus menu actions: `faults`, `threads`, `help`, reboot, shutdown, and restart LispBM.
+- Hidden product Device Terminal card intentionally exposes only `Print Faults` and `Print Threads`.
+
+**Confirmed decisions and preferences**
+- Treat `faults` and `threads` as safe read-only diagnostics.
+- Treat reboot, shutdown, LispBM restart, and arbitrary terminal commands as engineering actions that should not be part of the commercial MVP user flow unless explicitly required.
+
+**Actions and results**
+- Reviewed `mobile/Terminal.qml`, `mobile/BMDevicePage.qml`, `product/productdevicemodel.cpp`, `commands.cpp`, and fault-code mappings.
+- Prepared a controller troubleshooting flow combining connection state, live telemetry fault code, local fault logs, `Print Faults`, `Print Threads`, and Hall check.
+
+**Unresolved items**
+- Actual controller output still needs to be captured from a connected device for model-specific interpretation.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-06 - Convert hidden Print Faults card to Terminal card
+
+**User request**
+- Change the hidden Device page Print Faults card into a Terminal card; in English the name should be `Terminal`.
+- Add a `Print Threads` button that prints its corresponding output into the same display box.
+- Move the Terminal card after the Hall check card.
+- Let the output display box height grow automatically as printed information increases.
+
+**Key context**
+- The prior card used `ProductDeviceModel::printFaults()` and displayed `COMM_PRINT` text in the Device page hidden area.
+- Existing full Terminal page sends fixed menu command `threads` for Print Threads.
+
+**Confirmed decisions and preferences**
+- Keep product-facing Device page access narrow: expose only fixed `faults` and `threads` terminal commands, not arbitrary terminal input.
+- Preserve the 5-tap hidden reveal requirement.
+
+**Actions and results**
+- Added product-model `terminalOutput` and `terminalStatusText` properties plus `terminalChanged`.
+- Added `ProductDeviceModel::printThreads()` and a shared fixed-terminal-command helper for `faults` and `threads`.
+- Changed `COMM_PRINT` handling to append returned chunks into the terminal output so the QML output box can grow with content.
+- Updated `mobile/BMDevicePage.qml` to show a hidden `终端` / `Terminal` card after Hall check with `Print Faults` and `Print Threads` buttons.
+- Verified `qmllint mobile/BMDevicePage.qml`, `git diff --check`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should connect a device, reveal the hidden area, and confirm both fixed terminal buttons return the expected text in the card.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-06 - Show Print Faults output in Device card
+
+**User request**
+- Tapping Print Faults appeared to do nothing because no error information was visible.
+
+**Key context**
+- The previous hidden Device card sent the fixed `faults` terminal command through `ProductDeviceModel::printFaults()`.
+- Device page did not listen to `Commands::printReceived` or show returned `COMM_PRINT` text.
+
+**Confirmed decisions and preferences**
+- Keep only the fixed `faults` command exposed.
+- Display the returned print text directly inside the hidden Print Faults card.
+
+**Actions and results**
+- Added `printFaultsOutput` and `printFaultsStatusText` properties plus `printFaultsChanged` to `ProductDeviceModel`.
+- Connected `Commands::printReceived` to the product model and stored the latest returned text.
+- Updated the hidden Device page Print Faults card to show sent/waiting/offline status and returned fault text in a wrapping output box.
+- Verified `qmllint mobile/BMDevicePage.qml`, `git diff --check`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should connect a device and confirm the output box fills with the expected fault print after tapping Print Faults.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-06 - Add hidden Print Faults card
+
+**User request**
+- Add a Print Faults card before the Hall check card; it should only show after the same 5-tap hidden reveal.
+
+**Key context**
+- Existing Terminal page sends `mCommands.sendTerminalCmd("faults")` for Print Faults.
+- Device page product UI should not expose arbitrary terminal commands.
+
+**Confirmed decisions and preferences**
+- Add only a narrow product-model action for the fixed `faults` command.
+- Place the card after Refloat data and before Hall check in the hidden Device page section.
+
+**Actions and results**
+- Added `ProductDeviceModel::printFaults()` as a `Q_INVOKABLE` that sends only `faults` when protocol is ready.
+- Added a hidden Device page Print Faults card with a protocol-ready status pill and disabled button when offline.
+- Verified `qmllint mobile/BMDevicePage.qml`, `git diff --check`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should connect a device, reveal the hidden section, tap Print Faults, and confirm the existing terminal/debug output receives the printed fault information.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-06 - Place Refloat card before Hall check
+
+**User request**
+- Move the Refloat data display before the Hall check card on the Device page.
+
+**Key context**
+- Both cards are hidden behind the existing 5-tap Device page reveal state.
+- The Refloat card was previously placed after the Hall check card.
+
+**Confirmed decisions and preferences**
+- Change only card order; keep reveal behavior, Refloat visibility condition, and data bindings unchanged.
+
+**Actions and results**
+- Moved the Refloat `Surface` block in `mobile/BMDevicePage.qml` before the Hall check `Surface`.
+- Verified `qmllint mobile/BMDevicePage.qml`, `git diff --check`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should visually confirm the Device page hidden section now shows Refloat data above Hall check.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Move hidden Refloat card to Device page
+
+**User request**
+- Move the newly added Refloat data card from Home to the Device page; reveal it with the same 5-tap hidden gesture as the Hall check card, and place it after the Hall check card.
+
+**Key context**
+- `mobile/BMDevicePage.qml` already has `hallCardRevealed` and a 5-tap hidden `MouseArea` reveal flow.
+- The Home Refloat card was a pure data grid using product model Refloat telemetry and UUID formatting.
+
+**Confirmed decisions and preferences**
+- Reuse the existing hidden reveal state instead of adding a second gesture.
+- Keep the original Home realtime card unchanged.
+- Show the Refloat data card on Device only after the hidden reveal and only when `refloatAvailable` is true.
+
+**Actions and results**
+- Removed the Refloat data card and its dedicated helpers from `mobile/BMHomePage.qml`.
+- Added the Refloat data grid to `mobile/BMDevicePage.qml` immediately after the Hall check card.
+- Added Device-page UUID hex formatting and Refloat telemetry bindings for the moved card.
+- Verified `qmllint` on Home and Device pages, ran `git diff --check`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should verify on-device that 5 taps on the Device page reveal Hall check first and the Refloat data card beneath it.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Show full Refloat UUID as hex
+
+**User request**
+- The UUID shown after `UUID` in the new Refloat card was incomplete; display it as hexadecimal.
+
+**Key context**
+- `mobile/BMHomePage.qml` was removing braces from `deviceModel.deviceIdentifier`, but the header text used middle eliding so long UUIDs were truncated.
+
+**Confirmed decisions and preferences**
+- Apply the change only to the new Home Refloat card UUID display.
+- Keep the UUID source as `deviceModel.deviceIdentifier`.
+
+**Actions and results**
+- Added QML formatting that strips non-hex characters and uppercases the UUID.
+- Changed the Refloat card UUID line to allow wrapping across two lines instead of eliding.
+- Verified `qmllint mobile/BMHomePage.qml`, `git diff --check`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should visually confirm the full hex UUID fits acceptably on the phone.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Simplify Home Refloat card into data grid
+
+**User request**
+- Remove all UI graphics from the newly added Home Refloat card and rearrange the data to look cleaner.
+
+**Key context**
+- The previous Refloat card used custom visual UI elements including metric bubbles, a footpad Canvas drawing, a board pitch Canvas drawing, and a battery-current bar.
+- User wanted the new card to retain data but remove those UI graphics.
+
+**Confirmed decisions and preferences**
+- Keep the original Home realtime speed/battery/status card unchanged.
+- Keep Refloat data bindings and backend parsing unchanged.
+- Change only the Home Refloat card presentation.
+
+**Actions and results**
+- Replaced the Refloat card with a compact header plus two-column data grid.
+- Removed the Refloat-specific circle, bar, footpad drawing, board drawing, and unused QML components from `mobile/BMHomePage.qml`.
+- Kept UUID, voltage, Refloat status, ERPM, currents, duty, footpad voltages, temperatures, roll, and pitch visible.
+- Verified `git diff --check`, `qmllint mobile/BMHomePage.qml`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should visually confirm on the iPhone that the simplified Refloat data grid is aesthetically acceptable.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Fix Refloat footpad realtime indices
+
+**User request**
+- Implement the plan to fix abnormal Home Refloat footpad display after finding that the previously parsed realtime item indices were wrong.
+
+**Key context**
+- Refloat fixed realtime `rt_data.h` uses footpad ADC fields at indices `13` and `14`.
+- The previous implementation used indices `15` and `16`, which read `remote.input` and then an out-of-range item.
+- Refloat float16 uses an extended range and does not reserve exponent `0x1f` for NaN/Inf.
+
+**Confirmed decisions and preferences**
+- Keep custom app package id `101` and internal command `31`.
+- Do not change the Home Refloat card layout or QML bindings.
+- Keep `BM_REFLOAT_RAW_LOG` available for true-device payload confirmation.
+
+**Actions and results**
+- Changed `ProductDeviceModel` footpad voltage parsing to read realtime indices `13` and `14`.
+- Updated Refloat float16 decoding to treat all nonzero exponents as regular values and corrected subnormal decoding.
+- Extended `BM_REFLOAT_RAW_LOG` output to include payload size, package state, footpad state, and decoded `adc1`/`adc2`.
+- Verified `git diff --check`, `qmllint mobile/BMHomePage.qml`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should verify on the real Refloat device that the displayed pedal voltages now change correctly with left/right footpad pressure.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Parse Refloat footpad voltage and package state from source fields
+
+**User request**
+- Fix the new Home Refloat card because footpad voltage was wrong and the former `DISABLED` position was reading the wrong field; read Refloat source to identify the correct fields before modifying.
+
+**Key context**
+- Refloat internal realtime response uses package id `101` and command `31`.
+- The custom app data includes package id and command before Refloat payload, so `state_flags` is at app data bytes `8..11` and fixed `realtime_data` starts at byte `12`.
+- Refloat `state_flags` bits `25..24` are `package_state`; bits `23..22` are `footpad_state`.
+- Refloat fixed realtime item indices `15` and `16` are `adc_left` and `adc_right` float16 voltages.
+
+**Confirmed decisions and preferences**
+- Keep the existing Home Refloat card and existing protocol send/receive semantics.
+- Use internal command `31` rather than changing to public command `33`.
+- The former `DISABLED` UI position should show Refloat package state, not a voltage-derived enabled/disabled guess.
+
+**Actions and results**
+- Replaced the previous inferred footpad voltage parser with Refloat float16 decoding from `adc_left` and `adc_right`.
+- Added internal `mRefloatPackageState` and changed `refloatStatusText` to map `DISABLED`, `STARTUP`, `READY`, and `RUNNING` from `state_flags`.
+- Updated the Refloat card status color to treat `READY` and `RUNNING` as green states.
+- Verified `mobile/BMHomePage.qml` with Qt iOS `qmllint`, ran `git diff --check`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should connect a real Refloat device and confirm the displayed left/right ADC voltages match the firmware/runtime values.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Adjust UUID label and Refloat status display
+
+**User request**
+- Add a colon after `UUID`, fix abnormal footpad voltage display, and show Refloat status in the former `DISABLED` position based on footpad voltage.
+
+**Key context**
+- Refloat card UUID text was `UUID <identifier>`.
+- Footpad voltage had been inferred as single bytes at offsets 2 and 3 divided by 10.
+- The former `DISABLED` text position in the Refloat card was hardcoded unless a fault existed.
+
+**Confirmed decisions and preferences**
+- Keep changes limited to product-model display parsing/status and Refloat card QML.
+- Keep raw Refloat payload logging available through `BM_REFLOAT_RAW_LOG` for future calibration.
+
+**Actions and results**
+- Changed the Refloat card UUID label to `UUID: <identifier>`.
+- Added `refloatStatusText` to `ProductDeviceModel`; it returns `ENABLED` when either footpad voltage is above the press threshold or `pedalState` is nonzero, otherwise `DISABLED`.
+- Changed the Refloat card status position to show `refloatStatusText` and color `ENABLED` green.
+- Updated footpad voltage parsing to prefer 16-bit millivolt values with fallback to the previous single-byte scaling.
+- Verified `mobile/BMHomePage.qml` with Qt iOS `qmllint`, ran `git diff --check`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should verify real-device footpad voltage values; if still incorrect, enable `BM_REFLOAT_RAW_LOG` and calibrate the exact payload offsets/scale.
+
+**Sensitive information**
+- Existing private memory was not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Remove FOCSTrot prerequisite for Refloat detection
+
+**User request**
+- Cancel the prerequisite restriction that Refloat detection/display only works for FOCSTrot devices.
+
+**Key context**
+- Refloat polling and custom app package parsing were gated by `mIsFocstrotDevice`.
+- Home Refloat card visibility depends on `refloatAvailable`, so devices not matching FOCSTrot identity could never show the card even if they sent the Refloat package.
+
+**Confirmed decisions and preferences**
+- Keep `isFocstrotDevice` as an identity marker, but do not use it as the Refloat package detection prerequisite.
+- Keep BLE, Packet, Commands, and custom app packet semantics unchanged.
+
+**Actions and results**
+- Changed Refloat polling to start whenever the device is connected and protocol-ready.
+- Changed Refloat custom app data parsing to accept matching Refloat package/id without requiring `mIsFocstrotDevice`.
+- Removed `mIsFocstrotDevice` as a prerequisite for Refloat speed-limit config read/write paths, while still requiring `refloatAvailable`.
+- Verified `mobile/BMHomePage.qml` with Qt iOS `qmllint`, ran `git diff --check`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should connect a non-FOCSTrot device that emits the Refloat package and verify the Home Refloat card appears.
+
+**Sensitive information**
+- Existing private memory was not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Remove speed and percent from Refloat Home card
+
+**User request**
+- In the newly added Refloat card, prefix the UUID number with `UUID`, remove the battery percentage such as `59%`, and remove the factual speed display.
+
+**Key context**
+- The original Home realtime speed/battery/status card remains separate and unchanged.
+- The requested changes apply only to the additional Refloat card in `mobile/BMHomePage.qml`.
+
+**Confirmed decisions and preferences**
+- Keep the separate Refloat card behavior and existing product model unchanged.
+- Remove the Refloat card's speed ring/display while retaining ERPM/current/duty and other Refloat details.
+
+**Actions and results**
+- Changed the Refloat UUID label to display `UUID <identifier>`.
+- Changed the Refloat card top-right summary to show voltage only, not battery percent.
+- Removed the Refloat card speed ring/factual speed display and repositioned ERPM as the left-side primary value.
+- Verified `mobile/BMHomePage.qml` with Qt iOS `qmllint`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should visually confirm on-device that the Refloat card no longer duplicates factual speed or battery percent.
+
+**Sensitive information**
+- Existing private memory was not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Keep Home realtime card and add separate Refloat card
+
+**User request**
+- Keep the original Home realtime speed, battery, and device-status page/card, and add a new separate card for the Refloat data instead of replacing the existing realtime card.
+
+**Key context**
+- The previous Refloat Home implementation switched the main realtime card contents when `refloatAvailable` was true.
+- User wants the original factual speed, battery, and device-status card to remain visible.
+
+**Confirmed decisions and preferences**
+- Only adjust Home QML layout; keep product model, protocol behavior, BLE behavior, and Refloat parsing unchanged.
+- Show the Refloat dashboard as an additional card below the original realtime card when `refloatAvailable` is true.
+
+**Actions and results**
+- Restored the original realtime gauge/KPI/status section to always render in `mobile/BMHomePage.qml`.
+- Moved `RefloatDashboard` into its own `GlassCard`, visible only when `root.showRefloatDashboard` is true.
+- Verified `mobile/BMHomePage.qml` with Qt iOS `qmllint`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- User should verify on-device that Home now shows the original realtime card plus a separate Refloat card after Refloat detection.
+
+**Sensitive information**
+- Existing private memory was not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Show Refloat dashboard data on Home
+
+**User request**
+- When a Refloat package is detected, show the screenshot's non-crossed Refloat data/UI on the Home page; use BLE UUID instead of MAC address in the upper-left identifier.
+
+**Key context**
+- Existing Refloat detection already used custom app package id `101`, internal command `31`, and `ProductDeviceModel::refloatAvailable`.
+- `SETUP_VALUES` carries speed, voltage, current, duty, RPM, temperatures, battery percent, and faults; IMU roll/pitch arrives through `valuesImuReceived`.
+
+**Confirmed decisions and preferences**
+- Keep protocol, BLE, `Commands`, and package send/receive semantics stable.
+- Do not show the screenshot items marked with X and do not add engineering controls.
+- Footpad voltage parsing is a candidate based on the current 12-byte payload shape because no complete Refloat schema was available.
+
+**Actions and results**
+- Added product-model properties for duty percent, RPM, IMU validity/roll/pitch degrees, and left/right Refloat footpad voltages.
+- Refloat polling now also requests roll/pitch IMU data, and raw Refloat payload logging can be enabled with `BM_REFLOAT_RAW_LOG`.
+- Updated `mobile/BMHomePage.qml` to switch the main realtime card to a Refloat dashboard when `refloatAvailable` is true, showing UUID, voltage, battery percent, speed, ERPM, currents, duty, temperatures, disabled/fault status, footpad voltages, roll, and pitch.
+- Regenerated `build/ios/qrc_qml.cpp`, verified `mobile/BMHomePage.qml` with Qt iOS `qmllint`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+**Unresolved items**
+- The user should connect a real Refloat device and verify the inferred left/right footpad voltage offsets and scale; use `BM_REFLOAT_RAW_LOG` if calibration is needed.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Correct Hall card placement below Device Nodes
+
+**User request**
+- Screenshot showed the revealed Hall sensor check card still appearing above the Device Nodes section; find the cause and fix it.
+
+**Key context**
+- `mobile/BMDevicePage.qml` line order showed the Hall card `Surface` before the Device Nodes `Item`, despite the previous memory entry stating it had moved below the Device Nodes block.
+- The previous install had successfully packaged the QML, but the source order was still wrong.
+
+**Confirmed decisions and preferences**
+- Move only the Hall card position.
+- Keep the hidden 5-tap reveal behavior and Hall check backend unchanged.
+
+**Actions and results**
+- Moved the Hall card `Surface` to after the Device Nodes `Item`.
+- Confirmed line order: Device Nodes content starts before the Hall card, and `hallColumn` now appears afterward.
+- Verified `mobile/BMDevicePage.qml` with Qt iOS `qmllint`.
+- Regenerated `build/ios/qrc_qml.cpp`, rebuilt the iPhoneOS Debug app, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`; all succeeded.
+
+**Unresolved items**
+- User should retest on the phone: after revealing, the Hall card should appear below the Device Nodes card.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Move revealed Hall check card below Device Nodes
+
+**User request**
+- Place the revealed Hall sensor check card below the Device Nodes section on the Device page.
+
+**Key context**
+- The Hall check card was already hidden by default and revealed through the page-local 5-tap state.
+- The card previously appeared immediately below the connection status card.
+
+**Confirmed decisions and preferences**
+- Move only the QML card position.
+- Keep the hidden reveal behavior, non-persistent state, Hall check backend, BLE, protocol, and telemetry behavior unchanged.
+
+**Actions and results**
+- Moved the Hall check card in `mobile/BMDevicePage.qml` to after the Device Nodes block.
+- Verified `mobile/BMDevicePage.qml` with Qt iOS `qmllint`.
+- Regenerated `build/ios/qrc_qml.cpp`, rebuilt the iPhoneOS Debug app, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`; all succeeded.
+
+**Unresolved items**
+- User should manually verify the revealed card appears below the Device Nodes section on the phone.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Diagnose Hall reveal tap counter
+
+**User request**
+- Determine why tapping did not reveal the Hall sensor check card on the phone, specifically whether the 5-tap trigger failed or another display issue blocked it.
+
+**Key context**
+- `mobile/BMDevicePage.qml` already had `visible: root.hallCardRevealed`, so the card display condition itself was no longer blocked by device type.
+- The transparent `MouseArea` counted taps from `onClicked`, while `onPressed` and `onReleased` set `mouse.accepted = false` to pass events through.
+
+**Confirmed decisions and preferences**
+- Preserve the hidden, non-persistent reveal behavior.
+- Keep BLE, protocol, telemetry, and Hall check backend behavior unchanged.
+
+**Actions and results**
+- Determined the likely failure was that the 5-tap counter was not being triggered reliably: rejecting press/release can prevent the same `MouseArea` from receiving a reliable composed `clicked` event.
+- Moved the counter call to `onPressed` before rejecting the event, so every touch down can be counted while still passing interaction to controls below.
+- Verified `mobile/BMDevicePage.qml` with Qt iOS `qmllint`.
+- Regenerated `build/ios/qrc_qml.cpp` with Qt `rcc` to avoid stale embedded QML, rebuilt for iPhoneOS, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`; all succeeded.
+
+**Unresolved items**
+- User should retest 5 single taps on the launched iPhone app. Double-tap is not a separate trigger; the intended action remains 5 taps.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Fix hidden Hall check reveal on iPhone
+
+**User request**
+- Fix the Device page issue where tapping the screen 5 times on the phone did not reveal the Hall sensor check card.
+
+**Key context**
+- The first implementation used a root-level `TapHandler` and still gated card visibility on `deviceModel.isFocstrotDevice`.
+- On iPhone, taps inside the Device page could be consumed by the `ScrollView`/controls, and the extra device-type gate could also keep the card hidden.
+
+**Confirmed decisions and preferences**
+- Keep the reveal flag page-local and non-persistent so the card hides again after app exit.
+- Do not change BLE, protocol, telemetry, or Hall check backend behavior.
+
+**Actions and results**
+- Replaced the root `TapHandler` with a transparent top-level `MouseArea` that counts taps while propagating composed events to underlying controls.
+- Changed the Hall check card visibility to depend only on the 5-tap reveal state.
+- Verified `mobile/BMDevicePage.qml` with Qt iOS `qmllint`.
+- Rebuilt the Debug iPhoneOS app, installed it to `邱增顺的iPhone`, and launched `com.floatingwheel.bmesc`; all succeeded.
+
+**Unresolved items**
+- User should manually retest the 5-tap reveal on the launched phone app.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Fix Mine page version popup missing 1.01
+
+**User request**
+- The Mine page version popup showed only `V` instead of `V1.01`; fix it.
+
+**Key context**
+- Screenshot showed `App 版本：V`, meaning the QML `Utility.appVersionText()` value was empty at runtime.
+- The desired row behavior remains unchanged: the Mine page list row shows “查看” / “View”.
+
+**Confirmed decisions and preferences**
+- Use a user-facing fallback so the popup always shows `V1.01` even if Utility returns an empty value at runtime.
+
+**Actions and results**
+- Updated `mobile/BMMinePage.qml` so `displayAppVersion` is `V` plus the Utility version when available, otherwise `V1.01`.
+- Verified `mobile/BMMinePage.qml` with Qt iOS `qmllint`; it passed.
+- Rebuilt the Debug iPhoneOS app, installed it on the connected iPhone, and launched `com.floatingwheel.bmesc`; all succeeded.
+
+**Unresolved items**
+- User should re-open the Mine page version popup on the launched phone app to confirm it displays `App 版本：V1.01`.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Prefix Mine page app version with V
+
+**User request**
+- Fix the Mine page version popup because the App version value did not show `V1.01`.
+
+**Key context**
+- The version row should still match other Mine page rows by showing “查看” / “View”.
+- The requested `V` prefix is user-facing display only.
+
+**Confirmed decisions and preferences**
+- Keep platform version metadata and `VT_VERSION` as `1.01`; only the Mine page popup displays `V1.01`.
+
+**Actions and results**
+- Added a Mine page display version property that prefixes the Utility app version with `V`.
+- Updated the version popup to show `App 版本：V1.01` / `App version: V1.01`.
+- Verified `mobile/BMMinePage.qml` with Qt iOS `qmllint`; it passed.
+
+**Unresolved items**
+- No full platform build was run for this narrow QML text fix.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Install current iOS build to iPhone
+
+**User request**
+- Install the current app build to the connected phone.
+
+**Key context**
+- Reused existing generated Xcode project `build/ios/BMESC.xcodeproj`.
+- Connected device was `邱增顺的iPhone`, CoreDevice identifier `DC6A5BAD-BD5E-5492-B8A5-05F5DC8992A7`.
+- Signing used `DEVELOPMENT_TEAM=R2QUAAM332` and bundle id `com.floatingwheel.bmesc`.
+
+**Confirmed decisions and preferences**
+- Build and install the current dirty working tree without making additional source changes.
+
+**Actions and results**
+- Ran a Debug iPhoneOS build for scheme `BMESC` targeting the connected iPhone; build succeeded.
+- Installed `build/ios/Debug-iphoneos/BMESC.app` to the iPhone; install succeeded.
+- Launched bundle `com.floatingwheel.bmesc` on the iPhone; launch succeeded.
+
+**Unresolved items**
+- `devicectl` still prints the known non-blocking CoreDevice provider warning, but build, install, and launch completed successfully.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Move Hall check card behind hidden Device page tap gesture
+
+**User request**
+- Move the Hall sensor check card to the Device page, keep it hidden normally, reveal it after 5 consecutive screen taps, and make it hidden again after app exit.
+
+**Key context**
+- The Hall check UI and confirmation dialog were previously in `mobile/BMHomePage.qml`.
+- The commercial mobile Device page is `mobile/BMDevicePage.qml`.
+
+**Confirmed decisions and preferences**
+- Use page-local QML state only for the reveal flag so it is not persisted across app restarts.
+- Keep protocol, BLE, telemetry, and `ProductDeviceModel::startHallCheck()` behavior unchanged.
+
+**Actions and results**
+- Removed the Hall check card and dialog from the Home page.
+- Added the Hall check card and confirmation dialog to the Device page.
+- Added a `TapHandler` on the Device page that reveals the card after 5 taps within the short consecutive-tap window.
+- Verified `mobile/BMDevicePage.qml` and `mobile/BMHomePage.qml` with Qt iOS `qmllint`.
+- Verified the iOS Simulator Debug build with `xcodebuild`; build succeeded.
+
+**Unresolved items**
+- Physical-device interaction was not manually tested in this turn.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Keep fault log clear dialog on screen
+
+**User request**
+- Fix the fault log clear-confirmation prompt overflowing the screen.
+
+**Key context**
+- The issue is in the mobile Mine page fault log modal clear action.
+- Existing unrelated dirty changes were present in `mobile/BMMinePage.qml`, including prior app version UI additions.
+
+**Confirmed decisions and preferences**
+- Keep this as a narrow QML layout fix only.
+- Do not change fault log storage, product model behavior, protocol behavior, or navigation.
+
+**Actions and results**
+- Constrained the clear fault log `Dialog` width to fit within the page with side margins.
+- Replaced overlay centering anchors with bounded `x`/`y` positioning and made the body label use the dialog available width.
+
+**Unresolved items**
+- No full iOS build was run for this narrow QML layout patch.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Adjust Mine page version display to 1.01
+
+**User request**
+- Make the “版本信息” row match other Mine page rows by showing “查看 >”, display app version as 1.01, and remove the build identifier from the popup.
+
+**Key context**
+- The Mine page version entry is shared by iOS and Android through `mobile/BMMinePage.qml`.
+- User-facing app version is now sourced from `VT_VERSION`.
+
+**Confirmed decisions and preferences**
+- Keep version details simple: show BMESC and App version only, no build hash or test/build identifier.
+- Keep protocol, BLE, telemetry, device model behavior, and engineering pages unchanged.
+
+**Actions and results**
+- Changed the version row value to “查看” / “View”.
+- Removed build identifier display and removed the unused `Utility.appBuildText()` helper.
+- Updated app version source to `1.01` in qmake config and aligned checked-in Android and iOS metadata.
+- Verified with direct iOS Simulator `xcodebuild`; qmake regenerated the project with `VT_VERSION=1.01` and the build succeeded.
+
+**Unresolved items**
+- Android was not separately built in this turn.
+- Existing unrelated dirty files `docs/download/index.html` and `mobile/BMHomePage.qml` were left untouched.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-04 - Run daily Gmail cooperation summary
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- Automation memory was missing at start and was initialized at `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+- Search prioritized unread inbox newer_than:7d and recent inbox newer_than:3d, then all mail after 2026-08-02, topic terms BMESC/VESC/VESC Tool/BLE/controller after the last run where connector searches succeeded, and cooperation/business terms after 2026-08-02.
+- Large OR searches and a couple broad single-term searches timed out with Gmail transport errors, so narrower follow-up searches were used.
+
+**Confirmed decisions and preferences**
+- Gmail access stayed read-only. No replies, drafts, labels, archiving, deletion, or mailbox modifications were performed.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- The only all-mail/inbox message after 2026-08-02 was an unrelated Ollama promotional email from 2026-08-03.
+- Older unread VESC-related Discord notifications and pev.dev summaries had already appeared in prior runs and still did not indicate cooperation demand.
+
+**Unresolved items**
+- None for cooperation-demand mail; broad Gmail searches may need retry if the connector transport issue persists.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Add mobile Mine page app version info
+
+**User request**
+- Implement the approved plan to add app version information to the shared iOS/Android mobile “我的” page.
+
+**Key context**
+- The shared mobile page is `mobile/BMMinePage.qml`.
+- App version macros are sourced from qmake `VT_VERSION`, `VT_IS_TEST_VERSION`, and `VT_GIT_COMMIT`.
+
+**Confirmed decisions and preferences**
+- Show app version information only; do not show connected controller firmware version in the Mine page entry.
+- Keep protocol, BLE, telemetry, device model behavior, and engineering pages unchanged.
+
+**Actions and results**
+- Added Utility QML-callable methods for user-facing app version and build text.
+- Set `QCoreApplication::applicationVersion` from the same app version helper.
+- Added a “版本信息” / “Version” row to the Mine page with current version in the row and BMESC/app version/build details in the existing info popup.
+- Verified with direct `xcodebuild` iOS Simulator build; build succeeded. The existing Makefile path failed before compilation because its generated destination was empty and Qt’s old iOS helper references `/usr/bin/python`.
+
+**Unresolved items**
+- Android was covered by shared QML and version macros but not separately built in this turn.
+- Existing unrelated dirty files `docs/download/index.html` and prior `PROJECT_MEMORY.md` changes were left intact.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-04 - Build and install current iOS app to iPhone
+
+**User request**
+- Compile the current code and install it on the Apple phone.
+
+**Key context**
+- Used existing generated Xcode project `build/ios/BMESC.xcodeproj`.
+- Connected device was `邱增顺的iPhone`, CoreDevice identifier `DC6A5BAD-BD5E-5492-B8A5-05F5DC8992A7`.
+- Signing settings were `DEVELOPMENT_TEAM=R2QUAAM332` and bundle id `com.floatingwheel.bmesc`.
+
+**Confirmed decisions and preferences**
+- Reused the existing Debug iPhoneOS build path and current signing configuration.
+- Did not change protocol, product model, QML, or source files for this install task.
+
+**Actions and results**
+- Ran Xcode Debug build for scheme `BMESC` targeting the connected iPhone; build succeeded.
+- Installed `/Users/a202603/Documents/BMESC_APP/build/ios/Debug-iphoneos/BMESC.app` to the iPhone; install succeeded.
+- Launched bundle `com.floatingwheel.bmesc` on the iPhone; launch succeeded.
+
+**Unresolved items**
+- `devicectl` still prints the known non-blocking CoreDevice provider warning, but build, install, and launch completed successfully.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-03 - Run daily Gmail cooperation summary
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- Search prioritized recent unread inbox and recent inbox mail, then all mail after 2026-08-01, 30-day BMESC/VESC/controller/BLE/skateboard/e-bike/scooter topic terms, and 90-day English/Chinese cooperation, business, supplier, distributor, OEM/ODM, integration, quote, wholesale, and procurement terms.
+- No messages appeared in all-mail or inbox searches after 2026-08-01.
+
+**Confirmed decisions and preferences**
+- Gmail access stayed read-only. No replies, drafts, labels, archiving, deletion, or mailbox modifications were performed.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- Notable non-matches included Discord Vescify/Onewheel conversion notifications, a pev.dev Onewheel XR controller/battery sourcing summary, Google Play BMESC target API and IARC rating notices, Google Search Console floatw.com notices, and unrelated service/promotional/newsletter emails.
+- Wrote this run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None for cooperation-demand mail.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-02 - Run daily Gmail cooperation summary
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- Automation memory file existed as an empty/missing-content file at start of this run and was initialized at `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+- Search prioritized recent unread inbox and recent inbox mail, then all mail after 2026-07-31, 30-day BMESC/VESC/controller/cooperation keyword searches, and 90-day combined topic plus cooperation keyword searches.
+
+**Confirmed decisions and preferences**
+- Gmail access stayed read-only. No replies, drafts, labels, archiving, deletion, or mailbox modifications were performed.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- Notable non-matches included Discord Vescify/Onewheel conversions announcement notifications, a pev.dev XR revival controller-sourcing summary, a Refloat 1.3 announcement, Google Play/IARC BMESC compliance or rating notices, Google Search Console floatw.com indexing notices, and unrelated service/promotional emails.
+- Wrote this run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None for cooperation-demand mail.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-07-30 - Run daily Gmail cooperation summary
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- Automation memory file was missing at start, so it was created at `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+- Search prioritized recent unread inbox and recent inbox mail, then all-mail after 2026-07-28, plus 30-day BMESC/VESC and cooperation/business keyword searches.
+
+**Confirmed decisions and preferences**
+- Gmail access stayed read-only. No replies, drafts, labels, archiving, deletion, or mailbox modifications were performed.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- Recent/relevant non-matches included a Discord notification from Vescify/Onewheel conversions announcements, a pev.dev summary about an XR revival controller-sourcing discussion, a Google Search Console floatw.com 404 indexing notice, and older Google Play/IARC BMESC compliance/rating notices.
+- Wrote this run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None for cooperation-demand mail.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
 ### 2026-07-08 - Reopen BMESC Xcode project
 
 **User request**
@@ -7215,3 +8262,217 @@ This Git-tracked file is the chronological memory for project conversations and 
 
 **Sensitive information**
 - RAM AK reference PRIVATE-20260717-001; no secret values printed or committed.
+
+### 2026-07-31 - Run daily Gmail cooperation summary
+
+**User request**
+- Run automation `daily-bmesc-vesc-gmail-cooperation-summary` to check Gmail for BMESC/VESC/controller-related cooperation, distribution, supplier, manufacturer, reseller, OEM/ODM, integration, support, or collaboration requests.
+
+**Key context**
+- Automation memory file was missing at start and was recreated at `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+- Search prioritized recent unread inbox and recent inbox mail, then all mail after 2026-07-29, 7-day BMESC/VESC/controller/business keyword search, 30-day BMESC/VESC/controller and cooperation/business searches, and 60-day targeted BMESC/VESC/support/cooperation plus controller-hardware searches.
+
+**Confirmed decisions and preferences**
+- Gmail access stayed read-only. No replies, drafts, labels, archiving, deletion, or mailbox modifications were performed.
+
+**Actions and results**
+- Found no matching cooperation-demand emails.
+- Relevant non-matches included Discord Vescify/Onewheel conversion mention notifications, a pev.dev XR revival/controller sourcing forum digest, and Google Play/IARC/Search Console BMESC/floatw.com compliance or site-operation notices.
+- Wrote this run result to `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- None for cooperation-demand mail.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Move Home pedal indicator into speed card
+
+**User request**
+- Move the pedal display to the screenshot position under the Home speed gauge, make it gray when not pressed and gold when pressed, keep the English `Pedal` label centered, and delete the previous pedal display.
+
+**Key context**
+- This is a QML/UI-only change in the shared mobile Home page.
+- The pedal state still comes from `ProductDeviceModel::pedalState`; protocol, BLE, telemetry, and product backend behavior were not changed.
+
+**Confirmed decisions and preferences**
+- Use a single centered `踏板` / `Pedal` label inside the realtime speed card instead of the previous separate FOCSTrot pedal card.
+- Treat any non-zero pedal state as pressed for the gold state.
+
+**Actions and results**
+- Added Home page `showPedalState` and `pedalPressed` presentation properties.
+- Inserted the centered pedal label between the ring gauge and KPI grid, with gray idle color and BM gold pressed color.
+- Removed the old standalone FOCSTrot pedal card, its hidden speed-limit UI, and the unused `PedalSegment` component from `mobile/BMHomePage.qml`.
+- Verified `mobile/BMHomePage.qml` with `/Users/a202603/Qt/5.15.2/ios/bin/qmllint`; no errors were reported.
+
+**Unresolved items**
+- No full iOS/Android build or device screenshot verification was run for this narrow QML patch.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Reveal iOS Xcode project in Finder
+
+**User request**
+- Open the Xcode project file location so the user can compile and install to phone manually.
+
+**Key context**
+- Existing generated iOS project is `/Users/a202603/Documents/BMESC_APP/build/ios/BMESC.xcodeproj`.
+
+**Confirmed decisions and preferences**
+- Open the project location in Finder rather than building or installing automatically.
+
+**Actions and results**
+- Ran `open -R /Users/a202603/Documents/BMESC_APP/build/ios/BMESC.xcodeproj` to reveal the Xcode project in Finder.
+
+**Unresolved items**
+- User will compile/install manually in Xcode.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Correct Home pedal indicator to use left/right strips
+
+**User request**
+- Clarify that gray/gold state should apply to the two pedal UI graphics on both sides of the pedal label, not to the `踏板` / `Pedal` text itself.
+
+**Key context**
+- This supersedes the visual detail from the immediately previous Home pedal-indicator entry: the label remains fixed color, and the two side graphics carry the pressed/unpressed state.
+- The change remains QML/UI-only in `mobile/BMHomePage.qml`; backend Refloat pedal-state parsing and protocol behavior were not changed.
+
+**Confirmed decisions and preferences**
+- Center row layout: left pedal strip, fixed-color `踏板` / `Pedal` label, right pedal strip.
+- Match the label color to the KPI label color used by `电量` (`#9aa3b2`).
+- State mapping: pedal state `1` highlights the left strip, `2` highlights the right strip, and `3` highlights both.
+
+**Actions and results**
+- Replaced the single color-changing pedal text with a centered RowLayout containing two `PedalStrip` graphics and the fixed-color label.
+- Added a compact reusable `PedalStrip` inline component with gray idle styling and BM-gold active styling.
+- Verified `mobile/BMHomePage.qml` with `/Users/a202603/Qt/5.15.2/ios/bin/qmllint`; no errors were reported.
+
+**Unresolved items**
+- No full iOS/Android build or device screenshot verification was run for this narrow QML patch.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Rename Home pedal English label to Footpad
+
+**User request**
+- Change the Home pedal indicator English label from `Pedal` to `Footpad`.
+
+**Key context**
+- The request applies to the new centered Home pedal indicator row in `mobile/BMHomePage.qml`.
+
+**Confirmed decisions and preferences**
+- Keep Chinese text as `踏板`.
+- Keep the centered left-strip / label / right-strip layout and gray/gold strip state behavior unchanged.
+
+**Actions and results**
+- Updated the Home pedal indicator text from `root.t("踏板", "Pedal")` to `root.t("踏板", "Footpad")`.
+- Increased the English label width to reduce truncation risk and preserve centered placement.
+- Verified `mobile/BMHomePage.qml` with `/Users/a202603/Qt/5.15.2/ios/bin/qmllint`; no errors were reported.
+
+**Unresolved items**
+- No full iOS/Android build or device screenshot verification was run for this text-only QML patch.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Make Home footpad strips horizontal and mirror-symmetric
+
+**User request**
+- Keep the footpad UI graphics horizontal, mirror-symmetric around the screen vertical centerline, and unchanged in relative position when switching to English.
+
+**Key context**
+- The request applies to the centered footpad indicator row in `mobile/BMHomePage.qml`.
+- This remains a QML/UI-only change; backend pedal-state parsing, BLE, and protocol behavior were not changed.
+
+**Confirmed decisions and preferences**
+- Use fixed geometry instead of a text-width-driven RowLayout so `踏板` and `Footpad` do not move the side graphics.
+- Keep the label centered on the screen vertical centerline.
+- Keep left and right footpad strips identical in width and equally offset from the centerline.
+
+**Actions and results**
+- Replaced the footpad RowLayout with an Item using fixed centerline-based x positions.
+- Removed idle-state strip rotation so both footpad graphics stay horizontal.
+- Kept `Footpad` text centered in a fixed-width text box so language switching does not alter side-strip placement.
+- Verified `mobile/BMHomePage.qml` with `/Users/a202603/Qt/5.15.2/ios/bin/qmllint`; no errors were reported.
+
+**Unresolved items**
+- No full iOS/Android build or device screenshot verification was run for this narrow QML patch.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Remove inner line from Home footpad strip graphic
+
+**User request**
+- Remove the thin line inside the footpad UI graphics.
+
+**Key context**
+- The request applies to the `PedalStrip` inline component in `mobile/BMHomePage.qml`.
+- This remains a QML/UI-only change.
+
+**Confirmed decisions and preferences**
+- Keep the existing centered, mirror-symmetric left/right footpad layout and gray/gold active-state behavior.
+- Remove only the inner decorative line from each strip.
+
+**Actions and results**
+- Deleted the secondary inner `Rectangle` from `PedalStrip`, leaving only the main rounded strip body.
+- Verified `mobile/BMHomePage.qml` with `/Users/a202603/Qt/5.15.2/ios/bin/qmllint`; no errors were reported.
+
+**Unresolved items**
+- No full iOS/Android build or device screenshot verification was run for this narrow QML patch.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Rebuild and install current iOS app to iPhone
+
+**User request**
+- Rebuild the current app and install it to the connected phone.
+
+**Key context**
+- Used existing generated Xcode project `build/ios/BMESC.xcodeproj`.
+- Connected device was `邱增顺的iPhone`, CoreDevice identifier `DC6A5BAD-BD5E-5492-B8A5-05F5DC8992A7`.
+- Build used `DEVELOPMENT_TEAM=R2QUAAM332` and bundle id `com.floatingwheel.bmesc`.
+- Current dirty working tree was built as-is, including recent Home footpad UI changes and other existing uncommitted changes.
+
+**Confirmed decisions and preferences**
+- Build/install the current source state without reverting any unrelated dirty files.
+
+**Actions and results**
+- Ran Debug iPhoneOS `xcodebuild` for scheme `BMESC`; build succeeded.
+- Installed `/Users/a202603/Documents/BMESC_APP/build/ios/Debug-iphoneos/BMESC.app` to the connected iPhone; install succeeded.
+- Launched bundle `com.floatingwheel.bmesc` on the iPhone; launch succeeded.
+
+**Unresolved items**
+- `devicectl` still prints the known non-blocking CoreDevice provider warning, but build, install, and launch completed successfully.
+- User should verify the Home footpad UI visually on the phone.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-05 - Gate Home footpad indicator on Refloat availability
+
+**User request**
+- Change the Home footpad display prerequisite so the footpad state is shown whenever there is a Refloat package.
+
+**Key context**
+- The Home footpad indicator was previously gated by `deviceModel.isFocstrotDevice`.
+- `ProductDeviceModel::refloatAvailable` is already exposed to QML and indicates Refloat data availability.
+
+**Confirmed decisions and preferences**
+- Keep the existing footpad UI layout, label, and gray/gold strip behavior unchanged.
+- Change only the display condition; do not change Refloat parsing, BLE, protocol, or backend behavior.
+
+**Actions and results**
+- Updated `mobile/BMHomePage.qml` so `showPedalState` depends on `deviceModel.refloatAvailable` instead of `deviceModel.isFocstrotDevice`.
+- Verified `mobile/BMHomePage.qml` with `/Users/a202603/Qt/5.15.2/ios/bin/qmllint`; no errors were reported.
+
+**Unresolved items**
+- No full iOS/Android build or device verification was run for this narrow QML patch.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.

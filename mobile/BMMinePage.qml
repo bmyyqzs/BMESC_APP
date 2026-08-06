@@ -11,6 +11,8 @@ Item {
     readonly property string userAgreementUrl: "https://bmyyqzs.github.io/BMESC_APP/app-store/user-agreement.html"
     readonly property string supportUrl: "https://bmyyqzs.github.io/BMESC_APP/app-store/support.html"
     readonly property string openSourceUrl: "https://bmyyqzs.github.io/BMESC_APP/app-store/open-source.html"
+    readonly property string appVersion: Utility.appVersionText()
+    readonly property string displayAppVersion: "V" + (appVersion.length > 0 ? appVersion : "1.01")
     readonly property real pageMargin: Math.max(24, Math.min(40, width * 0.065))
     readonly property bool connected: deviceModel ? deviceModel.connected : false
     readonly property bool isEnglish: deviceModel ? deviceModel.isEnglish : false
@@ -91,6 +93,14 @@ Item {
                         label: root.t("开源许可", "Open Source")
                         value: root.t("查看", "View")
                         onClicked: root.openExternal(root.openSourceUrl)
+                    }
+                    ActionRow {
+                        label: root.t("版本信息", "Version")
+                        value: root.t("查看", "View")
+                        onClicked: root.showInfo(root.t("版本信息", "Version"),
+                                                 root.t("BMESC\n\nApp 版本：%1",
+                                                        "BMESC\n\nApp version: %1")
+                                                 .arg(root.displayAppVersion))
                     }
                     ActionRow {
                         label: root.t("关于 BMESC", "About BMESC")
@@ -265,7 +275,16 @@ Item {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 42
                     enabled: root.deviceModel && root.deviceModel.faultLogCount > 0
+                    transformOrigin: Item.Center
+                    scale: enabled && down ? 0.96 : 1.0
+                    opacity: enabled ? (down ? 0.92 : 1.0) : 0.72
                     onClicked: clearFaultLogDialog.open()
+                    Behavior on scale {
+                        NumberAnimation { duration: 130; easing.type: Easing.OutCubic }
+                    }
+                    Behavior on opacity {
+                        NumberAnimation { duration: 110; easing.type: Easing.OutCubic }
+                    }
                     background: Rectangle {
                         radius: 999
                         color: clearFaultLogsButton.enabled ? Qt.rgba(1, 0.36, 0.44, clearFaultLogsButton.down ? 0.16 : 0.08) : "#171c23"
@@ -286,7 +305,16 @@ Item {
                     id: closeFaultLogsButton
                     Layout.preferredWidth: 96
                     Layout.preferredHeight: 42
+                    transformOrigin: Item.Center
+                    scale: enabled && down ? 0.96 : 1.0
+                    opacity: enabled ? (down ? 0.92 : 1.0) : 0.72
                     onClicked: faultLogModal.close()
+                    Behavior on scale {
+                        NumberAnimation { duration: 130; easing.type: Easing.OutCubic }
+                    }
+                    Behavior on opacity {
+                        NumberAnimation { duration: 110; easing.type: Easing.OutCubic }
+                    }
                     background: Rectangle {
                         radius: 999
                         color: closeFaultLogsButton.down ? "#b78a5c" : "#c69c6e"
@@ -307,7 +335,9 @@ Item {
     Dialog {
         id: clearFaultLogDialog
         parent: Overlay.overlay
-        anchors.centerIn: Overlay.overlay
+        width: Math.min(root.width - 32, 320)
+        x: Math.max(16, Math.round((Overlay.overlay.width - width) / 2))
+        y: Math.max(16, Math.round((Overlay.overlay.height - height) / 2))
         modal: true
         title: root.t("清除故障日志", "Clear Fault Logs")
         standardButtons: Dialog.Ok | Dialog.Cancel
@@ -318,7 +348,7 @@ Item {
         }
 
         Label {
-            width: Math.min(root.width * 0.76, 280)
+            width: clearFaultLogDialog.availableWidth
             text: root.t("将清除本机保存的历史故障日志，不会复位设备当前故障状态。",
                          "This clears fault logs saved on this phone. It will not reset the current device fault state.")
             wrapMode: Text.WordWrap
@@ -366,7 +396,16 @@ Item {
             Button {
                 anchors.right: parent.right
                 anchors.rightMargin: 20
+                transformOrigin: Item.Center
+                scale: enabled && down ? 0.96 : 1.0
+                opacity: enabled ? (down ? 0.92 : 1.0) : 0.72
                 onClicked: infoModal.close()
+                Behavior on scale {
+                    NumberAnimation { duration: 130; easing.type: Easing.OutCubic }
+                }
+                Behavior on opacity {
+                    NumberAnimation { duration: 110; easing.type: Easing.OutCubic }
+                }
                 background: Rectangle {
                     radius: 999
                     color: parent.down ? "#b78a5c" : "#c69c6e"

@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 # Version
-VT_VERSION = 1.00
+VT_VERSION = 1.01
 VT_INTRO_VERSION = 1
 VT_CONFIG_VERSION = 4
 
