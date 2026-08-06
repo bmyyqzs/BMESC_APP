@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-07-27",
+  "canonicalUrl": "https://download.bmesc.floatw.com/",
+  "supportUrl": "https://bmyyqzs.github.io/BMESC_APP/app-store/support.html",
+  "privacyUrl": "https://bmyyqzs.github.io/BMESC_APP/app-store/privacy-policy.html",
+  "channels": {
+    "ios": {
+      "status": "live",
+      "version": "1.0.0",
+      "url": "https://apps.apple.com/cn/app/id6782801007"
+    },
+    "androidDirect": {
+      "status": "live",
+      "version": "1.00",
+      "versionCode": 192,
+      "url": "releases/android/BMESC_mobile_debug.apk",
+      "fileSize": "50.7 MB",
+      "sha256": "f9becaf6a0d152703c3d25e91e5f29d2740c8da869ab5ab075a189c99793ba7b"
+    },
+    "googlePlay": {
+      "status": "live",
+      "version": "1.00",
+      "url": "https://play.google.com/store/apps/details?id=com.bmesc.app"
+    }
+  }
+}

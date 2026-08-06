@@ -1,14 +1,34 @@
 #include "productdevicemodel.h"
 #include "utility.h"
 
+#include <QClipboard>
+#include <QGuiApplication>
 #include <QSettings>
+#include <QStringList>
 #include <QtMath>
 #include <QtGlobal>
 
+#include <cstring>
+
 namespace {
 const char *faultLogsKey = "product/faultLogs";
+const char *languageKey = "product/language";
 const int maxFaultLogCount = 100;
 const int nodeFwReadTimeoutMs = 1500;
+const int refloatPollIntervalMs = 250;
+const int refloatUnavailableTimeoutMs = 2000;
+const quint8 refloatPackageId = 101;
+const quint8 refloatRealtimeDataInternalCommand = 31;
+const char *refloatSpeedLimitParam = "tiltback_speed";
+const double hallCheckCurrentAmps = 2.0;
+const int hallCheckAppDisableMs = 60000;
+const int hallCheckTimeoutMs = 25000;
+const double defaultSpeedGaugeMaximumKph = 60.0;
+const double kphPerMeterPerSecond = 3.6;
+const int refloatInternalRealtimeOffset = 12;
+const int refloatInternalRealtimeItemSize = 2;
+const int refloatInternalAdcLeftIndex = 13;
+const int refloatInternalAdcRightIndex = 14;
 
 QString firmwareString(const FW_RX_PARAMS &params)
 {
@@ -58,6 +78,72 @@ QString displayNameForNodeParams(const FW_RX_PARAMS &params, const QString &fall
     name = name.simplified().replace(QStringLiteral("_"), QStringLiteral(" "));
     return name.isEmpty() ? fallbackName : name;
 }
+
+float decodeRefloatFloat16(quint16 value)
+{
+    const quint32 sign = (quint32(value & 0x8000)) << 16;
+    const quint32 exponent = (value & 0x7c00) >> 10;
+    const quint32 mantissa16 = value & 0x03ff;
+    const quint32 mantissa = mantissa16 << 13;
+    quint32 bits = sign;
+
+    if (exponent != 0) {
+        bits |= ((exponent + 112) << 23) | mantissa;
+    } else if (mantissa16 != 0) {
+        int leadingBit = 0;
+        for (quint32 probe = mantissa16; probe > 1; probe >>= 1) {
+            ++leadingBit;
+        }
+        const quint32 decodedExponent = quint32(103 + leadingBit);
+        const int mantissaShift = 10 - leadingBit;
+        bits |= (decodedExponent << 23) |
+                ((mantissa << mantissaShift) & 0x007fe000);
+    }
+
+    float decoded = 0.0f;
+    std::memcpy(&decoded, &bits, sizeof(decoded));
+    return decoded;
+}
+
+QString refloatPackageStateName(int packageState)
+{
+    switch (packageState) {
+    case 1:
+        return QStringLiteral("STARTUP");
+    case 2:
+        return QStringLiteral("READY");
+    case 3:
+        return QStringLiteral("RUNNING");
+    default:
+        return QStringLiteral("DISABLED");
+    }
+}
+
+QString refloatFootpadStateName(int pedalState)
+{
+    switch (pedalState) {
+    case 1:
+        return QStringLiteral("LEFT");
+    case 2:
+        return QStringLiteral("RIGHT");
+    case 3:
+        return QStringLiteral("BOTH");
+    default:
+        return QStringLiteral("NONE");
+    }
+}
+
+double decodeRefloatRealtimeFloat16(const QByteArray &data, int itemIndex)
+{
+    const int offset = refloatInternalRealtimeOffset + itemIndex * refloatInternalRealtimeItemSize;
+    if (data.size() <= offset + 1) {
+        return 0.0;
+    }
+
+    const quint16 raw = (quint16(quint8(data.at(offset))) << 8) |
+            quint16(quint8(data.at(offset + 1)));
+    return double(decodeRefloatFloat16(raw));
+}
 }
 
 ProductDeviceModel::ProductDeviceModel(QObject *parent)
@@ -80,18 +166,44 @@ ProductDeviceModel::ProductDeviceModel(QObject *parent)
       mInputVoltage(0.0),
       mMotorCurrentAmps(0.0),
       mInputCurrentAmps(0.0),
+      mDutyPercent(0.0),
+      mRpm(0.0),
       mPowerWatts(0.0),
       mControllerTemperatureCelsius(0.0),
       mMotorTemperatureCelsius(0.0),
+      mImuValid(false),
+      mRollDegrees(0.0),
+      mPitchDegrees(0.0),
       mOdometerKm(0.0),
       mTripKm(0.0),
       mSessionMaxSpeedMetersPerSecond(0.0),
+      mSpeedGaugeMaximumMetersPerSecond(defaultSpeedGaugeMaximumKph / kphPerMeterPerSecond),
       mFaultCode("FAULT_CODE_NONE"),
-      mFaultText(tr("Ready")),
+      mFaultText(QStringLiteral("Ready")),
       mSelectedCanNodeId(-1),
+      mLanguageCode(QStringLiteral("zh")),
+      mIsFocstrotDevice(false),
+      mRefloatAvailable(false),
+      mPedalState(0),
+      mRefloatPackageState(0),
+      mRefloatFootpadLeftVoltage(0.0),
+      mRefloatFootpadRightVoltage(0.0),
+      mSpeedLimitKph(0),
+      mSpeedLimitLoaded(false),
+      mSpeedLimitSaving(false),
+      mSpeedLimitReadRequested(false),
+      mSpeedLimitStatusText(QStringLiteral("")),
+      mTerminalOutput(QString()),
+      mTerminalStatusText(QString()),
+      mHallCheckState(0),
       mPendingConnectionFlow(ProductConnectionFlow::Unknown),
       mActiveConnectionFlow(ProductConnectionFlow::Unknown)
 {
+    QSettings settings;
+    const QString storedLanguage = settings.value(QString::fromLatin1(languageKey), QStringLiteral("zh")).toString();
+    mLanguageCode = storedLanguage == QStringLiteral("en") ? QStringLiteral("en") : QStringLiteral("zh");
+    mFaultText = userFaultText(mFaultCode);
+
     mPollTimer.setInterval(250);
     mPollTimer.setSingleShot(false);
     connect(&mPollTimer, &QTimer::timeout, this, &ProductDeviceModel::pollTelemetry);
@@ -101,6 +213,15 @@ ProductDeviceModel::ProductDeviceModel(QObject *parent)
     mConnectCountdownTimer.setSingleShot(false);
     connect(&mConnectCountdownTimer, &QTimer::timeout,
             this, &ProductDeviceModel::updateConnectCountdown);
+
+    mRefloatPollTimer.setInterval(refloatPollIntervalMs);
+    mRefloatPollTimer.setSingleShot(false);
+    connect(&mRefloatPollTimer, &QTimer::timeout, this, &ProductDeviceModel::pollRefloat);
+
+    mHallCheckTimer.setInterval(hallCheckTimeoutMs);
+    mHallCheckTimer.setSingleShot(true);
+    connect(&mHallCheckTimer, &QTimer::timeout,
+            this, &ProductDeviceModel::handleHallCheckTimeout);
 
     loadFaultLogs();
 }
@@ -136,6 +257,8 @@ void ProductDeviceModel::setVesc(VescInterface *vesc)
                 this, &ProductDeviceModel::updateIdentity);
         connect(mVesc, &VescInterface::useImperialUnitsChanged,
                 this, &ProductDeviceModel::useImperialUnitsChanged);
+        connect(mVesc, &VescInterface::customConfigLoadDone,
+                this, &ProductDeviceModel::handleCustomConfigLoaded);
 #ifdef HAS_BLUETOOTH
         if (mVesc->bleDevice()) {
             connect(mVesc->bleDevice(), &BleUart::scanDone,
@@ -151,6 +274,18 @@ void ProductDeviceModel::setVesc(VescInterface *vesc)
     if (mCommands) {
         connect(mCommands, &Commands::valuesSetupReceived,
                 this, &ProductDeviceModel::applyTelemetry);
+        connect(mCommands, &Commands::valuesImuReceived,
+                this, &ProductDeviceModel::handleImuData);
+        connect(mCommands, &Commands::customAppDataReceived,
+                this, &ProductDeviceModel::handleCustomAppData);
+        connect(mCommands, &Commands::customConfigRx,
+                this, &ProductDeviceModel::handleCustomConfigRx);
+        connect(mCommands, &Commands::customConfigAckReceived,
+                this, &ProductDeviceModel::handleCustomConfigAck);
+        connect(mCommands, &Commands::printReceived,
+                this, &ProductDeviceModel::handlePrintReceived);
+        connect(mCommands, &Commands::focHallTableReceived,
+                this, &ProductDeviceModel::handleFocHallTable);
     }
 
     resetTelemetry();
@@ -171,12 +306,15 @@ bool ProductDeviceModel::protocolReady() const
 
 QString ProductDeviceModel::connectionName() const
 {
-    return mVesc ? mVesc->getConnectedPortName() : tr("Not connected");
+    return mVesc ? mVesc->getConnectedPortName()
+                 : (isEnglish() ? QStringLiteral("Not connected") : QStringLiteral("未连接"));
 }
 
 QString ProductDeviceModel::deviceName() const
 {
-    return hardwareName().isEmpty() ? tr("BM Device") : hardwareName();
+    return hardwareName().isEmpty()
+            ? QStringLiteral("BMESC Device")
+            : hardwareName();
 }
 
 QString ProductDeviceModel::hardwareName() const
@@ -214,9 +352,14 @@ double ProductDeviceModel::batteryPercent() const { return mBatteryPercent; }
 double ProductDeviceModel::inputVoltage() const { return mInputVoltage; }
 double ProductDeviceModel::motorCurrentAmps() const { return mMotorCurrentAmps; }
 double ProductDeviceModel::inputCurrentAmps() const { return mInputCurrentAmps; }
+double ProductDeviceModel::dutyPercent() const { return mDutyPercent; }
+double ProductDeviceModel::rpm() const { return mRpm; }
 double ProductDeviceModel::powerWatts() const { return mPowerWatts; }
 double ProductDeviceModel::controllerTemperatureCelsius() const { return mControllerTemperatureCelsius; }
 double ProductDeviceModel::motorTemperatureCelsius() const { return mMotorTemperatureCelsius; }
+bool ProductDeviceModel::imuValid() const { return mImuValid; }
+double ProductDeviceModel::rollDegrees() const { return mRollDegrees; }
+double ProductDeviceModel::pitchDegrees() const { return mPitchDegrees; }
 double ProductDeviceModel::odometerKm() const { return mOdometerKm; }
 double ProductDeviceModel::tripKm() const { return mTripKm; }
 QString ProductDeviceModel::faultCode() const { return mFaultCode; }
@@ -267,7 +410,83 @@ bool ProductDeviceModel::canScanning() const { return mCanScanning; }
 int ProductDeviceModel::selectedCanNodeId() const { return mSelectedCanNodeId; }
 QString ProductDeviceModel::selectedNodeName() const { return mSelectedNodeName; }
 double ProductDeviceModel::sessionMaxSpeedMetersPerSecond() const { return mSessionMaxSpeedMetersPerSecond; }
+double ProductDeviceModel::speedGaugeMaximumMetersPerSecond() const { return mSpeedGaugeMaximumMetersPerSecond; }
 QDateTime ProductDeviceModel::lastTelemetryAt() const { return mLastTelemetryAt; }
+
+QString ProductDeviceModel::languageCode() const
+{
+    return mLanguageCode;
+}
+
+void ProductDeviceModel::setLanguageCode(const QString &languageCode)
+{
+    const QString normalized = languageCode == QStringLiteral("en") ? QStringLiteral("en") : QStringLiteral("zh");
+    if (mLanguageCode == normalized) {
+        return;
+    }
+
+    mLanguageCode = normalized;
+    QSettings settings;
+    settings.setValue(QString::fromLatin1(languageKey), mLanguageCode);
+    retranslateProductText();
+    emit languageChanged();
+    emit identityChanged();
+    emit telemetryChanged();
+    emit faultLogsChanged();
+    emit scanChanged();
+    emit connectionAttemptChanged();
+    emit canNodesChanged();
+    emit refloatChanged();
+    emit speedLimitChanged();
+}
+
+bool ProductDeviceModel::isEnglish() const
+{
+    return mLanguageCode == QStringLiteral("en");
+}
+
+bool ProductDeviceModel::isFocstrotDevice() const { return mIsFocstrotDevice; }
+bool ProductDeviceModel::refloatAvailable() const { return mRefloatAvailable; }
+int ProductDeviceModel::pedalState() const { return mPedalState; }
+double ProductDeviceModel::refloatFootpadLeftVoltage() const { return mRefloatFootpadLeftVoltage; }
+double ProductDeviceModel::refloatFootpadRightVoltage() const { return mRefloatFootpadRightVoltage; }
+QString ProductDeviceModel::refloatStatusText() const
+{
+    if (!mRefloatAvailable) {
+        return QStringLiteral("--");
+    }
+
+    switch (mRefloatPackageState) {
+    case 1:
+        return QStringLiteral("STARTUP");
+    case 2:
+        return QStringLiteral("READY");
+    case 3:
+        return QStringLiteral("RUNNING");
+    default:
+        return QStringLiteral("DISABLED");
+    }
+}
+int ProductDeviceModel::speedLimitKph() const { return mSpeedLimitKph; }
+bool ProductDeviceModel::speedLimitLoaded() const { return mSpeedLimitLoaded; }
+bool ProductDeviceModel::speedLimitSaving() const { return mSpeedLimitSaving; }
+QString ProductDeviceModel::speedLimitStatusText() const { return mSpeedLimitStatusText; }
+QString ProductDeviceModel::terminalOutput() const { return mTerminalOutput; }
+QString ProductDeviceModel::terminalStatusText() const { return mTerminalStatusText; }
+QString ProductDeviceModel::printFaultsOutput() const { return mTerminalOutput; }
+QString ProductDeviceModel::printFaultsStatusText() const { return mTerminalStatusText; }
+
+QString ProductDeviceModel::pedalStateText() const
+{
+    switch (mPedalState) {
+    case 1:
+        return isEnglish() ? QStringLiteral("Footpad 1") : QStringLiteral("踏板1");
+    case 2:
+        return isEnglish() ? QStringLiteral("Footpad 2") : QStringLiteral("踏板2");
+    default:
+        return QString();
+    }
+}
 
 QString ProductDeviceModel::connectionUiState() const
 {
@@ -293,7 +512,9 @@ void ProductDeviceModel::startBleScan()
 {
 #ifdef HAS_BLUETOOTH
     if (!mVesc || !mVesc->bleDevice()) {
-        mConnectionErrorText = tr("Bluetooth is unavailable.");
+        mConnectionErrorText = isEnglish()
+                ? QStringLiteral("Bluetooth is unavailable.")
+                : QStringLiteral("蓝牙不可用。");
         emit connectionAttemptChanged();
         return;
     }
@@ -306,7 +527,9 @@ void ProductDeviceModel::startBleScan()
     emit connectionAttemptChanged();
     mVesc->bleDevice()->startScan();
 #else
-    mConnectionErrorText = tr("Bluetooth is unavailable.");
+    mConnectionErrorText = isEnglish()
+            ? QStringLiteral("Bluetooth is unavailable.")
+            : QStringLiteral("蓝牙不可用。");
     emit connectionAttemptChanged();
 #endif
 }
@@ -418,6 +641,54 @@ void ProductDeviceModel::clearFaultLogs()
     emit faultLogsChanged();
 }
 
+void ProductDeviceModel::printFaults()
+{
+    sendFixedTerminalCommand(QStringLiteral("faults"),
+                             QStringLiteral("Print Faults"),
+                             QStringLiteral("故障代码"));
+}
+
+void ProductDeviceModel::printThreads()
+{
+    sendFixedTerminalCommand(QStringLiteral("threads"),
+                             QStringLiteral("Print Threads"),
+                             QStringLiteral("打印线程"));
+}
+
+void ProductDeviceModel::copyTerminalOutput()
+{
+    if (mTerminalOutput.isEmpty()) {
+        mTerminalStatusText = isEnglish()
+                ? QStringLiteral("No output to copy.")
+                : QStringLiteral("暂无可复制内容。");
+        emit terminalChanged();
+        emit printFaultsChanged();
+        return;
+    }
+
+    QClipboard *clipboard = QGuiApplication::clipboard();
+    if (clipboard) {
+        clipboard->setText(mTerminalOutput);
+    }
+    mTerminalStatusText = isEnglish()
+            ? QStringLiteral("Copied to clipboard.")
+            : QStringLiteral("已复制到剪切板。");
+    emit terminalChanged();
+    emit printFaultsChanged();
+}
+
+void ProductDeviceModel::clearTerminalOutput()
+{
+    if (mTerminalOutput.isEmpty() && mTerminalStatusText.isEmpty()) {
+        return;
+    }
+
+    mTerminalOutput.clear();
+    mTerminalStatusText.clear();
+    emit terminalChanged();
+    emit printFaultsChanged();
+}
+
 void ProductDeviceModel::refresh()
 {
     updateConnection();
@@ -425,11 +696,158 @@ void ProductDeviceModel::refresh()
     pollTelemetry();
 }
 
+void ProductDeviceModel::toggleLanguage()
+{
+    setLanguageCode(isEnglish() ? QStringLiteral("zh") : QStringLiteral("en"));
+}
+
+QString ProductDeviceModel::faultTextForCode(const QString &faultCode, const QString &fallbackText) const
+{
+    if (!faultCode.trimmed().isEmpty()) {
+        return userFaultText(faultCode);
+    }
+
+    return fallbackText.trimmed().isEmpty() ? userFaultText(QStringLiteral("FAULT_CODE_NONE")) : fallbackText;
+}
+
+void ProductDeviceModel::seedFaultLogsForTesting(int count)
+{
+    const int seedCount = qBound(1, count, maxFaultLogCount);
+    if (mFaultLogs.size() >= seedCount) {
+        return;
+    }
+
+    const QStringList faultCodes = {
+        QStringLiteral("FAULT_CODE_OVER_VOLTAGE"),
+        QStringLiteral("FAULT_CODE_UNDER_VOLTAGE"),
+        QStringLiteral("FAULT_CODE_DRV"),
+        QStringLiteral("FAULT_CODE_ABS_OVER_CURRENT"),
+        QStringLiteral("FAULT_CODE_OVER_TEMP_FET")
+    };
+
+    QVariantList seededLogs = mFaultLogs;
+    const QDateTime now = QDateTime::currentDateTime();
+    for (int i = mFaultLogs.size(); i < seedCount; ++i) {
+        const QString faultCode = faultCodes.at(i % faultCodes.size());
+        const QDateTime timestamp = now.addSecs(-i * 317);
+        QVariantMap log;
+        log.insert(QStringLiteral("timestamp"), timestamp.toString(Qt::ISODate));
+        log.insert(QStringLiteral("displayTime"), timestamp.toString(QStringLiteral("yyyy-MM-dd HH:mm:ss")));
+        log.insert(QStringLiteral("deviceName"), QStringLiteral("BMESC Test Device"));
+        log.insert(QStringLiteral("deviceIdentifier"), QStringLiteral("test-fault-log-seed"));
+        log.insert(QStringLiteral("selectedNodeName"), i % 3 == 0 ? QStringLiteral("Node %1").arg(i % 5 + 1) : QStringLiteral("Local device"));
+        log.insert(QStringLiteral("selectedCanNodeId"), i % 3 == 0 ? i % 5 + 1 : -1);
+        log.insert(QStringLiteral("faultCode"), faultCode);
+        log.insert(QStringLiteral("faultText"), userFaultText(faultCode));
+        log.insert(QStringLiteral("speedMetersPerSecond"), 2.0 + i * 0.35);
+        log.insert(QStringLiteral("batteryPercent"), qMax(12.0, 92.0 - i * 3.0));
+        log.insert(QStringLiteral("inputVoltage"), 52.4 - i * 0.22);
+        log.insert(QStringLiteral("controllerTemperatureCelsius"), 38.0 + i * 1.4);
+        log.insert(QStringLiteral("motorTemperatureCelsius"), 35.0 + i * 1.1);
+        seededLogs.append(log);
+    }
+
+    mFaultLogs = seededLogs;
+    saveFaultLogs();
+    emit faultLogsChanged();
+}
+
+void ProductDeviceModel::setSpeedLimitKph(int kph)
+{
+    const int clampedKph = qBound(0, kph, 100);
+    if (!mRefloatAvailable || !mVesc || !mCommands) {
+        setSpeedLimitStatusText(isEnglish()
+                                ? QStringLiteral("Refloat is not available.")
+                                : QStringLiteral("Refloat 不可用。"));
+        return;
+    }
+
+    ConfigParams *config = mVesc->customConfig(0);
+    if (!config || !config->hasParam(QString::fromLatin1(refloatSpeedLimitParam))) {
+        mSpeedLimitLoaded = false;
+        setSpeedLimitStatusText(isEnglish()
+                                ? QStringLiteral("Speed limit setting was not found.")
+                                : QStringLiteral("未找到限速参数。"));
+        emit speedLimitChanged();
+        return;
+    }
+
+    config->updateParamInt(QString::fromLatin1(refloatSpeedLimitParam), clampedKph, this);
+    mSpeedLimitKph = clampedKph;
+    mSpeedLimitLoaded = true;
+    mSpeedLimitSaving = true;
+    setSpeedLimitStatusText(isEnglish()
+                            ? QStringLiteral("Saving speed limit...")
+                            : QStringLiteral("正在保存限速..."));
+    emit speedLimitChanged();
+    mCommands->customConfigSet(0, config);
+}
+
+int ProductDeviceModel::hallCheckState() const
+{
+    return mHallCheckState;
+}
+
+void ProductDeviceModel::startHallCheck()
+{
+    if (!mVesc || !mCommands || !protocolReady() || mHallCheckState == 1) {
+        return;
+    }
+
+    mHallCheckState = 1;
+    emit hallCheckChanged();
+
+    // 检测前关闭 Refloat：禁用 app 输出。使用有上限的禁用时长，
+    // 即使手机端中途断连，固件也会在超时后自动恢复输出。
+    mCommands->disableAppOutput(hallCheckAppDisableMs, true);
+
+    // 现有霍尔检测逻辑：COMM_DETECT_HALL_FOC，2 A 检测电流。
+    mCommands->measureHallFoc(hallCheckCurrentAmps);
+    mHallCheckTimer.start();
+}
+
+void ProductDeviceModel::handleFocHallTable(QVector<int> hallTable, int res)
+{
+    // 检测结果表不写入配置、不保存，只用于提示霍尔正常/异常。
+    Q_UNUSED(hallTable)
+
+    if (mHallCheckState != 1) {
+        return;
+    }
+
+    finishHallCheck(res == 0);
+}
+
+void ProductDeviceModel::handleHallCheckTimeout()
+{
+    finishHallCheck(false);
+}
+
+void ProductDeviceModel::finishHallCheck(bool ok)
+{
+    mHallCheckTimer.stop();
+
+    // 检测结束，重新打开 Refloat（恢复 app 输出）。
+    if (mCommands && connected()) {
+        mCommands->disableAppOutput(0, true);
+    }
+
+    mHallCheckState = ok ? 2 : 3;
+    emit hallCheckChanged();
+}
+
 void ProductDeviceModel::updateConnection()
 {
     if (!connected()) {
         restoreFirmwareSwapPolicy();
         resetTelemetry();
+        resetRefloatState();
+        if (mHallCheckState == 1) {
+            // 检测中断连：固件侧 60 秒禁用计时到期后会自动恢复 Refloat 输出。
+            mHallCheckTimer.stop();
+            mHallCheckState = 0;
+            emit hallCheckChanged();
+        }
         mActiveConnectionFlow = ProductConnectionFlow::Unknown;
         mCanNodes.clear();
         mSelectedCanNodeId = -1;
@@ -452,6 +870,7 @@ void ProductDeviceModel::updateConnection()
 
 void ProductDeviceModel::updateIdentity()
 {
+    updateFocstrotState();
     emit identityChanged();
 }
 
@@ -486,17 +905,20 @@ void ProductDeviceModel::applyTelemetry(const SETUP_VALUES &values, unsigned int
 
     mLastTelemetryAt = QDateTime::currentDateTimeUtc();
     mTelemetryValid = true;
-    mSpeedMetersPerSecond = values.speed;
+    mSpeedMetersPerSecond = qAbs(values.speed);
     mBatteryPercent = qBound(0.0, values.battery_level * 100.0, 100.0);
     mInputVoltage = values.v_in;
     mMotorCurrentAmps = values.current_motor;
     mInputCurrentAmps = values.current_in;
+    mDutyPercent = values.duty_now * 100.0;
+    mRpm = values.rpm;
     mPowerWatts = values.v_in * values.current_in;
     mControllerTemperatureCelsius = values.temp_mos;
     mMotorTemperatureCelsius = values.temp_motor;
     mOdometerKm = qMax(0.0, double(values.odometer) / 1000.0);
     mTripKm = qMax(0.0, values.tachometer_abs / 1000.0);
     mSessionMaxSpeedMetersPerSecond = qMax(mSessionMaxSpeedMetersPerSecond, qAbs(mSpeedMetersPerSecond));
+    updateSpeedGaugeMaximum(values);
     mFaultCode = values.fault_str.isEmpty() ? "FAULT_CODE_NONE" : values.fault_str;
     mFaultText = userFaultText(mFaultCode);
 
@@ -519,15 +941,422 @@ void ProductDeviceModel::resetTelemetry()
     mInputVoltage = 0.0;
     mMotorCurrentAmps = 0.0;
     mInputCurrentAmps = 0.0;
+    mDutyPercent = 0.0;
+    mRpm = 0.0;
     mPowerWatts = 0.0;
     mControllerTemperatureCelsius = 0.0;
     mMotorTemperatureCelsius = 0.0;
     mOdometerKm = 0.0;
     mTripKm = 0.0;
     mSessionMaxSpeedMetersPerSecond = 0.0;
+    mSpeedGaugeMaximumMetersPerSecond = defaultSpeedGaugeMaximumKph / kphPerMeterPerSecond;
+    mImuValid = false;
+    mRollDegrees = 0.0;
+    mPitchDegrees = 0.0;
     mFaultCode = "FAULT_CODE_NONE";
-    mFaultText = tr("Ready");
+    mFaultText = userFaultText(mFaultCode);
     emit telemetryChanged();
+    emit imuChanged();
+}
+
+void ProductDeviceModel::updateSpeedGaugeMaximum(const SETUP_VALUES &values)
+{
+    if (!mVesc || !mVesc->mcConfig()) {
+        return;
+    }
+
+    ConfigParams *mcConfig = mVesc->mcConfig();
+    if (!mcConfig->hasParam(QStringLiteral("foc_motor_flux_linkage")) ||
+            !mcConfig->hasParam(QStringLiteral("si_motor_poles")) ||
+            !mcConfig->hasParam(QStringLiteral("si_gear_ratio")) ||
+            !mcConfig->hasParam(QStringLiteral("si_wheel_diameter"))) {
+        return;
+    }
+
+    const double batteryVoltage = values.v_in;
+    const double fluxLinkage = mcConfig->getParamDouble(QStringLiteral("foc_motor_flux_linkage"));
+    const double motorPoles = mcConfig->getParamInt(QStringLiteral("si_motor_poles"));
+    const double gearRatio = mcConfig->getParamDouble(QStringLiteral("si_gear_ratio"));
+    const double wheelDiameter = mcConfig->getParamDouble(QStringLiteral("si_wheel_diameter"));
+
+    if (!qIsFinite(batteryVoltage) || batteryVoltage <= 0.0 ||
+            !qIsFinite(fluxLinkage) || fluxLinkage <= 1.0e-9 ||
+            !qIsFinite(motorPoles) || motorPoles <= 0.0 ||
+            !qIsFinite(gearRatio) || gearRatio <= 0.0 ||
+            !qIsFinite(wheelDiameter) || wheelDiameter <= 0.0) {
+        return;
+    }
+
+    const double rpmMax = (batteryVoltage * 60.0) /
+            (qSqrt(3.0) * 2.0 * M_PI * fluxLinkage);
+    const double speedFact = ((motorPoles / 2.0) * 60.0 * gearRatio) /
+            (wheelDiameter * M_PI);
+    if (!qIsFinite(rpmMax) || rpmMax <= 0.0 ||
+            !qIsFinite(speedFact) || speedFact < 1.0e-3) {
+        return;
+    }
+
+    const double speedMaxKph = kphPerMeterPerSecond * rpmMax / speedFact;
+    const double speedMaxRoundKph = qMax(10.0, qCeil(speedMaxKph / 10.0) * 10.0);
+    if (!qIsFinite(speedMaxRoundKph)) {
+        return;
+    }
+
+    const double currentMaximumKph = mSpeedGaugeMaximumMetersPerSecond * kphPerMeterPerSecond;
+    if (speedMaxRoundKph > currentMaximumKph ||
+            speedMaxRoundKph < (currentMaximumKph * 0.6)) {
+        mSpeedGaugeMaximumMetersPerSecond = speedMaxRoundKph / kphPerMeterPerSecond;
+    }
+}
+
+void ProductDeviceModel::updateFocstrotState()
+{
+    const QString identity = focstrotIdentityText();
+    const bool detected = connected() && protocolReady() &&
+            (identity.contains(QStringLiteral("focstrot v2"), Qt::CaseInsensitive) ||
+             identity.contains(QStringLiteral("focstrot v3"), Qt::CaseInsensitive) ||
+             identity.contains(QStringLiteral("focstrot v4"), Qt::CaseInsensitive));
+
+    if (mIsFocstrotDevice != detected) {
+        mIsFocstrotDevice = detected;
+        emit refloatChanged();
+    }
+
+    if (connected() && protocolReady() && !mRefloatAvailable && !mRefloatPollStartedAt.isValid()) {
+        mPedalState = 0;
+        mSpeedLimitReadRequested = false;
+        mLastRefloatAt = QDateTime();
+        mRefloatPollStartedAt = QDateTime::currentDateTimeUtc();
+        setSpeedLimitStatusText(isEnglish()
+                                ? QStringLiteral("Detecting Refloat...")
+                                : QStringLiteral("正在检测 Refloat..."));
+    }
+
+    updateRefloatPolling();
+    if (mRefloatAvailable && !mSpeedLimitReadRequested) {
+        requestSpeedLimitRead();
+        return;
+    }
+
+    emit speedLimitChanged();
+}
+
+void ProductDeviceModel::resetRefloatState()
+{
+    mRefloatPollTimer.stop();
+    mRefloatPollStartedAt = QDateTime();
+    mLastRefloatAt = QDateTime();
+    mIsFocstrotDevice = false;
+    mRefloatAvailable = false;
+    mPedalState = 0;
+    mRefloatPackageState = 0;
+    mRefloatFootpadLeftVoltage = 0.0;
+    mRefloatFootpadRightVoltage = 0.0;
+    mSpeedLimitKph = 0;
+    mSpeedLimitLoaded = false;
+    mSpeedLimitSaving = false;
+    mSpeedLimitReadRequested = false;
+    mSpeedLimitStatusText.clear();
+    emit refloatChanged();
+    emit speedLimitChanged();
+}
+
+void ProductDeviceModel::updateRefloatPolling()
+{
+    if (connected() && protocolReady() && mCommands) {
+        if (!mRefloatPollTimer.isActive()) {
+            mRefloatPollStartedAt = QDateTime::currentDateTimeUtc();
+            mRefloatPollTimer.start();
+            pollRefloat();
+        }
+    } else {
+        mRefloatPollTimer.stop();
+    }
+}
+
+void ProductDeviceModel::pollRefloat()
+{
+    if (!connected() || !protocolReady() || !mCommands) {
+        updateRefloatPolling();
+        return;
+    }
+
+    if (!mLastRefloatAt.isValid() && mRefloatPollStartedAt.isValid() &&
+            mRefloatPollStartedAt.msecsTo(QDateTime::currentDateTimeUtc()) > refloatUnavailableTimeoutMs) {
+        if (mRefloatAvailable) {
+            mRefloatAvailable = false;
+            emit refloatChanged();
+        }
+        if (!mSpeedLimitSaving) {
+            setSpeedLimitStatusText(isEnglish()
+                                    ? QStringLiteral("Refloat realtime data is not responding.")
+                                    : QStringLiteral("未收到 Refloat 实时数据。"));
+        }
+    } else if (mLastRefloatAt.isValid() &&
+               mLastRefloatAt.msecsTo(QDateTime::currentDateTimeUtc()) > refloatUnavailableTimeoutMs) {
+        mLastRefloatAt = QDateTime();
+        if (mRefloatAvailable) {
+            mRefloatAvailable = false;
+            emit refloatChanged();
+        }
+        if (!mSpeedLimitSaving) {
+            setSpeedLimitStatusText(isEnglish()
+                                    ? QStringLiteral("Refloat realtime data is stale.")
+                                    : QStringLiteral("Refloat 实时数据已过期。"));
+        }
+    }
+
+    QByteArray data;
+    data.append(char(refloatPackageId));
+    data.append(char(refloatRealtimeDataInternalCommand));
+    mCommands->sendCustomAppData(data);
+
+    const unsigned int rollPitchMask = (uint32_t(1) << 0) | (uint32_t(1) << 1);
+    mCommands->getImuData(rollPitchMask);
+}
+
+void ProductDeviceModel::handleCustomAppData(const QByteArray &data)
+{
+    if (data.size() < 12) {
+        return;
+    }
+
+    const auto byteAt = [&data](int index) {
+        return quint8(data.at(index));
+    };
+
+    if (byteAt(0) != refloatPackageId || byteAt(1) != refloatRealtimeDataInternalCommand) {
+        return;
+    }
+
+    if (qEnvironmentVariableIsSet("BM_REFLOAT_RAW_LOG")) {
+        qDebug() << "Refloat realtime payload:" << data.toHex(' ');
+    }
+
+    const quint32 stateFlags = (quint32(byteAt(8)) << 24) |
+            (quint32(byteAt(9)) << 16) |
+            (quint32(byteAt(10)) << 8) |
+            quint32(byteAt(11));
+    const int newPedalState = int((stateFlags >> 22) & 0x3);
+    const int newPackageState = int((stateFlags >> 24) & 0x3);
+    const double newLeftVoltage = decodeRefloatRealtimeFloat16(data, refloatInternalAdcLeftIndex);
+    const double newRightVoltage = decodeRefloatRealtimeFloat16(data, refloatInternalAdcRightIndex);
+    if (qEnvironmentVariableIsSet("BM_REFLOAT_RAW_LOG")) {
+        qDebug() << "Refloat realtime parsed:"
+                 << "size" << data.size()
+                 << "package_state" << refloatPackageStateName(newPackageState)
+                 << "footpad_state" << refloatFootpadStateName(newPedalState)
+                 << "adc1" << newLeftVoltage
+                 << "adc2" << newRightVoltage;
+    }
+    const bool wasAvailable = mRefloatAvailable;
+    const int previousPedalState = mPedalState;
+    const int previousPackageState = mRefloatPackageState;
+    const bool footpadVoltageChanged =
+            !qFuzzyCompare(mRefloatFootpadLeftVoltage + 1.0, newLeftVoltage + 1.0) ||
+            !qFuzzyCompare(mRefloatFootpadRightVoltage + 1.0, newRightVoltage + 1.0);
+
+    mLastRefloatAt = QDateTime::currentDateTimeUtc();
+    mRefloatAvailable = true;
+    mPedalState = newPedalState;
+    mRefloatPackageState = newPackageState;
+    mRefloatFootpadLeftVoltage = newLeftVoltage;
+    mRefloatFootpadRightVoltage = newRightVoltage;
+
+    if (!mSpeedLimitSaving) {
+        if (!mSpeedLimitReadRequested) {
+            requestSpeedLimitRead();
+        } else if (mSpeedLimitLoaded) {
+            setSpeedLimitStatusText(mSpeedLimitKph == 0
+                                    ? (isEnglish() ? QStringLiteral("Speed limit is off.") : QStringLiteral("限速未启用。"))
+                                    : (isEnglish()
+                                       ? QStringLiteral("Current limit: %1 km/h.").arg(mSpeedLimitKph)
+                                       : QStringLiteral("当前限速：%1 km/h。").arg(mSpeedLimitKph)));
+        }
+    }
+
+    if (!wasAvailable || previousPedalState != mPedalState ||
+            previousPackageState != mRefloatPackageState || footpadVoltageChanged) {
+        emit refloatChanged();
+    }
+}
+
+void ProductDeviceModel::handleImuData(const IMU_VALUES &values, unsigned int mask)
+{
+    const bool hasRoll = mask & (uint32_t(1) << 0);
+    const bool hasPitch = mask & (uint32_t(1) << 1);
+    if (!hasRoll && !hasPitch) {
+        return;
+    }
+
+    const double newRollDegrees = hasRoll ? values.roll * 180.0 / M_PI : mRollDegrees;
+    const double newPitchDegrees = hasPitch ? values.pitch * 180.0 / M_PI : mPitchDegrees;
+    const bool changed = !mImuValid ||
+            !qFuzzyCompare(mRollDegrees + 360.0, newRollDegrees + 360.0) ||
+            !qFuzzyCompare(mPitchDegrees + 360.0, newPitchDegrees + 360.0);
+
+    mImuValid = true;
+    mRollDegrees = newRollDegrees;
+    mPitchDegrees = newPitchDegrees;
+
+    if (changed) {
+        emit imuChanged();
+    }
+}
+
+void ProductDeviceModel::handleCustomConfigLoaded()
+{
+    if (mRefloatAvailable && !mSpeedLimitReadRequested) {
+        requestSpeedLimitRead();
+        return;
+    }
+
+    loadSpeedLimitFromConfig();
+}
+
+void ProductDeviceModel::handleCustomConfigRx(int confId, QByteArray data)
+{
+    Q_UNUSED(data)
+
+    if (confId != 0 || !mRefloatAvailable) {
+        return;
+    }
+
+    loadSpeedLimitFromConfig();
+}
+
+void ProductDeviceModel::handleCustomConfigAck(int confId)
+{
+    if (confId != 0 || !mSpeedLimitSaving) {
+        return;
+    }
+
+    mSpeedLimitSaving = false;
+    setSpeedLimitStatusText(mSpeedLimitKph == 0
+                            ? (isEnglish() ? QStringLiteral("Speed limit is off.") : QStringLiteral("限速未启用。"))
+                            : (isEnglish()
+                               ? QStringLiteral("Saved at %1 km/h.").arg(mSpeedLimitKph)
+                               : QStringLiteral("已保存为 %1 km/h。").arg(mSpeedLimitKph)));
+    emit speedLimitChanged();
+}
+
+void ProductDeviceModel::handlePrintReceived(const QString &text)
+{
+    const QString trimmed = text.trimmed();
+    const QString output = trimmed.isEmpty()
+            ? (isEnglish() ? QStringLiteral("(empty output)") : QStringLiteral("（无返回内容）"))
+            : trimmed;
+
+    if (mTerminalOutput.isEmpty()) {
+        mTerminalOutput = output;
+    } else {
+        mTerminalOutput += QStringLiteral("\n\n") + output;
+    }
+    mTerminalStatusText = isEnglish()
+            ? QStringLiteral("Output received.")
+            : QStringLiteral("已收到返回信息。");
+    emit terminalChanged();
+    emit printFaultsChanged();
+}
+
+void ProductDeviceModel::requestSpeedLimitRead()
+{
+    if (!mRefloatAvailable || !mVesc || !mCommands) {
+        return;
+    }
+
+    if (!mVesc->customConfigsLoaded()) {
+        setSpeedLimitStatusText(isEnglish()
+                                ? QStringLiteral("Loading speed limit...")
+                                : QStringLiteral("正在读取限速..."));
+        return;
+    }
+
+    ConfigParams *config = mVesc->customConfig(0);
+    if (!config || !config->hasParam(QString::fromLatin1(refloatSpeedLimitParam))) {
+        mSpeedLimitLoaded = false;
+        mSpeedLimitReadRequested = true;
+        setSpeedLimitStatusText(isEnglish()
+                                ? QStringLiteral("Speed limit setting was not found.")
+                                : QStringLiteral("未找到限速参数。"));
+        emit speedLimitChanged();
+        return;
+    }
+
+    mSpeedLimitReadRequested = true;
+    setSpeedLimitStatusText(isEnglish()
+                            ? QStringLiteral("Loading speed limit...")
+                            : QStringLiteral("正在读取限速..."));
+    emit speedLimitChanged();
+    mCommands->customConfigGet(0, false);
+}
+
+void ProductDeviceModel::loadSpeedLimitFromConfig()
+{
+    if (!mRefloatAvailable || !mVesc || !mVesc->customConfigsLoaded()) {
+        return;
+    }
+
+    ConfigParams *config = mVesc->customConfig(0);
+    if (!config || !config->hasParam(QString::fromLatin1(refloatSpeedLimitParam))) {
+        if (mSpeedLimitLoaded) {
+            mSpeedLimitLoaded = false;
+            emit speedLimitChanged();
+        }
+        if (!mSpeedLimitSaving) {
+            setSpeedLimitStatusText(isEnglish()
+                                    ? QStringLiteral("Speed limit setting was not found.")
+                                    : QStringLiteral("未找到限速参数。"));
+        }
+        return;
+    }
+
+    const int limit = qBound(0, config->getParamInt(QString::fromLatin1(refloatSpeedLimitParam)), 100);
+    const bool changed = !mSpeedLimitLoaded || mSpeedLimitKph != limit;
+    mSpeedLimitKph = limit;
+    mSpeedLimitLoaded = true;
+    if (!mSpeedLimitSaving) {
+        setSpeedLimitStatusText(limit == 0
+                                ? (isEnglish() ? QStringLiteral("Speed limit is off.") : QStringLiteral("限速未启用。"))
+                                : (isEnglish()
+                                   ? QStringLiteral("Current limit: %1 km/h.").arg(limit)
+                                   : QStringLiteral("当前限速：%1 km/h。").arg(limit)));
+    }
+
+    if (changed) {
+        emit speedLimitChanged();
+    }
+}
+
+void ProductDeviceModel::setSpeedLimitStatusText(const QString &text)
+{
+    if (mSpeedLimitStatusText == text) {
+        return;
+    }
+
+    mSpeedLimitStatusText = text;
+    emit speedLimitChanged();
+}
+
+void ProductDeviceModel::sendFixedTerminalCommand(const QString &command, const QString &englishName, const QString &chineseName)
+{
+    if (!protocolReady() || !mCommands) {
+        mTerminalOutput.clear();
+        mTerminalStatusText = isEnglish()
+                ? QStringLiteral("Connect to a device before using Terminal.")
+                : QStringLiteral("请先连接设备再使用终端。");
+        emit terminalChanged();
+        emit printFaultsChanged();
+        return;
+    }
+
+    const QString displayName = isEnglish() ? englishName : chineseName;
+    mTerminalStatusText = isEnglish()
+            ? QStringLiteral("%1 sent. Waiting for output...").arg(displayName)
+            : QStringLiteral("%1 已发送，等待返回信息...").arg(displayName);
+    emit terminalChanged();
+    emit printFaultsChanged();
+    mCommands->sendTerminalCmd(command);
 }
 
 void ProductDeviceModel::loadFaultLogs()
@@ -646,7 +1475,7 @@ void ProductDeviceModel::handleFwRxChanged(bool rx, bool limited)
         }
         mInitialNodeScanRequestedOnConnect = true;
         mSelectedCanNodeId = -1;
-        mSelectedNodeName = tr("Local device");
+        mSelectedNodeName = isEnglish() ? QStringLiteral("Local device") : QStringLiteral("本机");
         updateCanNodeSelectionFlags();
         emit canNodesChanged();
         pollTelemetry();
@@ -663,7 +1492,9 @@ void ProductDeviceModel::updateConnectCountdown()
 
     mConnectCountdownSeconds = qMax(0, mConnectCountdownSeconds - 1);
     if (mConnectCountdownSeconds == 0) {
-        mConnectionErrorText = tr("Connection timed out.");
+        mConnectionErrorText = isEnglish()
+                ? QStringLiteral("Connection timed out.")
+                : QStringLiteral("连接超时。");
         mScanning = false;
         mScanFinished = true;
         mPendingConnectionFlow = ProductConnectionFlow::Unknown;
@@ -722,12 +1553,14 @@ void ProductDeviceModel::rebuildCanNodes(const QVector<int> &remoteNodes, bool i
     local.insert(QStringLiteral("id"), -1);
     local.insert(QStringLiteral("displayId"), QStringLiteral("LOCAL"));
     local.insert(QStringLiteral("name"), localReadOk
-                 ? displayNameForNodeParams(localParams, tr("Local device"))
-                 : tr("Local device"));
+                 ? displayNameForNodeParams(localParams, isEnglish() ? QStringLiteral("Local device") : QStringLiteral("本机"))
+                 : (isEnglish() ? QStringLiteral("Local device") : QStringLiteral("本机")));
     local.insert(QStringLiteral("firmware"), localReadOk ? firmwareString(localParams) : QStringLiteral("--"));
     local.insert(QStringLiteral("nodeType"), nodeTypeString(localParams, localReadOk));
     local.insert(QStringLiteral("enabled"), localEnabled);
-    local.insert(QStringLiteral("state"), localEnabled ? tr("可用") : tr("不可用"));
+    local.insert(QStringLiteral("state"), localEnabled
+                 ? (isEnglish() ? QStringLiteral("Available") : QStringLiteral("可用"))
+                 : (isEnglish() ? QStringLiteral("Unavailable") : QStringLiteral("不可用")));
     local.insert(QStringLiteral("selected"), localEnabled && mSelectedCanNodeId < 0);
     nodes.append(local);
 
@@ -748,12 +1581,18 @@ void ProductDeviceModel::rebuildCanNodes(const QVector<int> &remoteNodes, bool i
         node.insert(QStringLiteral("id"), nodeId);
         node.insert(QStringLiteral("displayId"), QString::number(nodeId));
         node.insert(QStringLiteral("name"), readOk
-                    ? displayNameForNodeParams(params, tr("节点 %1").arg(nodeId))
-                    : tr("节点 %1").arg(nodeId));
+                    ? displayNameForNodeParams(params, isEnglish()
+                                               ? QStringLiteral("Node %1").arg(nodeId)
+                                               : QStringLiteral("节点 %1").arg(nodeId))
+                    : (isEnglish()
+                       ? QStringLiteral("Node %1").arg(nodeId)
+                       : QStringLiteral("节点 %1").arg(nodeId)));
         node.insert(QStringLiteral("firmware"), readOk ? firmwareString(params) : QStringLiteral("--"));
         node.insert(QStringLiteral("nodeType"), nodeTypeString(params, readOk));
         node.insert(QStringLiteral("enabled"), nodeEnabled);
-        node.insert(QStringLiteral("state"), nodeEnabled ? tr("可用") : tr("不可用"));
+        node.insert(QStringLiteral("state"), nodeEnabled
+                    ? (isEnglish() ? QStringLiteral("Available") : QStringLiteral("可用"))
+                    : (isEnglish() ? QStringLiteral("Unavailable") : QStringLiteral("不可用")));
         node.insert(QStringLiteral("selected"), nodeEnabled && mSelectedCanNodeId == nodeId);
         nodes.append(node);
     }
@@ -761,6 +1600,7 @@ void ProductDeviceModel::rebuildCanNodes(const QVector<int> &remoteNodes, bool i
     mCanNodes = nodes;
     updateCanNodeSelectionFlags();
     mSelectedNodeName = nameForCanNode(mSelectedCanNodeId);
+    updateFocstrotState();
     emit canNodesChanged();
 
     if (mActiveConnectionFlow == ProductConnectionFlow::Express && !mCanAutoSelectedOnConnect &&
@@ -801,6 +1641,7 @@ void ProductDeviceModel::applyCanNodeSelection(int nodeId, bool showHome)
 
     mSelectedNodeName = nameForCanNode(mSelectedCanNodeId);
     updateCanNodeSelectionFlags();
+    updateFocstrotState();
 
     resetTelemetry();
     emit canNodesChanged();
@@ -833,7 +1674,9 @@ QString ProductDeviceModel::nameForCanNode(int nodeId) const
         }
     }
 
-    return nodeId < 0 ? tr("Local device") : tr("Node %1").arg(nodeId);
+    return nodeId < 0
+            ? (isEnglish() ? QStringLiteral("Local device") : QStringLiteral("本机"))
+            : (isEnglish() ? QStringLiteral("Node %1").arg(nodeId) : QStringLiteral("节点 %1").arg(nodeId));
 }
 
 QString ProductDeviceModel::displayNameForBleDevice(const QString &identifier, const QString &rawName) const
@@ -845,7 +1688,71 @@ QString ProductDeviceModel::displayNameForBleDevice(const QString &identifier, c
     if (!rawName.trimmed().isEmpty()) {
         return rawName.trimmed();
     }
-    return tr("BM Device");
+    return QStringLiteral("BMESC Device");
+}
+
+QString ProductDeviceModel::focstrotIdentityText() const
+{
+    QStringList parts;
+    if (mVesc) {
+        const FW_RX_PARAMS params = mVesc->getLastFwRxParams();
+        FW_RX_PARAMS paramsCopy = params;
+        parts << params.hw << params.fwName << paramsCopy.hwTypeStr();
+    }
+    parts << mSelectedNodeName << mConnectingDeviceName << connectionName();
+    return parts.join(QStringLiteral(" ")).simplified();
+}
+
+void ProductDeviceModel::retranslateProductText()
+{
+    mFaultText = userFaultText(mFaultCode);
+
+    if (mSelectedCanNodeId < 0 &&
+            (mSelectedNodeName == QStringLiteral("Local device") || mSelectedNodeName == QStringLiteral("本机"))) {
+        mSelectedNodeName = isEnglish() ? QStringLiteral("Local device") : QStringLiteral("本机");
+    } else if (mSelectedCanNodeId >= 0 &&
+               (mSelectedNodeName.startsWith(QStringLiteral("Node ")) ||
+                mSelectedNodeName.startsWith(QStringLiteral("节点 ")))) {
+        mSelectedNodeName = isEnglish()
+                ? QStringLiteral("Node %1").arg(mSelectedCanNodeId)
+                : QStringLiteral("节点 %1").arg(mSelectedCanNodeId);
+    }
+
+    for (int i = 0; i < mCanNodes.size(); ++i) {
+        QVariantMap node = mCanNodes.at(i).toMap();
+        const int nodeId = node.value(QStringLiteral("id"), -1).toInt();
+        const bool enabled = node.value(QStringLiteral("enabled")).toBool();
+        const QString name = node.value(QStringLiteral("name")).toString();
+        if (nodeId < 0 && (name == QStringLiteral("Local device") || name == QStringLiteral("本机"))) {
+            node.insert(QStringLiteral("name"), isEnglish() ? QStringLiteral("Local device") : QStringLiteral("本机"));
+        } else if (nodeId >= 0 && (name.startsWith(QStringLiteral("Node ")) || name.startsWith(QStringLiteral("节点 ")))) {
+            node.insert(QStringLiteral("name"), isEnglish()
+                        ? QStringLiteral("Node %1").arg(nodeId)
+                        : QStringLiteral("节点 %1").arg(nodeId));
+        }
+        node.insert(QStringLiteral("state"), enabled
+                    ? (isEnglish() ? QStringLiteral("Available") : QStringLiteral("可用"))
+                    : (isEnglish() ? QStringLiteral("Unavailable") : QStringLiteral("不可用")));
+        mCanNodes[i] = node;
+    }
+
+    if ((mIsFocstrotDevice || mRefloatPollTimer.isActive()) && !mSpeedLimitSaving) {
+        if (!mRefloatAvailable) {
+            mSpeedLimitStatusText = isEnglish()
+                    ? QStringLiteral("Detecting Refloat...")
+                    : QStringLiteral("正在检测 Refloat...");
+        } else if (!mSpeedLimitLoaded) {
+            mSpeedLimitStatusText = isEnglish()
+                    ? QStringLiteral("Loading speed limit...")
+                    : QStringLiteral("正在读取限速...");
+        } else {
+            mSpeedLimitStatusText = mSpeedLimitKph == 0
+                    ? (isEnglish() ? QStringLiteral("Speed limit is off.") : QStringLiteral("限速未启用。"))
+                    : (isEnglish()
+                       ? QStringLiteral("Current limit: %1 km/h.").arg(mSpeedLimitKph)
+                       : QStringLiteral("当前限速：%1 km/h。").arg(mSpeedLimitKph));
+        }
+    }
 }
 
 ProductDeviceModel::ProductConnectionFlow ProductDeviceModel::classifyBleDevice(const QString &deviceName) const
@@ -862,66 +1769,93 @@ ProductDeviceModel::ProductConnectionFlow ProductDeviceModel::classifyBleDevice(
     return ProductConnectionFlow::BleUartDirect;
 }
 
-QString ProductDeviceModel::userFaultText(const QString &faultCode)
+QString ProductDeviceModel::userFaultText(const QString &faultCode) const
 {
+    const bool en = isEnglish();
     if (faultCode.isEmpty() || faultCode == "FAULT_CODE_NONE") {
-        return tr("正常");
+        return en ? QStringLiteral("Normal") : QStringLiteral("正常");
     }
 
     if (faultCode == "FAULT_CODE_OVER_VOLTAGE") {
-        return tr("电池电压过高，请停止使用并检查电池");
+        return en ? QStringLiteral("Battery voltage is too high. Stop using the device and check the battery.")
+                  : QStringLiteral("电池电压过高，请停止使用并检查电池");
     } else if (faultCode == "FAULT_CODE_UNDER_VOLTAGE") {
-        return tr("电池电量或电压过低，请及时充电");
+        return en ? QStringLiteral("Battery level or voltage is too low. Please charge soon.")
+                  : QStringLiteral("电池电量或电压过低，请及时充电");
     } else if (faultCode == "FAULT_CODE_DRV") {
-        return tr("电机驱动异常，请停止使用并联系售后");
+        return en ? QStringLiteral("Motor driver fault. Stop using the device and contact support.")
+                  : QStringLiteral("电机驱动异常，请停止使用并联系售后");
     } else if (faultCode == "FAULT_CODE_ABS_OVER_CURRENT") {
-        return tr("电流过大，设备已保护，请稍后再试");
+        return en ? QStringLiteral("Current is too high. Protection is active; try again later.")
+                  : QStringLiteral("电流过大，设备已保护，请稍后再试");
     } else if (faultCode == "FAULT_CODE_OVER_TEMP_FET") {
-        return tr("控制器温度过高，请停下等待降温");
+        return en ? QStringLiteral("Controller temperature is too high. Stop and let it cool down.")
+                  : QStringLiteral("控制器温度过高，请停下等待降温");
     } else if (faultCode == "FAULT_CODE_OVER_TEMP_MOTOR") {
-        return tr("电机温度过高，请停下等待降温");
+        return en ? QStringLiteral("Motor temperature is too high. Stop and let it cool down.")
+                  : QStringLiteral("电机温度过高，请停下等待降温");
     } else if (faultCode == "FAULT_CODE_GATE_DRIVER_OVER_VOLTAGE") {
-        return tr("驱动电压异常偏高，请停止使用并检查设备");
+        return en ? QStringLiteral("Gate driver voltage is too high. Stop using the device and inspect it.")
+                  : QStringLiteral("驱动电压异常偏高，请停止使用并检查设备");
     } else if (faultCode == "FAULT_CODE_GATE_DRIVER_UNDER_VOLTAGE") {
-        return tr("驱动电压异常偏低，请停止使用并检查设备");
+        return en ? QStringLiteral("Gate driver voltage is too low. Stop using the device and inspect it.")
+                  : QStringLiteral("驱动电压异常偏低，请停止使用并检查设备");
     } else if (faultCode == "FAULT_CODE_MCU_UNDER_VOLTAGE") {
-        return tr("控制器供电不足，请检查电池和连接");
+        return en ? QStringLiteral("Controller supply voltage is low. Check the battery and connections.")
+                  : QStringLiteral("控制器供电不足，请检查电池和连接");
     } else if (faultCode == "FAULT_CODE_BOOTING_FROM_WATCHDOG_RESET") {
-        return tr("设备刚刚自动重启，请观察是否恢复正常");
+        return en ? QStringLiteral("The device restarted automatically. Check whether it returns to normal.")
+                  : QStringLiteral("设备刚刚自动重启，请观察是否恢复正常");
     } else if (faultCode == "FAULT_CODE_ENCODER_SPI") {
-        return tr("电机位置传感器通信异常，请联系售后");
+        return en ? QStringLiteral("Motor position sensor communication fault. Contact support.")
+                  : QStringLiteral("电机位置传感器通信异常，请联系售后");
     } else if (faultCode == "FAULT_CODE_ENCODER_SINCOS_BELOW_MIN_AMPLITUDE") {
-        return tr("电机位置传感器信号过弱，请联系售后");
+        return en ? QStringLiteral("Motor position sensor signal is too weak. Contact support.")
+                  : QStringLiteral("电机位置传感器信号过弱，请联系售后");
     } else if (faultCode == "FAULT_CODE_ENCODER_SINCOS_ABOVE_MAX_AMPLITUDE") {
-        return tr("电机位置传感器信号过强，请联系售后");
+        return en ? QStringLiteral("Motor position sensor signal is too strong. Contact support.")
+                  : QStringLiteral("电机位置传感器信号过强，请联系售后");
     } else if (faultCode == "FAULT_CODE_FLASH_CORRUPTION") {
-        return tr("设备存储数据异常，请联系售后");
+        return en ? QStringLiteral("Device storage data fault. Contact support.")
+                  : QStringLiteral("设备存储数据异常，请联系售后");
     } else if (faultCode == "FAULT_CODE_HIGH_OFFSET_CURRENT_SENSOR_1" ||
                faultCode == "FAULT_CODE_HIGH_OFFSET_CURRENT_SENSOR_2" ||
                faultCode == "FAULT_CODE_HIGH_OFFSET_CURRENT_SENSOR_3") {
-        return tr("电流检测异常，请停止使用并联系售后");
+        return en ? QStringLiteral("Current sensing fault. Stop using the device and contact support.")
+                  : QStringLiteral("电流检测异常，请停止使用并联系售后");
     } else if (faultCode == "FAULT_CODE_UNBALANCED_CURRENTS") {
-        return tr("电机电流不平衡，请停止使用并检查设备");
+        return en ? QStringLiteral("Motor currents are unbalanced. Stop using the device and inspect it.")
+                  : QStringLiteral("电机电流不平衡，请停止使用并检查设备");
     } else if (faultCode == "FAULT_CODE_BRK") {
-        return tr("制动保护触发，请松开刹车后再试");
+        return en ? QStringLiteral("Brake protection triggered. Release the brake and try again.")
+                  : QStringLiteral("制动保护触发，请松开刹车后再试");
     } else if (faultCode == "FAULT_CODE_RESOLVER_LOT" ||
                faultCode == "FAULT_CODE_RESOLVER_DOS") {
-        return tr("电机位置传感器异常，请联系售后");
+        return en ? QStringLiteral("Motor position sensor fault. Contact support.")
+                  : QStringLiteral("电机位置传感器异常，请联系售后");
     } else if (faultCode == "FAULT_CODE_RESOLVER_LOS") {
-        return tr("电机位置传感器信号丢失，请联系售后");
+        return en ? QStringLiteral("Motor position sensor signal is lost. Contact support.")
+                  : QStringLiteral("电机位置传感器信号丢失，请联系售后");
     } else if (faultCode == "FAULT_CODE_FLASH_CORRUPTION_APP_CFG") {
-        return tr("应用配置异常，请联系售后");
+        return en ? QStringLiteral("App configuration data fault. Contact support.")
+                  : QStringLiteral("应用配置异常，请联系售后");
     } else if (faultCode == "FAULT_CODE_FLASH_CORRUPTION_MC_CFG") {
-        return tr("电机配置异常，请联系售后");
+        return en ? QStringLiteral("Motor configuration data fault. Contact support.")
+                  : QStringLiteral("电机配置异常，请联系售后");
     } else if (faultCode == "FAULT_CODE_ENCODER_NO_MAGNET") {
-        return tr("电机传感器未检测到磁体，请联系售后");
+        return en ? QStringLiteral("Motor sensor did not detect a magnet. Contact support.")
+                  : QStringLiteral("电机传感器未检测到磁体，请联系售后");
     } else if (faultCode == "FAULT_CODE_ENCODER_MAGNET_TOO_STRONG") {
-        return tr("电机传感器磁场过强，请联系售后");
+        return en ? QStringLiteral("Motor sensor magnetic field is too strong. Contact support.")
+                  : QStringLiteral("电机传感器磁场过强，请联系售后");
     } else if (faultCode == "FAULT_CODE_PHASE_FILTER") {
-        return tr("电机相位检测异常，请停止使用并联系售后");
+        return en ? QStringLiteral("Motor phase detection fault. Stop using the device and contact support.")
+                  : QStringLiteral("电机相位检测异常，请停止使用并联系售后");
     } else if (faultCode == "FAULT_CODE_ENCODER_FAULT") {
-        return tr("电机位置传感器故障，请联系售后");
+        return en ? QStringLiteral("Motor position sensor fault. Contact support.")
+                  : QStringLiteral("电机位置传感器故障，请联系售后");
     }
 
-    return tr("未知异常，请停止使用并联系售后");
+    return en ? QStringLiteral("Unknown fault. Stop using the device and contact support.")
+              : QStringLiteral("未知异常，请停止使用并联系售后");
 }

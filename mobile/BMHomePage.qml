@@ -20,24 +20,30 @@ Item {
     readonly property bool protocolReady: deviceModel ? deviceModel.protocolReady : false
     readonly property bool telemetryValid: deviceModel ? deviceModel.telemetryValid : false
     readonly property bool imperial: deviceModel ? deviceModel.useImperialUnits : false
+    readonly property bool isEnglish: deviceModel ? deviceModel.isEnglish : false
+    readonly property bool showPedalState: deviceModel ? deviceModel.refloatAvailable : false
+    readonly property bool pedalOnePressed: showPedalState && (deviceModel.pedalState === 1 || deviceModel.pedalState === 3)
+    readonly property bool pedalTwoPressed: showPedalState && (deviceModel.pedalState === 2 || deviceModel.pedalState === 3)
 
     readonly property real speedKph: deviceModel ? deviceModel.speedMetersPerSecond * 3.6 : 0
     readonly property real maxSpeedKph: deviceModel ? deviceModel.sessionMaxSpeedMetersPerSecond * 3.6 : 0
+    readonly property real speedGaugeMaxKph: deviceModel ? deviceModel.speedGaugeMaximumMetersPerSecond * 3.6 : 60
     readonly property real displaySpeed: imperial ? speedKph * 0.621371192 : speedKph
     readonly property real displayMaxSpeed: imperial ? maxSpeedKph * 0.621371192 : maxSpeedKph
+    readonly property real displaySpeedGaugeMax: imperial ? speedGaugeMaxKph * 0.621371192 : speedGaugeMaxKph
     readonly property string speedUnit: imperial ? "MPH" : "KM/H"
     readonly property bool hasFault: deviceModel ? deviceModel.hasFault : false
     readonly property string faultText: deviceModel && deviceModel.faultText.length > 0
-                                        ? deviceModel.faultText : qsTr("正常")
+                                        ? deviceModel.faultText : root.t("正常", "Normal")
     readonly property string deviceStatusText: !transportConnected
-                                                ? qsTr("未连接")
+                                                ? root.t("未连接", "Offline")
                                                 : (!protocolReady
-                                                   ? qsTr("正在识别设备")
+                                                   ? root.t("正在识别设备", "Reading device")
                                                 : (!telemetryValid
-                                                   ? qsTr("读取中")
+                                                   ? root.t("读取中", "Loading")
                                                    : (hasFault
-                                                      ? qsTr("需检查 · %1").arg(faultText)
-                                                      : qsTr("正常"))))
+                                                      ? root.t("需检查 · %1", "Check needed · %1").arg(faultText)
+                                                      : root.t("正常", "Normal"))))
     readonly property color deviceStatusColor: !transportConnected
                                                 ? "#9aa3b2"
                                                 : (!protocolReady
@@ -45,6 +51,10 @@ Item {
                                                 : (!telemetryValid
                                                    ? "#f2d58a"
                                                    : (hasFault ? "#ff8b8b" : "#64d6b0")))
+
+    function t(zh, en) {
+        return root.isEnglish ? en : zh
+    }
 
     ScrollView {
         anchors.fill: parent
@@ -67,7 +77,18 @@ Item {
                     Layout.fillWidth: true
                     Layout.preferredHeight: 52
                     enabled: !root.transportConnected
+                    transformOrigin: Item.Center
+                    scale: enabled && down ? 0.96 : 1.0
+                    opacity: enabled ? (down ? 0.92 : 1.0) : 0.72
                     onClicked: root.requestConnect()
+
+                    Behavior on scale {
+                        NumberAnimation { duration: 130; easing.type: Easing.OutCubic }
+                    }
+
+                    Behavior on opacity {
+                        NumberAnimation { duration: 110; easing.type: Easing.OutCubic }
+                    }
 
                     background: Rectangle {
                         radius: 16
@@ -78,8 +99,8 @@ Item {
                     }
 
                     contentItem: Text {
-                        text: !root.transportConnected ? qsTr("连接设备")
-                              : (!root.protocolReady ? qsTr("正在识别设备") : qsTr("实时数据已显示"))
+                        text: !root.transportConnected ? root.t("连接设备", "Connect Device")
+                              : (!root.protocolReady ? root.t("正在识别设备", "Reading Device") : root.t("实时数据已显示", "Live Data Shown"))
                         color: "#17120a"
                         font.pixelSize: 15
                         font.bold: true
@@ -93,8 +114,19 @@ Item {
                     Layout.preferredHeight: 52
                     visible: root.transportConnected
                     enabled: root.transportConnected
+                    transformOrigin: Item.Center
+                    scale: enabled && down ? 0.96 : 1.0
+                    opacity: enabled ? (down ? 0.92 : 1.0) : 0.72
                     onClicked: {
                         if (root.deviceModel) root.deviceModel.disconnectDevice()
+                    }
+
+                    Behavior on scale {
+                        NumberAnimation { duration: 130; easing.type: Easing.OutCubic }
+                    }
+
+                    Behavior on opacity {
+                        NumberAnimation { duration: 110; easing.type: Easing.OutCubic }
                     }
 
                     background: Rectangle {
@@ -105,7 +137,7 @@ Item {
                     }
 
                     contentItem: Text {
-                        text: qsTr("断开")
+                        text: root.t("断开", "Disconnect")
                         color: "#ff5c6f"
                         font.pixelSize: 15
                         font.bold: true
@@ -119,9 +151,10 @@ Item {
                 Layout.fillWidth: true
                 Layout.leftMargin: root.pageMargin
                 Layout.rightMargin: root.pageMargin
-                text: qsTr("请确认设备已开机并靠近手机，连接后查看实时状态")
+                text: root.t("请确认设备已开机并靠近手机，连接后查看实时状态",
+                             "Make sure the device is powered on and near your phone. Connect to view live status")
                       + (root.transportConnected && !root.protocolReady
-                         ? qsTr("；当前正在读取设备信息")
+                         ? root.t("；当前正在读取设备信息", "; reading device information")
                          : "")
                 color: "#9aa3b2"
                 font.pixelSize: 13
@@ -151,7 +184,7 @@ Item {
                             Text {
                                 Layout.fillWidth: true
                                 text: root.protocolReady && root.deviceModel
-                                      ? root.deviceModel.deviceName : qsTr("未连接设备")
+                                      ? root.deviceModel.deviceName : root.t("未连接设备", "No device connected")
                                 color: "#f4f1ea"
                                 font.pixelSize: 21
                                 font.bold: true
@@ -160,14 +193,14 @@ Item {
                             Text {
                                 Layout.fillWidth: true
                                 text: root.protocolReady
-                                      ? qsTr("实时速度、电量和设备状态")
-                                      : qsTr("连接后显示速度、电量和设备状态")
+                                      ? root.t("实时速度、电量和设备状态", "Live speed, battery, and device status")
+                                      : root.t("连接后显示速度、电量和设备状态", "Connect to show speed, battery, and device status")
                                 color: "#9aa3b2"
                                 font.pixelSize: 12
                                 elide: Text.ElideRight
                             }
                         }
-                        Pill { text: root.telemetryValid ? qsTr("数据正常") : qsTr("等待数据") }
+                        Pill { text: root.telemetryValid ? root.t("数据正常", "Data OK") : root.t("等待数据", "Waiting") }
                     }
 
                     Rectangle {
@@ -185,9 +218,51 @@ Item {
                             width: Math.min(230, parent.width * 0.86)
                             height: width
                             value: root.telemetryValid ? root.displaySpeed : 0
-                            maxValue: root.imperial ? 40 : 60
+                            maxValue: root.displaySpeedGaugeMax
+                            hasData: root.telemetryValid
                             unit: root.speedUnit
+                            isEnglish: root.isEnglish
                             accentColor: root.theme ? root.theme.gold2 : "#dfbd91"
+                        }
+                    }
+
+                    Item {
+                        visible: root.showPedalState
+                        width: parent.width
+                        height: visible ? 36 : 0
+                        readonly property real centerX: width / 2
+                        readonly property real stripWidth: Math.min(96, Math.max(68, (width - 160) / 2))
+                        readonly property real stripGap: 44
+
+                        PedalStrip {
+                            width: parent.stripWidth
+                            height: 12
+                            x: parent.centerX - parent.stripGap - width
+                            anchors.verticalCenter: parent.verticalCenter
+                            active: root.pedalOnePressed
+                            activeColor: root.theme ? root.theme.gold2 : "#dfbd91"
+                        }
+
+                        Text {
+                            width: 104
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: root.t("踏板", "Footpad")
+                            color: "#9aa3b2"
+                            font.pixelSize: 24
+                            font.bold: true
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                            elide: Text.ElideRight
+                        }
+
+                        PedalStrip {
+                            width: parent.stripWidth
+                            height: 12
+                            x: parent.centerX + parent.stripGap
+                            anchors.verticalCenter: parent.verticalCenter
+                            active: root.pedalTwoPressed
+                            activeColor: root.theme ? root.theme.gold2 : "#dfbd91"
                         }
                     }
 
@@ -211,14 +286,14 @@ Item {
 
                                 Kpi {
                                     width: parent.width / 3
-                                    label: qsTr("电量")
+                                    label: root.t("电量", "Battery")
                                     batteryMode: true
                                     batteryValid: root.telemetryValid
                                     batteryPercent: root.telemetryValid ? root.deviceModel.batteryPercent : 0
                                 }
                                 Kpi {
                                     width: parent.width / 3
-                                    label: qsTr("里程")
+                                    label: root.t("里程", "Odometer")
                                     value: root.telemetryValid
                                            ? (root.imperial
                                               ? (root.deviceModel.odometerKm * 0.621371192).toFixed(1) + " mi"
@@ -227,7 +302,7 @@ Item {
                                 }
                                 Kpi {
                                     width: parent.width / 3
-                                    label: qsTr("最高速度")
+                                    label: root.t("最高速度", "Top Speed")
                                     value: root.telemetryValid ? root.displayMaxSpeed.toFixed(1) : "--"
                                 }
                             }
@@ -235,18 +310,43 @@ Item {
                             StatusRow {
                                 id: statusMetric
                                 width: parent.width
-                                label: qsTr("设备状态")
+                                label: root.t("设备状态", "Device Status")
                                 value: root.deviceStatusText
                                 valueColor: root.deviceStatusColor
                             }
                         }
+
+                        Rectangle {
+                            x: parent.width / 3
+                            y: 0
+                            width: 1
+                            height: metricRow.height
+                            color: Qt.rgba(255, 255, 255, 0.08)
+                        }
+
+                        Rectangle {
+                            x: parent.width * 2 / 3
+                            y: 0
+                            width: 1
+                            height: metricRow.height
+                            color: Qt.rgba(255, 255, 255, 0.08)
+                        }
+
+                        Rectangle {
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            y: metricRow.height
+                            height: 1
+                            color: Qt.rgba(255, 255, 255, 0.08)
+                        }
                     }
+
                 }
             }
 
             Item {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 72
+                Layout.preferredHeight: 24
             }
         }
     }
@@ -287,8 +387,6 @@ Item {
         height: 78
         radius: 0
         color: "transparent"
-        border.width: 1
-        border.color: Qt.rgba(255, 255, 255, 0.08)
         Text {
             id: kpiLabel
             anchors.horizontalCenter: parent.horizontalCenter
@@ -330,8 +428,6 @@ Item {
         height: 62
         radius: 0
         color: "transparent"
-        border.width: 1
-        border.color: Qt.rgba(255, 255, 255, 0.08)
 
         Text {
             anchors.left: parent.left
@@ -382,4 +478,19 @@ Item {
             }
         }
     }
+
+    component PedalStrip: Item {
+        property bool active: false
+        property color activeColor: "#dfbd91"
+
+        Rectangle {
+            anchors.fill: parent
+            anchors.leftMargin: 2
+            anchors.rightMargin: 2
+            radius: height / 2
+            color: active ? activeColor : "#656b6f"
+            opacity: active ? 1.0 : 0.72
+        }
+    }
+
 }

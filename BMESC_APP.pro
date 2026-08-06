@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 # Version
-VT_VERSION = 6.06
+VT_VERSION = 1.01
 VT_INTRO_VERSION = 1
 VT_CONFIG_VERSION = 4
 
@@ -16,7 +16,7 @@ VT_IS_TEST_VERSION = 0
 VT_GIT_COMMIT = $$system(git rev-parse --short=8 HEAD)
 
 VT_ANDROID_VERSION_ARMV7 = 190
-VT_ANDROID_VERSION_ARM64 = 191
+VT_ANDROID_VERSION_ARM64 = 192
 VT_ANDROID_VERSION_X86 = 192
 
 VT_ANDROID_VERSION = $$VT_ANDROID_VERSION_X86
@@ -74,8 +74,8 @@ DEFINES += HAS_BLUETOOTH
 # Adding serialbus to Qt seems to break the serial port on static builds. TODO: Figure out why.
 #DEFINES += HAS_CANBUS
 
-# Positioning
-DEFINES += HAS_POS
+# Positioning is not part of the first App Store MVP on iOS.
+!ios: DEFINES += HAS_POS
 
 !ios: {
     QT       += printsupport
@@ -138,13 +138,13 @@ android: QT += androidextras
 
 ios: {
     TARGET = BMESC
-    QMAKE_TARGET_BUNDLE_PREFIX = com.bmesc
-    QMAKE_BUNDLE = app
+    QMAKE_TARGET_BUNDLE_PREFIX = com.floatingwheel
+    QMAKE_BUNDLE = bmesc
     CONFIG += sdk_no_version_check
 } else: macx {
     TARGET = BMESC
-    QMAKE_TARGET_BUNDLE_PREFIX = com.bmesc
-    QMAKE_BUNDLE = app
+    QMAKE_TARGET_BUNDLE_PREFIX = com.floatingwheel
+    QMAKE_BUNDLE = bmesc
     CONFIG += sdk_no_version_check
 }else: {
     android:{

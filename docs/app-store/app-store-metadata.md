@@ -3,7 +3,7 @@
 ## App Record
 
 - Name: BMESC
-- Bundle ID: `com.bmesc.app`
+- Bundle ID: `com.floatingwheel.bmesc`
 - SKU: `BMESC-IOS-001`
 - Primary language: English
 - Availability: Worldwide
@@ -15,21 +15,23 @@
 
 ## Subtitle
 
-Bluetooth device dashboard
+Bluetooth companion for BMESC devices
 
 ## Description
 
-BMESC is a companion app for compatible BMESC hardware. It helps users find nearby devices over Bluetooth, connect to their device, view live telemetry, review device information, and understand user-facing fault and safety messages.
+BMESC is a companion app for compatible BMESC hardware. Use it to find a nearby device over Bluetooth, connect to it, and view the device status shown by the app.
 
-The first release focuses on local device management. It does not require an account, does not bind devices to a cloud service, and does not include payments, social features, or leaderboards.
+The app focuses on local device management. It can show connection status, device information, live telemetry, and user-facing fault messages when a compatible device is connected.
+
+BMESC does not require an account. It does not bind devices to a cloud service, and it does not include ads, payments, social features, or leaderboards.
 
 ## Keywords
 
-BMESC, Bluetooth, telemetry, device, mobility, controller
+BMESC, Bluetooth, device
 
 ## Review Notes
 
-BMESC connects to compatible BMESC hardware over Bluetooth Low Energy. Core flows are BLE discovery and connection, live telemetry, device information, local fault logs, units/language settings, support, privacy policy, user agreement, and open source license information.
+BMESC connects to compatible BMESC hardware over Bluetooth Low Energy. The first release supports BLE discovery and connection, local device status, device information, user-facing fault messages, settings, support, privacy policy, user agreement, and open source license information.
 
 No login is required. The app does not include user accounts, cloud device binding, in-app purchases, payment, social features, or leaderboards. The app uses Bluetooth only to discover and connect to nearby compatible devices. Telemetry is displayed locally and is not uploaded to a cloud service in this release.
 

@@ -168,7 +168,8 @@ int main(int argc, char *argv[])
     // Settings
     QCoreApplication::setOrganizationName("VESC");
     QCoreApplication::setOrganizationDomain("vesc-project.com");
-    QCoreApplication::setApplicationName("MicroEV");
+    QCoreApplication::setApplicationName("BMESC");
+    QCoreApplication::setApplicationVersion(Utility::appVersionText());
     QSettings set;
     bool isDark = false;
     set.setValue("darkMode", false);

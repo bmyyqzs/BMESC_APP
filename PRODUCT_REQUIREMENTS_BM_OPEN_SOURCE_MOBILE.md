@@ -2,7 +2,7 @@
 
 ## 1. 文档目的
 
-本 PRD 用于指导基于当前 MicroEV2 / VESC Tool 开源代码的 BM 移动 App 产品化改造。目标是在保留成熟 BLE、Packet、Commands 通讯能力的前提下，重做面向普通用户的移动端 UI、交互流程和产品模型，形成可上架 App Store 与安卓应用市场的开源 App。
+本 PRD 用于指导基于当前 BMESC APP / VESC Tool 开源代码的 BM 移动 App 产品化改造。目标是在保留成熟 BLE、Packet、Commands 通讯能力的前提下，重做面向普通用户的移动端 UI、交互流程和产品模型，形成可上架 App Store 与安卓应用市场的开源 App。
 
 本文件聚焦当前商业 MVP，不包含账号、云端绑定、排行榜、社交、固件升级等第二阶段能力。
 
@@ -587,7 +587,7 @@
 
 - `ios/`
 - `android/`
-- `microev.pro`
+- `BMESC_APP.pro`
 - `mobile/qml.qrc`
 - 平台权限、包名、图标、启动图、商店文案。
 

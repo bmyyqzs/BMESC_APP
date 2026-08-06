@@ -24,6 +24,11 @@ Item {
                                                     ? (imperial ? deviceModel.odometerKm * 0.621371192
                                                                 : deviceModel.odometerKm)
                                                     : 0
+    readonly property bool isEnglish: deviceModel ? deviceModel.isEnglish : false
+
+    function t(zh, en) {
+        return root.isEnglish ? en : zh
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -45,7 +50,7 @@ Item {
                 Layout.leftMargin: 20
                 Layout.rightMargin: 20
                 Layout.topMargin: 20
-                text: qsTr("Live ride")
+                text: root.t("实时骑行", "Live Ride")
                 color: root.textColor
                 font.pixelSize: 28
                 font.bold: true
@@ -56,9 +61,9 @@ Item {
                 Layout.leftMargin: 20
                 Layout.rightMargin: 20
                 text: !root.deviceModel || !root.deviceModel.connected
-                      ? qsTr("Connect your BM device to view live data")
+                      ? root.t("连接 BMESC 设备后查看实时数据", "Connect your BMESC device to view live data")
                       : (!root.deviceModel.telemetryValid
-                         ? qsTr("Waiting for device data")
+                         ? root.t("等待设备数据", "Waiting for device data")
                          : root.deviceModel.faultText)
                 color: root.deviceModel && root.deviceModel.hasFault
                        ? "#ff9f73" : root.secondaryTextColor
@@ -93,7 +98,7 @@ Item {
 
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        text: root.imperial ? qsTr("mph") : qsTr("km/h")
+                        text: root.imperial ? "mph" : "km/h"
                         color: root.goldColor
                         font.pixelSize: 15
                         font.bold: true
@@ -110,34 +115,34 @@ Item {
                 rowSpacing: 10
 
                 MetricCard {
-                    title: qsTr("Battery")
+                    title: root.t("电量", "Battery")
                     batteryMode: true
                     batteryValid: root.deviceModel && root.deviceModel.telemetryValid
                     batteryPercent: root.deviceModel && root.deviceModel.telemetryValid
                                     ? root.deviceModel.batteryPercent : 0
                 }
                 MetricCard {
-                    title: qsTr("Power")
+                    title: root.t("功率", "Power")
                     value: root.deviceModel && root.deviceModel.telemetryValid
                            ? root.deviceModel.powerWatts.toFixed(0) + " W" : "--"
                 }
                 MetricCard {
-                    title: qsTr("This ride")
+                    title: root.t("本次骑行", "This Ride")
                     value: root.deviceModel && root.deviceModel.telemetryValid
                            ? root.displayTrip.toFixed(1) + (root.imperial ? " mi" : " km") : "--"
                 }
                 MetricCard {
-                    title: qsTr("Odometer")
+                    title: root.t("总里程", "Odometer")
                     value: root.deviceModel && root.deviceModel.telemetryValid
                            ? root.displayOdometer.toFixed(1) + (root.imperial ? " mi" : " km") : "--"
                 }
                 MetricCard {
-                    title: qsTr("Controller")
+                    title: root.t("控制器", "Controller")
                     value: root.deviceModel && root.deviceModel.telemetryValid
                            ? root.deviceModel.controllerTemperatureCelsius.toFixed(0) + " °C" : "--"
                 }
                 MetricCard {
-                    title: qsTr("Motor")
+                    title: root.t("电机", "Motor")
                     value: root.deviceModel && root.deviceModel.telemetryValid
                            ? root.deviceModel.motorTemperatureCelsius.toFixed(0) + " °C" : "--"
                 }
@@ -158,8 +163,8 @@ Item {
                     id: faultText
                     anchors.fill: parent
                     anchors.margins: 16
-                    text: qsTr("Device fault: %1").arg(root.deviceModel
-                                                       ? root.deviceModel.faultText : "")
+                    text: root.t("设备故障：%1", "Device fault: %1").arg(root.deviceModel
+                                                                       ? root.deviceModel.faultText : "")
                     color: "#ffb39b"
                     font.pixelSize: 13
                     font.bold: true

@@ -1,4 +1,8 @@
-# VESC® Tool
+# BMESC APP
+
+This repository is the BMESC APP fork/adaptation of VESC Tool for BM-branded hardware and mobile product flows. The generated mobile app remains user-facing as `BMESC`.
+
+## Upstream Source
 
 This is the source code of VESC Tool. A pre-compiled binary of both the stable release as well as the development release packaged with all the matching firmware for all supported hardware can be downloaded at http://vesc-project.com/
 

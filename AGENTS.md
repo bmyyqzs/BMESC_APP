@@ -340,7 +340,7 @@ Before the final response of every user turn:
 
 \- Keep stable product background in `PROJECT_CONTEXT.md`; keep chronological conversation and task outcomes in `PROJECT_MEMORY.md`.
 
-\- Memory is project-scoped to this `MicroEV2` repository.
+\- Memory is project-scoped to this `BMESC APP` repository.
 
 \- A memory entry is a summary, not a full transcript. Preserve decisions and outcomes while omitting conversational filler.
 

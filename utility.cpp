@@ -262,6 +262,11 @@ QString Utility::versionText()
     return QString::number(VT_VERSION, 'f', 2) + "-" + QString::number(VT_IS_TEST_VERSION) + "+" + STR(VT_GIT_COMMIT);
 }
 
+QString Utility::appVersionText()
+{
+    return QString::number(VT_VERSION, 'f', 2);
+}
+
 QString Utility::uuid2Str(QByteArray uuid, bool space)
 {
     QString strUuid;
@@ -1596,7 +1601,7 @@ QVariantList Utility::getNetworkAddresses()
 void Utility::startGnssForegroundService()
 {
 #ifdef Q_OS_ANDROID
-    QAndroidJniObject::callStaticMethod<void>("com/vedder/vesc/Utils",
+    QAndroidJniObject::callStaticMethod<void>("com/bmesc/app/Utils",
                                               "startVForegroundService",
                                               "(Landroid/content/Context;)V",
                                               QtAndroid::androidActivity().object());
@@ -1606,7 +1611,7 @@ void Utility::startGnssForegroundService()
 void Utility::stopGnssForegroundService()
 {
 #ifdef Q_OS_ANDROID
-    QAndroidJniObject::callStaticMethod<void>("com/vedder/vesc/Utils",
+    QAndroidJniObject::callStaticMethod<void>("com/bmesc/app/Utils",
                                               "stopVForegroundService",
                                               "(Landroid/content/Context;)V",
                                               QtAndroid::androidActivity().object());
@@ -1616,7 +1621,7 @@ void Utility::stopGnssForegroundService()
 bool Utility::isBleScanEnabled()
 {
 #ifdef Q_OS_ANDROID
-    return QAndroidJniObject::callStaticMethod<jboolean>("com/vedder/vesc/Utils",
+    return QAndroidJniObject::callStaticMethod<jboolean>("com/bmesc/app/Utils",
                                                          "checkLocationEnabled",
                                                          "(Landroid/content/Context;)Z",
                                                          QtAndroid::androidActivity().object());
@@ -2548,19 +2553,19 @@ QVariantMap Utility::getSafeAreaMargins(QQuickWindow *window)
     QMargins margins = platformWindow->safeAreaMargins();
     QVariantMap map;
 #ifdef Q_OS_ANDROID
-    int top = QAndroidJniObject::callStaticMethod<jint>("com/vedder/vesc/Utils",
+    int top = QAndroidJniObject::callStaticMethod<jint>("com/bmesc/app/Utils",
                                                         "topBarHeight",
                                                         "(Landroid/content/Context;)I",
                                                         QtAndroid::androidActivity().object());
-    int bottom = QAndroidJniObject::callStaticMethod<jint>("com/vedder/vesc/Utils",
+    int bottom = QAndroidJniObject::callStaticMethod<jint>("com/bmesc/app/Utils",
                                                            "bottomBarHeight",
                                                            "(Landroid/content/Context;)I",
                                                            QtAndroid::androidActivity().object());
-    int right = QAndroidJniObject::callStaticMethod<jint>("com/vedder/vesc/Utils",
+    int right = QAndroidJniObject::callStaticMethod<jint>("com/bmesc/app/Utils",
                                                           "rightBarHeight",
                                                           "(Landroid/content/Context;)I",
                                                           QtAndroid::androidActivity().object());
-    int left = QAndroidJniObject::callStaticMethod<jint>("com/vedder/vesc/Utils",
+    int left = QAndroidJniObject::callStaticMethod<jint>("com/bmesc/app/Utils",
                                                          "leftBarHeight",
                                                          "(Landroid/content/Context;)I",
                                                          QtAndroid::androidActivity().object());

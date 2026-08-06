@@ -82,7 +82,7 @@ public class VForegroundService extends Service {
         Notification.Action prevAction = new Notification.Action(android.R.drawable.ic_media_pause, "Stop", pendingPrevIntent);
         builder.addAction(prevAction);
 
-        startForeground(1, builder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
+        startForeground(1, builder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
     }
 
     private void stopForegroundService()
