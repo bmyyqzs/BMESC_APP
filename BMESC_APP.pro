@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 # Version
-VT_VERSION = 1.01
+VT_VERSION = 1.02
 VT_INTRO_VERSION = 1
 VT_CONFIG_VERSION = 4
 
@@ -16,8 +16,8 @@ VT_IS_TEST_VERSION = 0
 VT_GIT_COMMIT = $$system(git rev-parse --short=8 HEAD)
 
 VT_ANDROID_VERSION_ARMV7 = 190
-VT_ANDROID_VERSION_ARM64 = 192
-VT_ANDROID_VERSION_X86 = 192
+VT_ANDROID_VERSION_ARM64 = 195
+VT_ANDROID_VERSION_X86 = 195
 
 VT_ANDROID_VERSION = $$VT_ANDROID_VERSION_X86
 
@@ -383,7 +383,7 @@ ios {
 
     # Note for devices: 1=iPhone, 2=iPad, 1,2=Universal.
     CONFIG -= warn_on
-    QMAKE_APPLE_TARGETED_DEVICE_FAMILY = 1,2
+    QMAKE_APPLE_TARGETED_DEVICE_FAMILY = 1
 }
 CONFIG -= warn_on
 

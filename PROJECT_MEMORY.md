@@ -2,6 +2,658 @@
 
 This Git-tracked file is the chronological memory for project conversations and task outcomes. Append new entries; do not rewrite history. Stable product background belongs in `PROJECT_CONTEXT.md`. Sensitive values belong only in the ignored `PROJECT_MEMORY_PRIVATE.md`.
 
+### 2026-08-06 - Rebuild Android signed APK and attempt device install
+
+**User request**
+- Rebuild the Android app, install it to an Android phone, and provide the built install package path.
+
+**Key context**
+- The existing macOS-compatible release script is `build_android_play_release`; `build_android` still contains Linux-specific environment paths.
+- The generated signed APK is `/Users/a202603/Documents/BMESC_APP/build/android-play-release/artifacts/BMESC-1.01-192.apk`.
+
+**Confirmed decisions and preferences**
+- Use the existing Google Play upload keystore from private memory for a signed release APK.
+- The user switched to a different Android phone and allowed using wireless debugging after USB ADB proved unstable.
+
+**Actions and results**
+- Ran `build_android_play_release` successfully; Gradle, AAB generation, APK signing, and `apksigner verify` all completed.
+- APK SHA-256: `abed9af5ac09ffe2bb9637b80feecb8a797383bf8de4a32efbdbb517dde7ffdf`.
+- Initial phone rejected install because an existing `com.bmesc.app` had a different signature; full uninstall succeeded.
+- New phone appeared as `V2196A`, but USB ADB install and push attempts repeatedly stalled or disconnected.
+
+**Unresolved items**
+
+### 2026-08-06 - Change product titles and buttons to MiSans Medium
+
+**User request**
+- Change commercial MVP product page titles and button text from Bold to MiSans Medium, leaving bottom navigation and status/value emphasis unchanged.
+
+**Key context**
+- MiSans Regular and Medium were already registered and packaged before this task.
+- Scope was limited to `mobile/BMHomePage.qml`, `mobile/BMDevicePage.qml`, and `mobile/BMMinePage.qml`.
+
+**Confirmed decisions and preferences**
+- Use `font.weight: Font.Medium` for product page titles, card/dialog titles, and button `contentItem` text.
+- Keep `font.bold: true` where it represents status pills, KPI values, selected rows, InfoRow values, and fault/state emphasis.
+- Do not change BLE, protocol, product model logic, layout, button behavior, or bottom navigation `TabButton`.
+
+**Actions and results**
+- Updated Home, Device, and Mine product QML title/button text weights to `Font.Medium`.
+- Verified no title/button text in the three scoped files remained on `font.bold: true`.
+- Ran `qmllint` for all three scoped QML files and `git diff --check`; all passed.
+- Ran `build_android_play_release`; Gradle build, AAB/APK generation, and APK signature verification succeeded.
+- Installed `build/android-play-release/artifacts/BMESC-1.01-192.apk` to USB phone `PKR110` (`3fb621`) and launched `com.bmesc.app`.
+- Confirmed installed metadata: `versionName=1.01`, `versionCode=192`, `lastUpdateTime=2026-08-06 12:16:09`.
+
+**Unresolved items**
+- User should visually check Home, Device, and Mine pages on PKR110 for Medium title/button weight and any text truncation.
+
+**Sensitive information**
+- Existing private Android signing credentials were read from private memory for release signing but were not copied into public memory.
+- Need the phone's wireless debugging `IP:port` and pairing code, or an already-paired wireless debugging `IP:port`, to complete installation over Wi-Fi.
+
+**Sensitive information**
+- Existing private keystore passwords were used from private memory for signing but were not copied into public memory.
+
+### 2026-08-06 - Prepare Google Play V1.01 upload with 16 KB page size fix
+
+**User request**
+- Help complete the BMESC V1.01 Google Play production release after Play Console reported that version code `192` was already used, then blocked the uploaded draft for not supporting 16 KB memory page size.
+
+**Key context**
+- Play Console accepted the production draft metadata/release notes but rejected the previously uploaded `193 (1.01)` AAB because native libraries did not fully satisfy the 16 KB page size requirement.
+- The local release artifact was regenerated as `/Users/a202603/Documents/BMESC_APP/build/android-play-release/artifacts/BMESC_mobile_release.aab`.
+
+**Confirmed decisions and preferences**
+- Keep `versionName=1.01`; increment Android `versionCode` to `194`.
+- Do not change app code, protocol behavior, QML UI, package name, or signing identity for this release fix.
+
+**Actions and results**
+- Installed Android NDK `28.2.13676358` and used its arm64 `libc++_shared.so`, verified locally as 16 KB compatible.
+- Patched `build_android_play_release` so the unsigned AAB/APK replace `libc++_shared.so` before signing.
+- Rebuilt the signed release successfully; generated `BMESC_mobile_release.aab` and `BMESC-1.01-194.apk`.
+- Verified `android-release.json` reports `versionCode=194` and AAB native libraries have no `0x1000` LOAD alignment; `libc++_shared.so` reports `0x4000`.
+- Play Console browser automation timed out while reading the heavy page, so final upload/submission state still requires user/browser confirmation.
+
+**Unresolved items**
+- Upload the regenerated `194 (1.01)` AAB to the Play Console production draft and confirm the 16 KB page size blocking error is gone before final submit/review.
+
+**Sensitive information**
+- Existing private Android signing credentials were used for release signing but were not copied into public memory.
+
+### 2026-08-10 - Build Google Play API 36 compliant Android release
+
+**User request**
+- Implement the Android 16 / API 36 compliance release plan after Google Play warned that BMESC still targeted Android 15 / API 35.
+
+**Key context**
+- Google Play requires target Android 16 / API 36 for continued app updates after 2026-08-31.
+- The release should keep `versionName=1.01`, package `com.bmesc.app`, existing upload signing key, and the prior 16 KB page size fix.
+
+**Confirmed decisions and preferences**
+- Use `versionCode=195` because `194` had already been generated/uploaded for the previous draft.
+- Do not change QML, protocol behavior, package name, app name, or signing identity.
+
+**Actions and results**
+- Installed Android SDK Platform 36 and build-tools 36.0.0.
+- Updated Android release metadata to target SDK 36 and version code 195 in the manifest and qmake version settings.
+- Updated the Android release script to build against `android-36`, inject build-tools 36 AAPT2 for the old Gradle plugin, disable release lint blocking, and preserve the 16 KB `libc++_shared.so` patch before signing.
+- Built signed release artifacts successfully: `/Users/a202603/Documents/BMESC_APP/build/android-play-release/artifacts/BMESC_mobile_release.aab` and `BMESC-1.01-195.apk`.
+- Verified APK badging reports `versionCode=195`, `targetSdkVersion=36`, `compileSdkVersion=36`; APK signing verifies with the BMESC upload certificate; AAB native libraries have no `0x1000` LOAD alignment and `libc++_shared.so` reports `0x4000`.
+
+**Unresolved items**
+- Upload the regenerated `1.01 (195)` AAB to Google Play Console and confirm the API 36 warning clears; final submit/review remains user-confirmed.
+
+**Sensitive information**
+- Existing private Android signing credentials were used for release signing but were not copied into public memory.
+
+### 2026-08-06 - Install Android APK over wireless debugging
+
+**User request**
+- Install the current Android build to a phone through wireless debugging.
+
+**Key context**
+- Existing release APK was reused: `build/android-play-release/artifacts/BMESC-1.01-192.apk`.
+- Wireless ADB target was already connected as `192.168.1.3:43167`, model `V2196A`.
+
+**Confirmed decisions and preferences**
+- Install the existing APK without rebuilding.
+
+**Actions and results**
+- Installed the APK to wireless ADB target `192.168.1.3:43167` with `adb install -r -d`; installation succeeded.
+- Launched `com.bmesc.app` with `adb shell monkey`.
+- Confirmed package metadata: `versionName=1.01`, `versionCode=192`, `lastUpdateTime=2026-08-06 12:22:57`.
+
+**Unresolved items**
+- User should visually check the app on the wireless-debugging phone.
+
+**Sensitive information**
+- No sensitive values were provided or recorded.
+
+### 2026-08-31 - Merge current font and release updates to main
+
+**User request**
+- Merge the current branch/work into the main branch.
+
+**Key context**
+- Current branch before merge was `codex/fonts`.
+- `codex/fonts`, local `main`, and `origin/main` initially pointed to the same commit; the work to merge existed as uncommitted local changes.
+
+**Confirmed decisions and preferences**
+- Preserve the current local work as a normal Git commit before merging to `main`.
+- Do not change protocol behavior as part of the merge operation.
+
+**Actions and results**
+- Prepared to commit the current font, release metadata, Android build, compliance-page, and project-memory changes on `codex/fonts`, then merge that commit to local `main`.
+
+**Unresolved items**
+- Push to remote and run platform release builds if needed after the local merge.
+
+**Sensitive information**
+- No sensitive values were provided or recorded.
+
+### 2026-08-11 - Asked about changing Apple App Store provider name
+
+**User request**
+- Asked how to change the Provider/Seller name shown for the Apple App Store listing.
+
+**Key context**
+- This is an Apple Developer Program / App Store Connect account-level identity issue, not an iOS code, bundle identifier, signing, or App Store metadata field in the BMESC repository.
+
+**Confirmed decisions and preferences**
+- Explain the operational path and constraints rather than making code changes.
+
+**Actions and results**
+- Prepared guidance: the shown seller/provider name normally comes from the Apple Developer Program legal entity; changing it requires Account Holder access and Apple/D-U-N-S/legal entity updates or Apple support, not a local project edit.
+
+**Unresolved items**
+- User needs to confirm whether they want to change only the public app listing name/brand, the legal seller/provider name, or transfer the app/account to another legal entity.
+
+**Sensitive information**
+- No sensitive values were provided or recorded.
+
+### 2026-08-10 - Reinstall BMESC iOS V1.02 on iPhone
+
+**User request**
+- Install the app to the phone.
+
+**Key context**
+- Reused the existing development-signed app bundle at `/Users/a202603/Documents/BMESC_APP/build/ios-v1.02-device/Debug-iphoneos/BMESC.app`.
+- Connected device was `邱增顺的iPhone`, iPhone 14, identifier `00008110-00012D403CE2401E`.
+
+**Confirmed decisions and preferences**
+- Install the already-built iOS `1.02 (1)` development app instead of rebuilding.
+
+**Actions and results**
+- Verified the app bundle metadata: bundle id `com.floatingwheel.bmesc`, version `1.02`, build `1`.
+- Installed the app successfully with `devicectl`; installation URL was `/private/var/containers/Bundle/Application/D2317441-30C1-4975-AE4C-55D03A631E79/BMESC.app/`.
+- Launched `com.floatingwheel.bmesc` successfully with `devicectl`.
+
+**Unresolved items**
+- User should visually confirm the app on the iPhone.
+
+**Sensitive information**
+- No sensitive values were provided or recorded.
+
+### 2026-08-10 - Build and test BMESC iOS V1.02
+
+**User request**
+- Rebuild a `1.02` iOS build for App Store upload, change version information from `V1.01` to `V1.02`, and install it on the iPhone for testing.
+
+**Key context**
+- Existing editable App Store Connect draft is iOS version `1.02`, so a version-matching IPA is needed.
+- Connected device was `邱增顺的iPhone`, iPhone 14, identifier `00008110-00012D403CE2401E`.
+
+**Confirmed decisions and preferences**
+- Keep bundle id `com.floatingwheel.bmesc`.
+- Use `CFBundleShortVersionString = 1.02` and `CFBundleVersion = 1`.
+- Keep iPhone-only App Store support.
+
+**Actions and results**
+- Updated iOS version sources in `BMESC_APP.pro` and `ios/Info.plist` from `1.01` to `1.02`.
+- Built a Debug iPhone app in `build/ios-v1.02-device`, verified metadata `BMESC 1.02`, installed it to the connected iPhone, and launched it successfully with `devicectl`.
+- Generated Release archive at `/Users/a202603/Documents/BMESC_APP/build/ios-appstore-v1.02/BMESC-V1.02-build1.xcarchive`.
+- Exported App Store Connect IPA at `/Users/a202603/Documents/BMESC_APP/build/ios-appstore-v1.02/export/BMESC.ipa`.
+- Verified exported IPA metadata: display name `BMESC`, bundle id `com.floatingwheel.bmesc`, version `1.02`, build `1`, `UIDeviceFamily = [1]`.
+- Verified exported IPA signing: `Apple Distribution: Beijing Floating Wheel Technology Co., Ltd (R2QUAAM332)`, App Store provisioning profile, and `get-task-allow=false`.
+- IPA SHA-256: `7984a951bd81b86dae228eaa4c4ccf61675f032ac6e4d5543327b938e7b3616a`.
+- Wrote upload checklist to `/Users/a202603/Documents/BMESC_APP/build/ios-appstore-v1.02/UPLOAD_CHECKLIST.txt`.
+
+**Unresolved items**
+- User still needs to upload the V1.02 IPA to Apple and select the processed build in App Store Connect.
+
+**Sensitive information**
+- No Apple credentials, passwords, API keys, or 2FA values were provided or recorded.
+
+### 2026-08-16 - Daily Gmail cooperation scan
+
+**User request**
+- Run the daily read-only Gmail scan for BMESC/VESC/controller cooperation, partnership, supplier, reseller, OEM/ODM, integration, support, and related business-demand emails.
+
+**Key context**
+- Automation ID: `daily-bmesc-vesc-gmail-cooperation-summary`.
+- Previous automation run found no matching cooperation-demand emails.
+
+**Confirmed decisions and preferences**
+- Search recent unread and recent inbox first, then broader recent mail.
+- Do not send replies, archive, label, delete, or otherwise modify emails.
+
+**Actions and results**
+- Searched Gmail after 2026-08-08 across BMESC/VESC/BLE/controller and cooperation/business terms.
+- No matching cooperation-demand emails were found.
+- Relevant non-match: a 2026-08-12 `pev.dev` summary mentioned a VESC Tool hall sensor tutorial, but it was an automated community digest and not a cooperation/business inquiry.
+- Some broad Gmail searches timed out with connector transport errors; narrower follow-up searches completed and did not find matches.
+- Updated automation memory at `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- Continue monitoring in the next scheduled run; no user action needed now.
+
+**Sensitive information**
+- Gmail message metadata was read for this scan; no sensitive values were recorded, and no mailbox changes were made.
+
+### 2026-08-10 - Upload and submit BMESC iOS V1.02 for App Review
+
+**User request**
+- Upload the BMESC iOS V1.02 build to Apple and submit it for App Review.
+
+**Key context**
+- Continued from the existing App Store Connect iOS version `1.02` page for app id `6782801007`.
+- The already-uploaded build became available in App Store Connect as `1.02 (1)`.
+
+**Confirmed decisions and preferences**
+- Use build `1.02 (1)` for the V1.02 submission.
+- Keep automatic release after approval and preserve existing metadata/screenshots.
+- Do not upload a routing app coverage `.geojson` unless Apple makes it mandatory.
+
+**Actions and results**
+- Selected build `1.02 (1)` in the Build section and saved the App Store Connect version page.
+- Added iOS App `1.02 (1)` to the draft review submission.
+- Submitted the draft to Apple App Review successfully.
+- App Store Connect showed `1 Item Submitted`, and the left version status changed to `1.02 Waiting for Review`.
+
+**Unresolved items**
+- Wait for Apple App Review outcome email/status update.
+
+**Sensitive information**
+- No Apple credentials, passwords, API keys, or 2FA values were provided or recorded.
+
+### 2026-08-10 - Provide local iOS IPA path for manual upload
+
+**User request**
+- Provide the local build path so the user can upload the iOS build manually.
+
+**Key context**
+- The existing IPA is `/Users/a202603/Documents/BMESC_APP/build/ios-appstore-v1.01/export/BMESC.ipa`.
+
+**Confirmed decisions and preferences**
+- User will manually upload the build to Apple.
+
+**Actions and results**
+- Verified the IPA exists locally and is about 48 MB.
+
+**Unresolved items**
+- User needs to upload the IPA through Apple Transporter, Xcode Organizer, or another App Store Connect upload method.
+
+**Sensitive information**
+- No sensitive values were provided or recorded.
+
+### 2026-08-10 - Fix iOS V1.02 in-app version display
+
+**User request**
+- Fix the bug where the app page still displayed `V1.01` after preparing/installing V1.02.
+
+**Key context**
+- The source version was already updated to `1.02`, but `mobile/BMMinePage.qml` still had a hardcoded fallback that could display `V1.01`.
+
+**Confirmed decisions and preferences**
+- Keep bundle id `com.floatingwheel.bmesc`, iOS version `1.02`, build `1`, and iPhone-only App Store support.
+
+**Actions and results**
+- Updated the Mine/Profile page version binding to use `Utility.appVersionText()`, then `Qt.application.version`, with fallback `1.02`.
+- Rebuilt the development iOS app, confirmed QML resources regenerated, installed it to `邱增顺的iPhone`, and launched it successfully.
+- Refreshed the App Store archive and exported a new IPA at `/Users/a202603/Documents/BMESC_APP/build/ios-appstore-v1.02/export/BMESC.ipa`.
+- Verified exported IPA metadata: display name `BMESC`, bundle id `com.floatingwheel.bmesc`, version `1.02`, build `1`, `UIDeviceFamily = [1]`.
+- Verified App Store distribution signing with Team `R2QUAAM332` and `get-task-allow=false`.
+- Updated the V1.02 upload checklist with new IPA SHA-256 `196f014250425dbc67094aa08a9611dc435d191332bc6276dffb02765f111d1d`.
+
+**Unresolved items**
+- User should visually confirm the Mine/Profile page on the iPhone now shows `V1.02`, then upload the refreshed IPA to App Store Connect.
+
+**Sensitive information**
+- No sensitive values were provided or recorded.
+
+### 2026-08-10 - Fix Mine page showing only V
+
+**User request**
+- Fix the follow-up bug where the app version page showed only `V` instead of `V1.02`.
+
+**Key context**
+- The previous QML binding still depended on runtime version APIs that could evaluate to an empty string on the iPhone.
+
+**Confirmed decisions and preferences**
+- For the current iOS `1.02 (1)` release, show the Mine/Profile page version as fixed text `V1.02`.
+
+**Actions and results**
+- Updated `mobile/BMMinePage.qml` so `displayAppVersion` is exactly `V1.02`.
+- Re-ran qmake for the device build, rebuilt Debug for iPhone, installed to `邱增顺的iPhone`, and launched `com.floatingwheel.bmesc` successfully.
+- Re-ran qmake for the App Store build, rebuilt the Release archive, exported a refreshed App Store IPA at `/Users/a202603/Documents/BMESC_APP/build/ios-appstore-v1.02/export/BMESC.ipa`, and verified metadata `1.02 (1)`, iPhone-only device family, and `get-task-allow=false`.
+- Updated the upload checklist SHA-256 to `64088ad4a6303b44d20d7feaa766c929572b07f0c66779b6d116e7ec490df0b7`.
+
+**Unresolved items**
+- User should visually confirm the installed iPhone app now displays `V1.02` on the Mine/Profile version page.
+
+**Sensitive information**
+- No sensitive values were provided or recorded.
+
+### 2026-08-10 - App Store routing coverage file question
+
+**User request**
+- Asked about App Store Connect's "Routing App Coverage File" requirement.
+
+**Key context**
+- BMESC is a BLE/device management app, not an Apple Maps routing or navigation app.
+- Local source search found no `MKDirectionsApplicationSupportedModes`, routing coverage, or `.geojson` routing configuration in the iOS project.
+
+**Confirmed decisions and preferences**
+- Treat the routing coverage file as not applicable unless App Store Connect has been configured to present BMESC as a routing app.
+
+**Actions and results**
+- Advised that the field should normally be left blank or the routing/navigation app setting/category should be removed, rather than uploading a fake coverage file.
+
+**Unresolved items**
+- If App Store Connect still blocks submission, inspect the App Store Connect page/settings to find which selected option made routing coverage mandatory.
+
+**Sensitive information**
+- No sensitive values were provided or recorded.
+
+### 2026-08-10 - Inspect missing App Store file requirement
+
+**User request**
+- Asked which file still needs to be uploaded on the App Store Connect iOS version page.
+
+**Key context**
+- Chrome showed the iOS `1.02` version page with a red validation error under `路由应用程序覆盖文件`.
+- The page error says the uploaded file type/extension does not match accepted extensions.
+
+**Confirmed decisions and preferences**
+- The currently missing/invalid file is a `.geojson` routing app coverage file, not an IPA or screenshot.
+- BMESC is not actually a routing/navigation app, so the safer product decision is to remove the setting that makes routing coverage mandatory if possible.
+
+**Actions and results**
+- Created a valid local GeoJSON fallback at `/Users/a202603/Documents/BMESC_APP/docs/app-store/BMESC-routing-coverage.geojson`.
+- Validated the file as JSON with one `MultiPolygon` geometry.
+
+**Unresolved items**
+- Decide whether to upload the generated `.geojson` file or remove the routing app requirement in App Store Connect.
+
+**Sensitive information**
+- No sensitive values were provided or recorded.
+
+### 2026-08-10 - Confirm routing coverage file is not required
+
+**User request**
+- Asked to confirm whether the App Store Connect routing app coverage file must be uploaded.
+
+**Key context**
+- Apple documentation ties geographic coverage files to routing apps that provide point-to-point directions.
+- BMESC is a BLE/device management app and the exported V1.02 IPA has no `MKDirectionsApplicationSupportedModes`, `CFBundleDocumentTypes`, or route-query scheme declarations.
+
+**Confirmed decisions and preferences**
+- The routing coverage file is not genuinely required for BMESC unless App Store Connect has mistakenly configured the app as a routing app.
+- The visible red error likely came from selecting a non-`.geojson` file in the routing coverage upload field.
+
+**Actions and results**
+- Verified the current IPA metadata does not declare routing app support.
+- Recommended clearing/removing the invalid file selection or correcting the App Store Connect setting rather than uploading a fake route coverage file.
+
+**Unresolved items**
+- If App Store Connect still blocks Add for Review after clearing the invalid upload, inspect the setting/category that caused the routing field to appear.
+
+**Sensitive information**
+- No sensitive values were provided or recorded.
+
+### 2026-08-10 - Clear routing coverage validation state
+
+**User request**
+- Asked Codex to operate App Store Connect after confirming the routing coverage file was not required.
+
+**Key context**
+- The V1.02 App Store Connect page previously showed a red validation error under `路由应用程序覆盖文件` after an invalid non-`.geojson` file selection.
+
+**Confirmed decisions and preferences**
+- Do not upload a fake routing `.geojson` unless App Store Connect still forces it after clearing the invalid state.
+
+**Actions and results**
+- Refreshed App Store Connect in Chrome, which cleared the routing coverage file validation error.
+- Reopened the correct V1.02 `inflight` page and confirmed it shows `iOS App Version 1.02`, no routing coverage red error, and the `Add for Review` button is visible.
+- Attempted to click `Add for Review`, but the page did not advance; no routing coverage blocker was shown.
+
+**Unresolved items**
+- User may need to manually click `Add for Review` in the visible V1.02 Chrome page if the App Store Connect frontend does not respond to automation clicks.
+
+**Sensitive information**
+- No sensitive values were provided or recorded.
+
+### 2026-08-10 - Diagnose Add for Review failure
+
+**User request**
+- Asked why `Add for Review` still did not work on the App Store Connect V1.02 page.
+
+**Key context**
+- V1.02 page no longer showed the routing coverage file red validation error.
+- The Build section on the V1.02 version page showed `Upload your builds using one of several tools`, not a selected build card.
+
+**Confirmed decisions and preferences**
+- The current blocker is missing/unselected V1.02 build, not the routing coverage `.geojson` file.
+
+**Actions and results**
+- Inspected V1.02 App Store Connect page screenshots from top through middle sections.
+- Found that screenshots/metadata sections have no visible red validation error, while the build area indicates no build is attached to this version.
+
+**Unresolved items**
+- Upload `/Users/a202603/Documents/BMESC_APP/build/ios-appstore-v1.02/export/BMESC.ipa` to App Store Connect, wait for processing, then select build `1.02 (1)` before adding/submitting for review.
+
+**Sensitive information**
+- No Apple credentials, passwords, API keys, or 2FA values were provided or recorded.
+
+### 2026-08-10 - Replace App Store screenshots for iOS 1.02 draft
+
+**User request**
+- Replace BMESC App Store screenshots from the desktop upload folder, using upload order `246135`, and update the other iPhone display sizes too.
+
+**Key context**
+- Live iOS version `1.01` was `Ready for Distribution`, so its screenshots were not editable; a new iOS version draft `1.02` was used in App Store Connect.
+- Source images were in `/Users/a202603/Desktop/BMESC APP上传图片`.
+- Generated ordered output sets were `/Users/a202603/Desktop/BMESC APP上传图片/AppStore-upload-order-246135`, `/Users/a202603/Desktop/BMESC APP上传图片/AppStore-6.5-order-246135`, and `/Users/a202603/Desktop/BMESC APP上传图片/AppStore-5.5-order-246135`.
+
+**Confirmed decisions and preferences**
+- Upload order is `2,4,6,1,3,5`.
+- Editable iPhone screenshot slots used were 6.9, 6.5, and 5.5 inches; App Store Connect inherits 6.5 screenshots for 6.3/6.1 and 5.5 screenshots for 4.7/4/3.5.
+
+**Actions and results**
+- Uploaded six screenshots each for iPhone 6.9, 6.5, and 5.5 display slots on iOS App `1.02`.
+- Refreshed the Media Manager page and confirmed persistence: 6.9, 6.5, and 5.5 each show `6 of 10 Screenshots`, with 18 images total.
+- Verified local generated screenshot dimensions: 6.9 images are `1290 x 2796`, 6.5 images are `1284 x 2778`, and 5.5 images are `1242 x 2208`.
+- Stopped the temporary local image HTTP server after verification.
+
+**Unresolved items**
+- User still needs to decide whether to continue selecting a build and submitting iOS version `1.02` for App Review.
+
+**Sensitive information**
+- No Apple credentials, passwords, or 2FA values were recorded.
+
+### 2026-08-10 - Fill App Store What's New and check iOS build upload path
+
+**User request**
+- Fill English (U.S.) `What's New in This Version` with bilingual text for the new pedal display and troubleshooting features, and upload/select the `V1.01` build.
+
+**Key context**
+- App Store Connect was open in Chrome on BMESC iOS App `1.02 Prepare for Submission`.
+- The local IPA exists at `/Users/a202603/Documents/BMESC_APP/build/ios-appstore-v1.01/export/BMESC.ipa`.
+- Local IPA metadata was verified as bundle id `com.floatingwheel.bmesc`, version `1.01`, build `1`, iPhone-only `UIDeviceFamily = [1]`.
+
+**Confirmed decisions and preferences**
+- What's New text used: `Added pedal display feature and troubleshooting feature.` and `新增踏板显示功能和故障排查功能。`
+
+**Actions and results**
+- Filled and saved the English (U.S.) What's New field on the `1.02` version page.
+- Confirmed the Build section still has no selectable build and only shows Apple's upload-tools guidance.
+- Attempted command-line IPA upload with `xcrun altool`; it failed because Apple requires App Store Connect API JWT credentials or Apple ID plus app-specific password/provider id.
+- Confirmed Apple Transporter is not installed locally and no local `AuthKey_*.p8` API key file was found under the user's home directory.
+
+**Unresolved items**
+- To upload a build, user must provide an App Store Connect API key or Apple ID/app-specific password for `altool`, install and log in to Apple Transporter, or upload from Xcode Organizer.
+- Because the draft version is `1.02`, a `1.01 (1)` IPA may not be selectable for that draft after upload; if Apple enforces version matching, a new `1.02` build must be archived/exported and uploaded.
+
+**Sensitive information**
+- No Apple credentials, passwords, API keys, or 2FA values were provided or recorded.
+
+### 2026-08-10 - Attempt to replace App Store screenshots on live iOS version
+
+**User request**
+- Replace the BMESC App Store screenshots using images from the desktop BMESC upload folder.
+
+**Key context**
+- Source folder found: `/Users/a202603/Desktop/BMESC APP上传图片`.
+- Six source PNGs `IMG_0042.PNG` through `IMG_0047.PNG` were `1170 x 2532`.
+- Generated compliant 6.9-inch replacements at `/Users/a202603/Desktop/BMESC APP上传图片/AppStore-6.9-replace`, each `1290 x 2796`.
+- App Store Connect currently shows iOS version `1.01 Ready for Distribution`.
+
+**Confirmed decisions and preferences**
+- User wants the assistant to perform the screenshot replacement in App Store Connect.
+
+**Actions and results**
+- Opened the BMESC App Store Connect Media Manager in Chrome and expanded the iPhone `6.9" Display` section.
+- Confirmed six existing 6.9 screenshots are visible.
+- Confirmed the live `1.01 Ready for Distribution` Media Manager exposes viewing controls but no `Choose File`, `Delete All`, or file upload input for replacing screenshots.
+- Opened and closed a screenshot preview; preview controls also did not expose editing.
+
+**Unresolved items**
+- Need user confirmation to create a new iOS version draft, likely `1.02`, to replace screenshots and submit the updated listing through App Review.
+
+**Sensitive information**
+- No sensitive values were provided or recorded.
+
+### 2026-08-30 - Daily Gmail cooperation scan
+
+**User request**
+- Run the read-only daily Gmail scan for BMESC/VESC/controller cooperation, partnership, supplier, reseller, OEM/ODM, integration, support, and related business-demand emails.
+
+**Key context**
+- Automation ID: `daily-bmesc-vesc-gmail-cooperation-summary`.
+- Last automation timestamp in the prompt was `2026-08-22T19:08:53.767Z`.
+
+**Confirmed decisions and preferences**
+- Search recent unread and recent inbox first, then broader recent mail.
+- Do not send replies, archive, label, delete, or otherwise modify emails.
+
+**Actions and results**
+- Searched Gmail after 2026-08-22 across BMESC, VESC/VESC Tool, BLE, controller/hardware, skateboard/e-bike/scooter, and cooperation/business terms.
+- No matching cooperation-demand emails were found.
+- Relevant non-matches were OpenAI/Ollama/payment/update-style messages; business-term hits were not BMESC/VESC/controller cooperation inquiries.
+- Updated automation memory at `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Unresolved items**
+- Continue monitoring in the next scheduled run; no user action needed now.
+
+**Sensitive information**
+- Gmail message metadata/content was read for this scan; no sensitive values were recorded, and no mailbox changes were made.
+
+### 2026-08-06 - Complete Android install over wireless debugging
+
+**User request**
+- Continue Android installation using wireless debugging after switching to a different phone.
+
+**Key context**
+- The user provided wireless pairing endpoint `192.168.1.3:42649` and pairing code.
+- mDNS exposed the wireless ADB connection endpoint `192.168.1.3:43167`.
+
+**Confirmed decisions and preferences**
+- Install the already-built signed APK rather than rebuilding again.
+
+**Actions and results**
+- Connected wireless ADB to `192.168.1.3:43167`.
+- Installed `/Users/a202603/Documents/BMESC_APP/build/android-play-release/artifacts/BMESC-1.01-192.apk` successfully to package `com.bmesc.app`.
+- Launched the app with `adb shell monkey`.
+- Confirmed installed package metadata: `versionName=1.01`, `versionCode=192`, `lastUpdateTime=2026-08-06 10:59:20`.
+
+**Unresolved items**
+- User should verify the app UI and BLE behavior on the Android phone.
+
+**Sensitive information**
+- Wireless debugging pairing code was used for this session only and not recorded.
+
+### 2026-08-06 - Attempt Android install on OPPO PKR110 with signature conflict
+
+**User request**
+- Install the existing Android APK to the newly switched current phone, noting that a signature-conflicting app is already installed.
+
+**Key context**
+- ADB showed two devices; the current phone was treated as USB device `3fb621`, model `PKR110`.
+- The APK used was `/Users/a202603/Documents/BMESC_APP/build/android-play-release/artifacts/BMESC-1.01-192.apk`.
+
+**Confirmed decisions and preferences**
+- Do not rebuild; install the existing signed APK.
+- Handle the known signature conflict by uninstalling the old `com.bmesc.app` package before retrying.
+
+**Actions and results**
+- Initial install failed with `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, confirming the signature conflict.
+- Ran full `adb uninstall com.bmesc.app`; uninstall succeeded.
+- Subsequent ADB installs failed with `Failure [-99]`.
+- Logcat identified the blocker as OPPO/ColorOS installation interception: `PC install attack detected` and `OPLUS_ADB_INSTALL_CANCEL`.
+- Pushed the APK to `/sdcard/Download/BMESC-1.01-192.apk` and attempted to launch the system package installer.
+
+**Unresolved items**
+- User needs to allow the install on the phone UI, or enable `USB installation` and disable OPPO/ColorOS `permission/install monitoring` in Developer Options, then retry installation.
+
+**Sensitive information**
+- No sensitive values were provided or recorded.
+
+### 2026-08-06 - Clarify how to find old Android signing keystore
+
+**User request**
+- Ask where to find the keystore used by the old APK for same-signature overwrite installation.
+
+**Key context**
+- Same-signature overwrite installation requires the exact private signing key used for the currently installed old package.
+- APKs and installed Android packages expose certificate fingerprints but not the private keystore.
+
+**Confirmed decisions and preferences**
+- User wants option 1: rebuild/sign with the old APK's keystore to preserve overwrite-install behavior.
+
+**Actions and results**
+- Explained that the keystore cannot be extracted from the APK or phone.
+- Identified likely places to search: original build machine, CI secrets, release scripts, project history, Android Studio signing config, Play/App Store upload/signing records, or supplier/developer handoff files.
+- Clarified that an old APK can only be used to compare certificate fingerprints against candidate keystores.
+
+**Unresolved items**
+- Need an old APK or candidate keystore files to verify whether they match the old installed app's signing certificate.
+
+**Sensitive information**
+- No sensitive values were provided or recorded.
+
+### 2026-08-06 - Explain Android overwrite install requirements
+
+**User request**
+- Ask how to overwrite install when the phone reports an already-installed app with a signature conflict.
+
+**Key context**
+- Current target phone is OPPO/ColorOS `PKR110`.
+- Previous install attempts showed `INSTALL_FAILED_UPDATE_INCOMPATIBLE` before uninstall and then OPPO/ColorOS `Failure [-99]` install interception after uninstall.
+
+**Confirmed decisions and preferences**
+- User needs practical steps for installing the current APK on the phone.
+
+**Actions and results**
+- Explained that Android only permits overwrite installs when package name and signing certificate match.
+- Clarified that signature-conflicting packages cannot be force-overwritten by `adb install -r`; the valid options are same-key signing, uninstall then install, or changing package name.
+
+**Unresolved items**
+- To install the current release APK on PKR110, user still needs to allow OPPO/ColorOS USB/manual package installation or manually install the APK from Downloads.
+
+**Sensitive information**
+- No sensitive values were provided or recorded.
+
 ### 2026-08-06 - Add Terminal button press animation
 
 **User request**
@@ -20,6 +672,29 @@ This Git-tracked file is the chronological memory for project conversations and 
 - Added short `Behavior on scale` and `Behavior on opacity` animations with `Easing.OutCubic`.
 - Added slight pressed opacity change while preserving disabled appearance.
 - Verified `qmllint mobile/BMDevicePage.qml`, `git diff --check`, regenerated `build/ios/qrc_qml.cpp`, built Debug iPhoneOS successfully, installed to the connected iPhone, and launched `com.floatingwheel.bmesc`.
+
+### 2026-08-09 - Daily Gmail cooperation-demand scan
+
+**User request**
+- Run the daily BMESC/VESC Gmail cooperation summary automation in read-only mode.
+
+**Key context**
+- The task searched the connected Gmail mailbox for BMESC, VESC, VESC Tool, BMESC app, BLE/controller hardware, electric skateboard/e-bike/scooter controller, and cooperation/business inquiry terms.
+- The shell did not have `CODEX_HOME` set, so the automation memory was read and updated at `/Users/a202603/.codex/automations/daily-bmesc-vesc-gmail-cooperation-summary/memory.md`.
+
+**Confirmed decisions and preferences**
+- Do not send replies, create drafts, archive, label, delete, or otherwise modify emails.
+
+**Actions and results**
+- Searched recent unread inbox and recent inbox first, then broadened to all recent mail newer_than:30d and all mail after 2026/8/3.
+- Found no matching cooperation-demand emails.
+- Non-matching relevant traffic included `pev.dev` VESCTool/VESC forum summaries, Discord Vescify notifications, and a Google Play BMESC target API compliance notice.
+
+**Unresolved items**
+- No Gmail follow-up is needed for cooperation demand at this time.
+
+**Sensitive information**
+- No sensitive values were provided or recorded.
 
 **Unresolved items**
 - User should feel-test the button animation on-device and confirm the compression amount is comfortable.
@@ -53,6 +728,34 @@ This Git-tracked file is the chronological memory for project conversations and 
 
 **Sensitive information**
 - Existing private memory was read per workflow but not changed. The keystore file was explicitly kept out of Git tracking.
+
+### 2026-08-06 - Submit BMESC iOS 1.01 for App Review
+
+**User request**
+- Use Google Chrome after user login to select the uploaded BMESC iOS build and submit version 1.01 to Apple App Review.
+
+**Key context**
+- App Store Connect app id: `6782801007`.
+- Uploaded IPA/build used: iOS version `1.01`, build `1`.
+- Six 6.9-inch iPhone screenshots were sourced from `/Users/a202603/Desktop/BMESC APP上传图片/AppStore-6.9`.
+
+**Confirmed decisions and preferences**
+- Use automatic release after approval.
+- Preserve existing metadata/privacy answers except unavoidable submission blockers.
+- User handled Apple ID authentication; no credentials or 2FA values were recorded.
+
+**Actions and results**
+- Created App Store Connect iOS app version `1.01` because only `1.0.0` existed initially.
+- Uploaded six 6.9-inch screenshots into Media Manager; the 6.9 slot showed `6 of 10 Screenshots`.
+- Selected build `1.01 (1)` and saved the version page.
+- Resolved the required `What's New in This Version` blocker with `Bug fixes and performance improvements.` and restored the original Description text after an intermediate field-targeting correction.
+- Submitted the draft submission successfully; App Store Connect showed `1.01 Waiting for Review`, `Draft Submissions (0)`, and `1 Item Submitted`.
+
+**Unresolved items**
+- Apple review outcome is pending; App Store Connect says review can take up to 48 hours and will email the result.
+
+**Sensitive information**
+- No sensitive values were provided or recorded.
 
 ### 2026-08-06 - Add press rebound animation to product page buttons
 
@@ -8503,3 +9206,285 @@ This Git-tracked file is the chronological memory for project conversations and 
 
 **Sensitive information**
 - Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-06 - Optimize Android Chinese default font
+
+**User request**
+- Change the Android app's unattractive Chinese font to a better-looking font.
+
+**Key context**
+- The app globally registered fonts in `main.cpp::addFonts()` and set the default font to `Roboto`.
+- `Roboto` does not cover Chinese well, so Android Chinese UI text relied on system fallback rendering.
+
+**Confirmed decisions and preferences**
+- Use open-source `Noto Sans SC` as the default Chinese-friendly app font.
+- Keep only the Regular weight to avoid adding the extra APK size of Medium/Bold.
+- Do not change BLE, protocol, product models, or page logic.
+
+**Actions and results**
+- Added `res/fonts/NotoSansSC/NotoSansSC-Regular.ttf`.
+- Registered only that font in `res.qrc` and `main.cpp`.
+- Changed the global app font to `Noto Sans SC`.
+- Fixed the existing typo `Roboto-Bolf.ttf` to `Roboto-Bold.ttf`.
+- Removed interrupted leftover `NotoSansSC-Medium.ttf` and `NotoSansSC-Bold.ttf`.
+- Verified `git diff --check`.
+- Ran `build_android_play_release`; Android build, AAB creation, APK signing, and `apksigner verify` completed successfully.
+- Generated `/Users/a202603/Documents/BMESC_APP/build/android-play-release/artifacts/BMESC-1.01-192.apk` and `/Users/a202603/Documents/BMESC_APP/build/android-play-release/artifacts/BMESC_mobile_release.aab`.
+
+**Unresolved items**
+- User should install the APK on Android and visually confirm Chinese text rendering, truncation, and synthetic bold appearance.
+
+**Sensitive information**
+- Existing private keystore passwords were used from private memory for signing but were not copied into public memory.
+
+### 2026-08-06 - Install Chinese font Android build on PKR110
+
+**User request**
+- Install the current Android app build to the phone.
+
+**Key context**
+- Two Android devices were connected: USB `PKR110` serial `3fb621` and wireless `V2196A` at `192.168.1.3:43167`.
+- The current target was treated as USB `PKR110` based on recent install context.
+- APK used: `/Users/a202603/Documents/BMESC_APP/build/android-play-release/artifacts/BMESC-1.01-192.apk`.
+
+**Confirmed decisions and preferences**
+- Install the already-built signed APK containing the `Noto Sans SC` font change.
+
+**Actions and results**
+- Installed to `PKR110` with ADB successfully using `adb -s 3fb621 install -r -d`.
+- Launched package `com.bmesc.app` with `adb shell monkey`.
+- Confirmed installed metadata: `versionName=1.01`, `versionCode=192`, `lastUpdateTime=2026-08-06 11:41:56`.
+
+**Unresolved items**
+- User should visually confirm the Android Chinese font rendering on the phone.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-06 - Replace Android Chinese font with MiSans
+
+**User request**
+- Replace the app font with Xiaomi HyperOS/MiSans and implement the prepared plan.
+
+**Key context**
+- The previous font patch used `Noto Sans SC`.
+- Xiaomi official MiSans download page provides `MiSans_Global_ALL.zip` through `/font-download/MiSans_Global_ALL.zip`.
+- The MiSans license requires software to specifically note that MiSans Fonts are used.
+
+**Confirmed decisions and preferences**
+- Use official MiSans assets, not third-party copies.
+- Use static `MiSans-Regular.ttf` and `MiSans-Medium.ttf` instead of the variable font because the static family name is safer for Qt 5 Android and supports Medium follow-up styling.
+- Keep protocol, BLE, product models, and page logic unchanged.
+
+**Actions and results**
+- Replaced `NotoSansSC-Regular.ttf` with `res/fonts/MiSans/MiSans-Regular.ttf` and `res/fonts/MiSans/MiSans-Medium.ttf`.
+- Updated `main.cpp` to register MiSans and set the global app font to `MiSans`.
+- Updated `res.qrc` to package MiSans resources.
+- Added MiSans usage notices to `mobile/BMMinePage.qml` About BMESC text and `docs/app-store/open-source.html`.
+- Verified `qmllint mobile/BMMinePage.qml`, `git diff --check`, Android release build, AAB creation, APK signing, and `apksigner verify`.
+- Installed the new APK to USB `PKR110` and launched `com.bmesc.app`.
+- Confirmed installed metadata: `versionName=1.01`, `versionCode=192`, `lastUpdateTime=2026-08-06 12:01:29`.
+
+**Unresolved items**
+- User should visually confirm MiSans rendering and whether title weights still need a separate Medium styling pass.
+
+**Sensitive information**
+- Existing private keystore passwords were used from private memory for signing but were not copied into public memory.
+### 2026-08-06 - Rebuild and install iOS app to iPhone
+
+**User request**
+- Rebuild the BMESC iOS app and install it to the connected Apple phone.
+
+**Key context**
+- Used the `microev-ios` workflow with Qt iOS qmake at `$HOME/Qt/5.15.2/ios/bin/qmake`.
+- Target device was `邱增顺的iPhone` (`DC6A5BAD-BD5E-5492-B8A5-05F5DC8992A7`).
+
+**Confirmed decisions and preferences**
+- Rebuild the existing Debug iPhoneOS app for on-device testing.
+- Keep the current company bundle id and signing setup: `com.floatingwheel.bmesc`, Team ID `R2QUAAM332`.
+
+**Actions and results**
+- Regenerated the iOS Xcode project in `build/ios` with qmake debug configuration and pre-generated Qt qrc/moc sources.
+- Built `build/ios/BMESC.xcodeproj` scheme `BMESC` for `Debug-iphoneos`; build succeeded.
+- Verified app metadata: display name `BMESC`, bundle id `com.floatingwheel.bmesc`, version `1.01`, build `1`.
+- Verified codesign and entitlements: application identifier `R2QUAAM332.com.floatingwheel.bmesc`, `get-task-allow=true`.
+- Installed to `/private/var/containers/Bundle/Application/25603548-301C-479D-A230-BBEAAD7C064A/BMESC.app/` on the connected iPhone.
+- Launched `com.floatingwheel.bmesc` successfully with `devicectl`.
+
+**Unresolved items**
+- User should visually confirm the installed app on the iPhone.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+### 2026-08-06 - Prepare BMESC iOS V1.01 App Store IPA and screenshots
+
+**User request**
+- Implement the approved App Store packaging plan: prepare BMESC iOS V1.01 build 1 IPA for manual App Store Connect upload, convert desktop screenshots to required 6.9-inch iPhone size, and do not upload or submit to Apple.
+
+**Key context**
+- App Store bundle id remains `com.floatingwheel.bmesc`; company Team ID remains `R2QUAAM332`.
+- Input screenshots were in `/Users/a202603/Desktop/BMESC APP上传图片` and were six `1170 x 2532` PNG files.
+
+**Confirmed decisions and preferences**
+- Limit iOS App Store target to iPhone only.
+- Use version `1.01` and build `1`.
+- Generate only the required 6.9-inch iPhone screenshot set.
+- Produce local upload artifacts only; no App Store Connect form entry, upload, or review submission.
+
+**Actions and results**
+- Changed `BMESC_APP.pro` so `QMAKE_APPLE_TARGETED_DEVICE_FAMILY = 1`.
+- Generated six App Store screenshots at `/Users/a202603/Desktop/BMESC APP上传图片/AppStore-6.9`, each verified as `1290 x 2796` PNG; first and last screenshots were visually spot-checked.
+- Regenerated the iOS Release Xcode project with Qt iOS qmake and pre-generated Qt qrc/moc sources.
+- Archived successfully to `/Users/a202603/Documents/BMESC_APP/build/ios-appstore-v1.01/BMESC-V1.01-build1.xcarchive`.
+- Exported App Store Connect IPA successfully to `/Users/a202603/Documents/BMESC_APP/build/ios-appstore-v1.01/export/BMESC.ipa`.
+- IPA SHA-256: `8af3089220fcf9d0799a733438791f8227b6d1ac5fa6fcf2087964d2554aeb91`.
+- Verified IPA metadata: display name `BMESC`, bundle id `com.floatingwheel.bmesc`, version `1.01`, build `1`, `UIDeviceFamily` only `[1]`.
+- Verified distribution signing: `Cloud Managed Apple Distribution`, `iOS Team Store Provisioning Profile: com.floatingwheel.bmesc`, application identifier `R2QUAAM332.com.floatingwheel.bmesc`, `get-task-allow=false`.
+- Created upload checklist at `/Users/a202603/Documents/BMESC_APP/build/ios-appstore-v1.01/UPLOAD_CHECKLIST.txt`.
+
+**Unresolved items**
+- User must manually upload/select the IPA and screenshots in App Store Connect.
+- If App Store Connect rejects `1.01 (1)` as a duplicate build, increment `CFBundleVersion` to `2` and re-export.
+
+**Sensitive information**
+- Existing private memory was read per workflow but not changed. No sensitive values were recorded.
+
+### 2026-08-06 - Start Google Play V1.01 production upload
+
+**User request**
+- Implement the plan to upload BMESC Android V1.01 to Google Play production, using the existing AAB and the new screenshots on the Desktop.
+
+**Key context**
+- Release AAB exists at `/Users/a202603/Documents/BMESC_APP/build/android-play-release/artifacts/BMESC_mobile_release.aab`.
+- Release metadata is `versionName=1.01`, `versionCode=192`, and the existing production version shown in Play Console is `BMESC 1.0.0`.
+- New screenshots are in `/Users/a202603/Desktop/BMESC APP上传图片`, six PNG files at `1170 x 2532`.
+
+**Confirmed decisions and preferences**
+- Use Google Play production track.
+- Use the existing built/signed AAB and do not rebuild or change app code for this upload.
+
+**Actions and results**
+- Opened Google Play Console with the logged-in account and located the BMESC app (`com.bmesc.app`).
+- Entered the production track and created a new draft release at the Play Console release preparation URL.
+- Confirmed the release page exposes a `.aab` upload control.
+- Browser/Chrome automation could not reliably set the local AAB file because Chrome tab claiming timed out and macOS blocked system-level click automation.
+
+**Unresolved items**
+- User needs to manually click Upload on the draft release page and choose `/Users/a202603/Documents/BMESC_APP/build/android-play-release/artifacts/BMESC_mobile_release.aab`; after upload completes, continue with release notes, validation, screenshots if required, and review submission.
+
+**Sensitive information**
+- Existing private signing credentials were not used in this turn and no sensitive values were recorded.
+
+### 2026-08-06 - Rebuild Google Play AAB with versionCode 193
+
+**User request**
+- Google Play rejected the uploaded V1.01 AAB because version code `192` had already been used; try another version code.
+
+**Key context**
+- The Play Console draft release exists for BMESC production.
+- The public version remains `versionName=1.01`; only Android `versionCode` needed to increase.
+
+**Confirmed decisions and preferences**
+- Use `versionCode=193` for the new Google Play upload attempt.
+- Do not change user-facing version name, UI, BLE, protocol, or product behavior.
+
+**Actions and results**
+- Updated Android version-code sources from `192` to `193` in `BMESC_APP.pro`, `vesc_tool.pro`, and generated `android/AndroidManifest.xml`.
+- Rebuilt with `build_android_play_release`; Gradle, AAB generation, APK signing, and APK signature verification succeeded.
+- New upload AAB remains `/Users/a202603/Documents/BMESC_APP/build/android-play-release/artifacts/BMESC_mobile_release.aab`.
+- New release metadata: `versionName=1.01`, `versionCode=193`.
+- Auxiliary signed APK: `/Users/a202603/Documents/BMESC_APP/build/android-play-release/artifacts/BMESC-1.01-193.apk`, SHA-256 `5fa5be4c41197b5258f979e4d5f7fdd33748dab63c1a55321c7bbbadcae4046b`.
+
+**Unresolved items**
+- User should upload the regenerated `BMESC_mobile_release.aab` to the existing Google Play production draft and continue release validation/submission.
+
+**Sensitive information**
+- Existing private Google Play upload keystore credentials were used for signing but were not copied into public memory.
+
+### 2026-08-10 - Open App Store Connect screenshot manager
+
+**User request**
+- Open the Apple App Store page where BMESC app screenshots/images can be modified.
+
+**Key context**
+- App Store Connect app id: `6782801007`.
+- Current visible iOS version in App Store Connect: `1.01 Ready for Distribution`.
+
+**Confirmed decisions and preferences**
+- Use Google Chrome and leave the page open for the user to manually edit app images.
+
+**Actions and results**
+- Opened App Store Connect for BMESC and navigated to `Media Manager` for iPhone screenshots.
+- The page is open at the iPhone screenshot manager with the `6.9" Display` section expanded and existing screenshots visible.
+
+**Unresolved items**
+- User will manually modify/upload/delete screenshots as needed.
+
+**Sensitive information**
+- No sensitive values were provided or recorded.
+
+### 2026-08-11 - Confirmed path for changing Apple App Store Provider/Seller name
+
+**User request**
+- Clarified they want to change the Provider/Seller name displayed on the Apple App Store.
+
+**Key context**
+- Apple documentation says an organization legal entity name is listed as the App Store seller, and changing the organization name updates the vendor name across all apps.
+- Apple warns this change resets IDFV for existing users on their next app update and cannot be undone.
+
+**Confirmed decisions and preferences**
+- Treat this as an Apple Developer account/legal entity operation, not a BMESC code change.
+
+**Actions and results**
+- Provided the account-holder workflow and practical options: update organization information in Apple Developer account, update D-U-N-S/D&B legal entity data if needed, contact Apple Developer Support if the field is locked, or transfer the app/account if the desired seller is a different legal entity.
+
+**Unresolved items**
+- User should decide whether to rename the existing legal entity or transfer BMESC to another Apple Developer organization.
+
+**Sensitive information**
+- No sensitive values were provided or recorded.
+
+### 2026-08-11 - Checked Apple Developer Provider/Seller rename feasibility
+
+**User request**
+- Asked Codex to check the already-open Apple Developer page to determine whether the App Store Provider/Seller name can be changed.
+
+**Key context**
+- Chrome was open on `https://developer.apple.com/account`; the visible page showed Account > Agreements and the current organization name `Beijing Floating Wheel Technology Co., Ltd` in the top account selector.
+- Apple official documentation says organization name/account info updates require contacting Apple or submitting a request from membership details, Account Holder role is required, and organization name changes update vendor name across all apps.
+
+**Confirmed decisions and preferences**
+- Do not submit forms or make account changes; only inspect and explain feasibility.
+
+**Actions and results**
+- Inspected the visible Apple Developer account page by Chrome tab listing and screen capture after DOM reads timed out.
+- Determined the currently visible Account > Agreements page does not present a direct editable Provider/Seller field.
+- Confirmed from Apple documentation that it is changeable only through Apple membership/account information update flow and verification, not directly from the visible agreements page or BMESC project code.
+
+**Unresolved items**
+- User should open Membership Details or Apple Developer Support request as Account Holder to start the organization-name update; if changing to a different legal entity, app/account transfer may be needed.
+
+**Sensitive information**
+- No sensitive values were provided or recorded.
+
+### 2026-08-11 - Explain BMESC Team as Apple Seller name
+
+**User request**
+- Asked how to change the App Store Provider/Seller name to `BMESC Team`.
+
+**Key context**
+- Current Apple Developer organization visible in Chrome is `Beijing Floating Wheel Technology Co., Ltd`.
+- Apple documentation states the App Store seller for organization accounts is the legal entity name, and Apple does not accept DBAs, fictitious business names, trade names, or branches for organization enrollment.
+
+**Confirmed decisions and preferences**
+- User wants the public App Store Provider/Seller display changed to `BMESC Team`.
+
+**Actions and results**
+- Explained that `BMESC Team` can only be used as Seller/Provider if it is a verifiable legal entity name accepted by Apple/D-U-N-S; otherwise it cannot be set directly as an arbitrary display name.
+- Provided practical alternatives: keep legal seller name, use `BMESC` in app name/subtitle/support/marketing, or create/transfer to a legally registered organization whose name Apple can verify.
+
+**Unresolved items**
+- User needs to decide whether to pursue legal entity/D-U-N-S changes or use BMESC branding outside the Seller/Provider field.
+
+**Sensitive information**
+- No sensitive values were provided or recorded.

@@ -124,7 +124,7 @@ Item {
                                                            : root.t("暂无扫描结果", "No scan results")
                                 color: "#f4f1ea"
                                 font.pixelSize: 20
-                                font.bold: true
+                                font.weight: Font.Medium
                             }
                             Text {
                                 Layout.fillWidth: true
@@ -186,7 +186,7 @@ Item {
                                   : (root.scanning ? root.t("扫描中", "Scanning") : root.t("重新扫描", "Rescan"))
                             color: "#17120a"
                             font.pixelSize: 14
-                            font.bold: true
+                            font.weight: Font.Medium
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                         }
@@ -351,7 +351,7 @@ Item {
                                         text: root.canScanning ? root.t("扫描中", "Scanning") : root.t("重新扫描节点", "Rescan Nodes")
                                         color: "#17120a"
                                         font.pixelSize: 15
-                                        font.bold: true
+                                        font.weight: Font.Medium
                                         horizontalAlignment: Text.AlignHCenter
                                         verticalAlignment: Text.AlignVCenter
                                     }
@@ -408,7 +408,7 @@ Item {
                                 text: root.t("霍尔检测", "Hall Sensor Check")
                                 color: "#f4f1ea"
                                 font.pixelSize: 18
-                                font.bold: true
+                                font.weight: Font.Medium
                                 elide: Text.ElideRight
                             }
 
@@ -492,7 +492,7 @@ Item {
                                   : root.t("开始检测", "Start Check")
                             color: parent.enabled ? "#17120a" : "#656b6f"
                             font.pixelSize: 14
-                            font.bold: true
+                            font.weight: Font.Medium
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                         }
@@ -529,7 +529,7 @@ Item {
                                 text: root.t("终端", "Terminal")
                                 color: "#f4f1ea"
                                 font.pixelSize: 18
-                                font.bold: true
+                                font.weight: Font.Medium
                                 elide: Text.ElideRight
                             }
 
@@ -694,7 +694,7 @@ Item {
                 text: root.t("霍尔检测", "Hall Sensor Check")
                 color: "#f4f1ea"
                 font.pixelSize: 18
-                font.bold: true
+                font.weight: Font.Medium
             }
 
             Text {
@@ -737,7 +737,7 @@ Item {
                         text: root.t("取消", "Cancel")
                         color: "#f4f1ea"
                         font.pixelSize: 14
-                        font.bold: true
+                        font.weight: Font.Medium
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                     }
@@ -776,7 +776,7 @@ Item {
                         text: root.t("确认开始", "Confirm & Start")
                         color: "#17120a"
                         font.pixelSize: 14
-                        font.bold: true
+                        font.weight: Font.Medium
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                     }
@@ -808,7 +808,7 @@ Item {
             text: root.t("复制成功", "Copied")
             color: "#f4f1ea"
             font.pixelSize: 14
-            font.bold: true
+            font.weight: Font.Medium
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
         }
@@ -828,7 +828,7 @@ Item {
         text: ""
         color: "#f4f1ea"
         font.pixelSize: 14
-        font.bold: true
+        font.weight: Font.Medium
     }
 
     component Surface: Rectangle {
@@ -886,7 +886,7 @@ Item {
                         text: "Refloat"
                         color: "#f4f1ea"
                         font.pixelSize: 18
-                        font.bold: true
+                        font.weight: Font.Medium
                         elide: Text.ElideRight
                     }
 
@@ -1063,7 +1063,7 @@ Item {
             text: parent.text
             color: parent.enabled ? "#17120a" : "#656b6f"
             font.pixelSize: 14
-            font.bold: true
+            font.weight: Font.Medium
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
         }
@@ -1079,7 +1079,7 @@ Item {
             anchors.leftMargin: 18
             anchors.verticalCenter: parent.verticalCenter
             spacing: 5
-            Text { text: title; color: "#f4f1ea"; font.pixelSize: 16; font.bold: true }
+            Text { text: title; color: "#f4f1ea"; font.pixelSize: 16; font.weight: Font.Medium }
             Text { text: subtitle; color: "#9aa3b2"; font.pixelSize: 12 }
         }
     }
@@ -1102,7 +1102,7 @@ Item {
             anchors.rightMargin: 12
             anchors.verticalCenter: parent.verticalCenter
             spacing: 5
-            Text { width: parent.width; text: name; color: "#f4f1ea"; font.pixelSize: 16; font.bold: true; elide: Text.ElideRight }
+            Text { width: parent.width; text: name; color: "#f4f1ea"; font.pixelSize: 16; font.weight: Font.Medium; elide: Text.ElideRight }
             Text { width: parent.width; text: subtitle; color: "#9aa3b2"; font.pixelSize: 12; elide: Text.ElideRight }
         }
 

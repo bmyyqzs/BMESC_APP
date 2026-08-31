@@ -103,7 +103,7 @@ Item {
                               : (!root.protocolReady ? root.t("正在识别设备", "Reading Device") : root.t("实时数据已显示", "Live Data Shown"))
                         color: "#17120a"
                         font.pixelSize: 15
-                        font.bold: true
+                        font.weight: Font.Medium
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                     }
@@ -140,7 +140,7 @@ Item {
                         text: root.t("断开", "Disconnect")
                         color: "#ff5c6f"
                         font.pixelSize: 15
-                        font.bold: true
+                        font.weight: Font.Medium
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                     }
@@ -187,7 +187,7 @@ Item {
                                       ? root.deviceModel.deviceName : root.t("未连接设备", "No device connected")
                                 color: "#f4f1ea"
                                 font.pixelSize: 21
-                                font.bold: true
+                                font.weight: Font.Medium
                                 elide: Text.ElideRight
                             }
                             Text {
@@ -250,7 +250,7 @@ Item {
                             text: root.t("踏板", "Footpad")
                             color: "#9aa3b2"
                             font.pixelSize: 24
-                            font.bold: true
+                            font.weight: Font.Medium
                             horizontalAlignment: Text.AlignHCenter
                             verticalAlignment: Text.AlignVCenter
                             elide: Text.ElideRight

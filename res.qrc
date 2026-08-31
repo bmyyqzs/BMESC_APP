@@ -53,6 +53,8 @@
         <file>res/fonts/Roboto/Roboto-Regular.ttf</file>
         <file>res/fonts/Roboto/Roboto-Thin.ttf</file>
         <file>res/fonts/Roboto/Roboto-ThinItalic.ttf</file>
+        <file>res/fonts/MiSans/MiSans-Regular.ttf</file>
+        <file>res/fonts/MiSans/MiSans-Medium.ttf</file>
         <file>res/images/12s7p_pcb.png</file>
         <file>res/images/esk8.jpg</file>
         <file>res/images/propeller.jpg</file>

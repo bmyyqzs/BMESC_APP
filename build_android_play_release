@@ -11,12 +11,13 @@ export ANDROID_NDK_TOOLCHAIN_VERSION="${ANDROID_NDK_TOOLCHAIN_VERSION:-4.9}"
 export JAVA_HOME="${JAVA_HOME:-$HOME/jdks/amazon-corretto-8.jdk/Contents/Home}"
 
 QT_ANDROID_BIN="${QT_ANDROID_BIN:-$HOME/Qt/5.15.2/android/bin}"
-ANDROID_PLATFORM="${ANDROID_PLATFORM:-android-33}"
+ANDROID_PLATFORM="${ANDROID_PLATFORM:-android-36}"
 OUTPUT_ROOT="build/android-play-release"
 PACKAGE_ROOT="$OUTPUT_ROOT/package"
 KEYSTORE_PATH="${BMESC_UPLOAD_KEYSTORE:-keystores/bmesc-upload-key.jks}"
 KEY_ALIAS="${BMESC_UPLOAD_KEY_ALIAS:-bmesc_upload}"
 BUILD_TOOLS_ROOT="${ANDROID_BUILD_TOOLS_ROOT:-$ANDROID_HOME/build-tools}"
+LIBCXX_16KB_PATH="${BMESC_16KB_LIBCXX:-$ANDROID_HOME/ndk/28.2.13676358/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so}"
 
 if [[ -z "${BMESC_UPLOAD_STOREPASS:-}" ]]; then
     echo "Missing BMESC_UPLOAD_STOREPASS" >&2
@@ -55,6 +56,21 @@ if [[ -z "$VERSION_NAME" || -z "$VERSION_CODE" ]]; then
     exit 1
 fi
 
+patch_libcxx_shared() {
+    local archive="$1"
+    local entry="$2"
+    local patch_root="$OUTPUT_ROOT/libcxx-16kb-patch"
+
+    if [[ ! -f "$LIBCXX_16KB_PATH" ]]; then
+        echo "Missing 16 KB compatible libc++_shared.so: $LIBCXX_16KB_PATH" >&2
+        exit 1
+    fi
+
+    mkdir -p "$patch_root/$(dirname "$entry")"
+    cp "$LIBCXX_16KB_PATH" "$patch_root/$entry"
+    (cd "$patch_root" && zip -q -u "$OLDPWD/$archive" "$entry")
+}
+
 export PATH="$QT_ANDROID_BIN:$JAVA_HOME/bin:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$PATH"
 
 rm -rf "$OUTPUT_ROOT"
@@ -65,6 +81,7 @@ make clean
 make -j8
 make install INSTALL_ROOT="$PACKAGE_ROOT"
 
+set +e
 androiddeployqt \
     --gradle \
     --no-gdbserver \
@@ -74,8 +91,24 @@ androiddeployqt \
     --input android-BMESC-deployment-settings.json \
     --android-platform "$ANDROID_PLATFORM" \
     --jdk "$JAVA_HOME"
+ANDROIDDEPLOYQT_STATUS=$?
+set -e
+
+if [[ ! -f "$PACKAGE_ROOT/gradlew" ]]; then
+    echo "androiddeployqt failed before generating the Gradle project" >&2
+    exit "$ANDROIDDEPLOYQT_STATUS"
+fi
+
+cat >> "$PACKAGE_ROOT/gradle.properties" <<EOF
+android.aapt2FromMavenOverride=$BUILD_TOOLS_DIR/aapt2
+EOF
+
+(cd "$PACKAGE_ROOT" && JAVA_HOME="$JAVA_HOME" PATH="$JAVA_HOME/bin:$PATH" ./gradlew bundleRelease assembleRelease)
 
 mkdir -p "$OUTPUT_ROOT/artifacts"
+AAB_UNSIGNED="$PACKAGE_ROOT/build/outputs/bundle/release/package.aab"
+patch_libcxx_shared "$AAB_UNSIGNED" "base/lib/arm64-v8a/libc++_shared.so"
+
 jarsigner \
     -keystore "$KEYSTORE_PATH" \
     -storepass "$BMESC_UPLOAD_STOREPASS" \
@@ -83,7 +116,7 @@ jarsigner \
     -sigalg SHA256withRSA \
     -digestalg SHA-256 \
     -signedjar "$OUTPUT_ROOT/artifacts/BMESC_mobile_release.aab" \
-    "$PACKAGE_ROOT/build/outputs/bundle/release/package.aab" \
+    "$AAB_UNSIGNED" \
     "$KEY_ALIAS"
 
 jarsigner -verify "$OUTPUT_ROOT/artifacts/BMESC_mobile_release.aab"
@@ -97,6 +130,7 @@ if [[ ! -f "$UNSIGNED_APK" ]]; then
     exit 1
 fi
 
+patch_libcxx_shared "$UNSIGNED_APK" "lib/arm64-v8a/libc++_shared.so"
 "$ZIPALIGN" -f -p 4 "$UNSIGNED_APK" "$ALIGNED_APK"
 "$APKSIGNER" sign \
     --ks "$KEYSTORE_PATH" \

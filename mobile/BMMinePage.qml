@@ -11,8 +11,7 @@ Item {
     readonly property string userAgreementUrl: "https://bmyyqzs.github.io/BMESC_APP/app-store/user-agreement.html"
     readonly property string supportUrl: "https://bmyyqzs.github.io/BMESC_APP/app-store/support.html"
     readonly property string openSourceUrl: "https://bmyyqzs.github.io/BMESC_APP/app-store/open-source.html"
-    readonly property string appVersion: Utility.appVersionText()
-    readonly property string displayAppVersion: "V" + (appVersion.length > 0 ? appVersion : "1.01")
+    readonly property string displayAppVersion: "V1.02"
     readonly property real pageMargin: Math.max(24, Math.min(40, width * 0.065))
     readonly property bool connected: deviceModel ? deviceModel.connected : false
     readonly property bool isEnglish: deviceModel ? deviceModel.isEnglish : false
@@ -114,6 +113,7 @@ Item {
                                                         "BMESC APP\n" +
                                                         "是配套 BMESC 硬件设备使用的移动端管理工具。用户可以通过 APP 查看速度、电量、里程、最高速度、故障日志等常用信息，更直观地了解设备运行状态。\n\n" +
                                                         "BMESC 将持续围绕 VESC 生态进行软硬件优化与适配，为更多电机驱动应用提供稳定、实用、易用的工具和驱动器支持。\n\n" +
+                                                        "本软件使用了 MiSans 字体。\n\n" +
                                                         "如需了解更多信息、技术交流或商务合作，请联系：\n" +
                                                         "op727142092@gmail.com",
                                                         "BMESC is a software and hardware brand for motor-drive applications, providing motor-control hardware devices and mobile management tools around the VESC ecosystem.\n\n" +
@@ -123,6 +123,7 @@ Item {
                                                         "BMESC App\n" +
                                                         "A mobile management tool used with BMESC hardware devices. Users can view common information such as speed, battery level, mileage, top speed, and fault logs through the app to better understand device operating status.\n\n" +
                                                         "BMESC will continue optimizing and adapting software and hardware around the VESC ecosystem, providing stable, practical, and easy-to-use tools and driver support for more motor-drive applications.\n\n" +
+                                                        "This software uses MiSans Fonts.\n\n" +
                                                         "For more information, technical discussion, or business cooperation, contact:\n" +
                                                         "op727142092@gmail.com"))
                     }
@@ -175,7 +176,7 @@ Item {
                         text: root.t("故障日志", "Fault Logs")
                         color: "#f4f1ea"
                         font.pixelSize: 18
-                        font.bold: true
+                        font.weight: Font.Medium
                     }
                     Text {
                         Layout.fillWidth: true
@@ -295,7 +296,7 @@ Item {
                         text: root.t("清除日志", "Clear Logs")
                         color: clearFaultLogsButton.enabled ? "#ff8b8b" : "#67717f"
                         font.pixelSize: 13
-                        font.bold: true
+                        font.weight: Font.Medium
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                     }
@@ -323,7 +324,7 @@ Item {
                         text: root.t("完成", "Done")
                         color: "#17120a"
                         font.pixelSize: 13
-                        font.bold: true
+                        font.weight: Font.Medium
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                     }
@@ -383,7 +384,7 @@ Item {
                 id: infoTitle
                 color: "#f4f1ea"
                 font.pixelSize: 18
-                font.bold: true
+                font.weight: Font.Medium
             }
             Text {
                 id: infoBody
@@ -414,7 +415,7 @@ Item {
                     text: root.t("完成", "Done")
                     color: "#17120a"
                     font.pixelSize: 13
-                    font.bold: true
+                    font.weight: Font.Medium
                     leftPadding: 18
                     rightPadding: 18
                     topPadding: 9
